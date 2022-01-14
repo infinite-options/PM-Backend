@@ -4,6 +4,12 @@
 
 ---
 
+### URLs
+- Development: http://localhost:5000
+- Production: https://t00axvabvb.execute-api.us-west-1.amazonaws.com/dev
+
+---
+
 ### All Routes
 
 - [/properties](#properties)
