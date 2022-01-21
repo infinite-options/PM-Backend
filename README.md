@@ -13,6 +13,8 @@
 ### All Routes
 
 - [/properties](#properties)
+- [/ownerProperties](#ownerproperties)
+- [/managerProperties](#managerproperties)
 - [/users](#users)
 - [/login](#login)
 - [/ownerProfileInfo](#ownerprofileinfo)
@@ -70,7 +72,7 @@
         "utilities": "[\"Trash\", \"Gas\"]",
         "pets_allowed": 1,
         "deposit_for_rent": 1,
-        "picture": "NULL",
+        "images": "NULL",
         "city": "San Jose",
         "taxes": null,
         "mortgages": null
@@ -80,6 +82,7 @@
 
 ##### POST
 - create new property
+- send as multipart/form-data, include image files
 - request JSON:
 ```
 {
@@ -89,7 +92,7 @@
     "city": "San Jose",
     "state": "CA",
     "zip": "95120",
-    "type": "Apartment",
+    "property_type": "Apartment",
     "num_beds": 2,
     "num_baths": 1,
     "area": 1000,
@@ -98,8 +101,7 @@
     "appliances": ["Microwave", "Refrigerator"],
     "utilities": ["Trash", "Gas"],
     "pets_allowed": true,
-    "deposit_for_rent": true,
-    "picture": "NULL"
+    "deposit_for_rent": true
 }
 ```
 - response JSON:
@@ -109,6 +111,22 @@
     "code": 200
 }
 ```
+
+---
+
+### /ownerProperties
+
+##### GET
+- include JWT in header
+- returns information for owner properties, including related manager info
+
+---
+
+### /managerProperties
+
+##### GET
+- include JWT in header
+- returns information for manager properties, including related owner info
 
 ---
 
@@ -416,7 +434,7 @@
       "lease_end": "1/22",
       "rent": 1800
     },
-    "previous_addresses": []
+    "previous_address": []
 }
 ```
 - response JSON:

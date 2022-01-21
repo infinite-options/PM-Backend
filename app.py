@@ -13,11 +13,14 @@ from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals
 from purchases import Purchases
 from payments import Payments
+from ownerProperties import OwnerProperties
+from managerProperties import ManagerProperties
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
 app.config['JWT_SECRET_KEY'] = 'secret'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
 jwt = JWTManager(app)
 
 api.add_resource(Properties, '/properties')
@@ -30,6 +33,8 @@ api.add_resource(BusinessProfileInfo, '/businessProfileInfo')
 api.add_resource(Rentals, '/rentals')
 api.add_resource(Purchases, '/purchases')
 api.add_resource(Payments, '/payments')
+api.add_resource(OwnerProperties, '/ownerProperties')
+api.add_resource(ManagerProperties, '/managerProperties')
 
 if __name__ == '__main__':
     app.run(debug=True)
