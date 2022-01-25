@@ -12,13 +12,8 @@ class OwnerProperties(Resource):
         response = {}
         user = get_jwt_identity()
         with connect() as db:
-            sql = '''
-                SELECT p.*, manager_first_name, manager_last_name, manager_phone_number, manager_email
-                FROM properties p LEFT JOIN managerProfileInfo m ON p.manager_id = m.manager_id
-                WHERE p.owner_id = %(owner_id)s
-            '''
-            args = {
+            where = {
                 'owner_id': user['user_uid']
             }
-            response = db.execute(sql, args)
+            response = db.select('propertyInfo', where)
         return response

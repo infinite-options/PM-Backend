@@ -96,6 +96,25 @@ class DatabaseConnection:
             print(e)
         return response
 
+    def update(self, table, primaryKey, object):
+        response = {}
+        try:
+            sql = f'UPDATE {table} SET '
+            for i, key in enumerate(object.keys()):
+                sql += f'{key} = %({key})s'
+                if i != len(object.keys()) - 1:
+                    sql += ', '
+            sql += f' WHERE '
+            for i, key in enumerate(primaryKey.keys()):
+                sql += f'{key} = %({key})s'
+                object[key] = primaryKey[key]
+                if i != len(primaryKey.keys()) - 1:
+                    sql += ' AND '
+            response = self.execute(sql, object, 'post')
+        except Exception as e:
+            print(e)
+        return response
+
     def call(self, procedure, cmd='get'):
         response = {}
         try:
