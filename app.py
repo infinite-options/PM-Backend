@@ -4,7 +4,7 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
-from properties import Properties
+from properties import Properties, Property
 from users import Users, Login
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo
@@ -15,6 +15,7 @@ from purchases import Purchases
 from payments import Payments
 from ownerProperties import OwnerProperties
 from managerProperties import ManagerProperties
+from refresh import Refresh
 
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +25,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
 jwt = JWTManager(app)
 
 api.add_resource(Properties, '/properties')
+api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(OwnerProfileInfo, '/ownerProfileInfo')
@@ -35,6 +37,7 @@ api.add_resource(Purchases, '/purchases')
 api.add_resource(Payments, '/payments')
 api.add_resource(OwnerProperties, '/ownerProperties')
 api.add_resource(ManagerProperties, '/managerProperties')
+api.add_resource(Refresh, '/refresh')
 
 if __name__ == '__main__':
     app.run(debug=True)
