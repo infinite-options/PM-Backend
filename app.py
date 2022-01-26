@@ -22,6 +22,7 @@ CORS(app)
 api = Api(app)
 app.config['JWT_SECRET_KEY'] = 'secret'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
+app.config['PROPAGATE_EXCEPTIONS'] = True
 jwt = JWTManager(app)
 
 api.add_resource(Properties, '/properties')
