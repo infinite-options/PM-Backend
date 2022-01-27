@@ -15,6 +15,7 @@ from purchases import Purchases
 from payments import Payments
 from ownerProperties import OwnerProperties
 from managerProperties import ManagerProperties
+from tenantProperties import TenantProperties
 from refresh import Refresh
 
 app = Flask(__name__)
@@ -38,6 +39,7 @@ api.add_resource(Purchases, '/purchases')
 api.add_resource(Payments, '/payments')
 api.add_resource(OwnerProperties, '/ownerProperties')
 api.add_resource(ManagerProperties, '/managerProperties')
+api.add_resource(TenantProperties, '/tenantProperties')
 api.add_resource(Refresh, '/refresh')
 
 if __name__ == '__main__':

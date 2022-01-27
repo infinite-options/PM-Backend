@@ -305,6 +305,63 @@
 
 ---
 
+### /tenantProperties
+
+##### GET
+- include JWT in header
+- returns information for tenant properties, including related owner/manager and purchase info
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [{
+            "property_uid": "200-000001",
+            "owner_id": "100-000001",
+            "manager_id": "100-000002",
+            "address": "123 Main St",
+            "unit": "#35",
+            "city": "San Jose",
+            "state": "CA",
+            "zip": "95120",
+            "property_type": "Apartment",
+            "num_beds": 2.0,
+            "num_baths": 2.0,
+            "area": 1000,
+            "listed_rent": 1800,
+            "deposit": 800,
+            "appliances": "{\"Dryer\": false, \"Range\": false, \"Washer\": false, \"Microwave\": true, \"Dishwasher\": false, \"Refrigerator\": true, \"Air Conditioner\": true}",
+            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": true, \"Water\": false, \"Electricity\": false}",
+            "pets_allowed": 1,
+            "deposit_for_rent": 1,
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_cover\", \"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_0\"]",
+            "taxes": null,
+            "mortgages": null,
+            "owner_first_name": "Owner",
+            "owner_last_name": "Test",
+            "owner_phone_number": "(800)000-0001",
+            "owner_email": "owner@gmail.com",
+            "manager_first_name": "Manager",
+            "manager_last_name": "Test",
+            "manager_phone_number": "(800)000-0002",
+            "manager_email": "manager@gmail.com",
+            "rental_uid": "300-000001",
+            "rental_property_id": "200-000001",
+            "tenant_id": "100-000003",
+            "actual_rent": 1800,
+            "lease_start": "1/22",
+            "lease_end": "1/23",
+            "rental_status": "ACTIVE",
+            "tenant_first_name": "Tenant",
+            "tenant_last_name": "Test",
+            "purchases": "[{\"payer\": \"100-000003\", \"amount\": 1800.0, \"receiver\": \"100-000001\", \"description\": \"Rent for January 2022\", \"purchase_uid\": \"400-000001\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"First month's rent\", \"pur_property_id\": \"200-000001\"}, {\"payer\": \"100-000001\", \"amount\": 40.0, \"receiver\": \"100-000004\", \"description\": \"Toilet Plumbing\", \"purchase_uid\": \"400-000002\", \"purchase_type\": \"MAINTENANCE\", \"purchase_notes\": null, \"pur_property_id\": \"200-000001\"}]"
+        }
+    ]
+}
+```
+
+---
+
 
 ### /users
 
