@@ -13,7 +13,7 @@
 ### All Routes
 
 - [/properties](#properties)
-- [/properties/<property_uid>](#properties/<property_uid>)
+- [/properties/{property_uid}](#properties/{property_uid})
 - [/ownerProperties](#ownerproperties)
 - [/managerProperties](#managerproperties)
 - [/users](#users)
@@ -25,6 +25,10 @@
 - [/rentals](#rentals)
 - [/purchases](#purchases)
 - [/payments](#payments)
+- [/businesses](#businesses)
+- [/employees](#employees)
+- [/maintenanceRequests](#maintenanceRequests)
+- [/maintenanceQuotes](#maintenanceQuotes)
 
 ---
 
@@ -134,9 +138,61 @@
 }
 ```
 
+##### PUT
+- update property
+- send as multipart/form-data
+- include image files as img_cover, img_0, img_1...
+- request JSON:
+```
+{
+    "property_uid": "200-000001",
+    "owner_id": "100-000001",
+    "manager_id": "100-000002",
+    "address": "123 Main St",
+    "unit": "#101",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95120",
+    "property_type": "Apartment",
+    "num_beds": 2,
+    "num_baths": 1,
+    "area": 1000,
+    "listed_rent": 1800,
+    "deposit": 800,
+    "appliances": {
+        "Dryer": false,
+        "Range": false,
+        "Washer": false,
+        "Microwave": true,
+        "Dishwasher": false,
+        "Refrigerator": true,
+        "Air Conditioner": true
+    },
+    "utilities": {
+        "Gas": true,
+        "Wifi": false,
+        "Trash": true,
+        "Water": false,
+        "Electricity": false
+    },
+    "pets_allowed": true,
+    "deposit_for_rent": true,
+    "img_cover": "",
+    "img_0": "",
+    "img_1": ""
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
 ---
 
-### /properties/<property_uid>
+### /properties/{property_uid}
 
 #### PUT
 - update property
@@ -538,6 +594,34 @@
 }
 ```
 
+##### PUT
+- update owner info
+- requires JWT authorization
+- request JSON:
+```
+{
+    "first_name": "Owner",
+    "last_name": "Test",
+    "phone_number": "(800)000-0001",
+    "email": "owner@gmail.com",
+    "ein_number": "00-0000001",
+    "ssn": "000-00-0001",
+    "paypal": "owner@gmail.com",
+    "apple_pay": "(800)000-0001",
+    "zelle": "owner@gmail.com",
+    "venmo": "NULL",
+    "account_number": "NULL",
+    "routing_number": "NULL"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
 ---
 
 ### /managerProfileInfo
@@ -614,6 +698,49 @@
 }
 ```
 
+##### PUT
+- update manager info
+- requires JWT authorization
+- request JSON:
+```
+{
+    "first_name": "Manager",
+    "last_name": "Test",
+    "phone_number": "(800)000-0002",
+    "email": "manager@gmail.com",
+    "ein_number": "00-0000002",
+    "ssn": "000-00-0002",
+    "paypal": "manager@gmail.com",
+    "apple_pay": "NULL",
+    "zelle": "NULL",
+    "venmo": "manager@gmail.com",
+    "account_number": "1000000002",
+    "routing_number": "200000002",
+    "fees": [
+      {
+        "fee_name": "Service Charge",
+        "fee_type": "%",
+        "charge": "10%",
+        "of": "Gross Rent",
+        "frequency": "Monthly"
+      }
+    ],
+    "locations": [
+      {
+        "city": "Pasadena",
+        "state": "CA",
+        "distance": 5
+      }
+    ]
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
 ---
 
 ### /tenantProfileInfo
@@ -643,6 +770,42 @@
 
 ##### POST
 - create new tenant info
+- requires JWT authorization
+- request JSON:
+```
+{
+    "first_name": "Tenant",
+    "last_name": "Test",
+    "ssn": "000-00-0003",
+    "drivers_license_number": "A0000003",
+    "current_salary": 75000,
+    "current_job_title": "Software Engineer",
+    "current_job_company": "Infinite Options",
+    "current_address": {
+      "street": "123 Main St",
+      "unit": "",
+      "city": "San Jose",
+      "state": "CA",
+      "zip": "95120",
+      "pm_name": "Manager Test",
+      "pm_number": "00-0000002",
+      "lease_start": "6/19",
+      "lease_end": "1/22",
+      "rent": 1800
+    },
+    "previous_address": []
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update tenant info
 - requires JWT authorization
 - request JSON:
 ```
@@ -707,6 +870,46 @@
 
 ##### POST
 - create new business info
+- requires JWT authorization
+- request JSON:
+```
+{
+    "name": "Hector's Plumbing",
+    "ein_number": "00-0000004",
+    "paypal": "NULL",
+    "apple_pay": "NULL",
+    "zelle": "NULL",
+    "venmo": "NULL",
+    "account_number": "1000000004",
+    "routing_number": "200000004",
+    "services": [
+      {
+        "service_name": "Toilet Plumbing",
+        "charge": 75,
+        "per": "hour"
+      }
+    ],
+    "contact": [
+      {
+        "first_name": "John",
+        "last_name": "Doe",
+        "company_role": "Accounting",
+        "phone_number": "(789)908-9087",
+        "email": "pm@gmail.com"
+      }
+    ]
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update business info
 - requires JWT authorization
 - request JSON:
 ```
@@ -903,6 +1106,361 @@
     "cc_cvv": "123",
     "cc_zip": "12345",
     "payment_type": "CARD"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
+### /businesses
+
+##### GET
+- with no args, return all businesses
+- add args to endpoint to filter results (ex: /businesses?business_type=MANAGEMENT)
+- available filters
+  - business_uid
+  - business_type
+  - business_name
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [{
+        "business_uid": "600-000001",
+        "business_type": "MANAGEMENT",
+        "business_name": "Infinite Options",
+        "business_phone_number": "(800)123-1234",
+        "business_email": "iomanagement@gmail.com",
+        "business_ein_number": "12-1234567",
+        "business_services_fees": "[{\"of\": \"Gross Rent\", \"name\": \"Service Charge\", \"type\": \"%\", \"charge\": 10, \"frequency\": \"Monthly\"}]"
+    }]
+}
+```
+
+##### POST
+- create new business
+- request JSON (MANAGEMENT):
+```
+{
+    "type": "MANAGEMENT",
+    "name": "Infinite Options",
+    "phone_number": "(800)123-1234",
+    "email": "iomanagement@gmail.com",
+    "ein_number": "12-1234567",
+    "services_fees": [{
+        "name": "Service Charge",
+        "type": "%",
+        "charge": 10,
+        "of": "Gross Rent",
+        "frequency": "Monthly"
+    }]
+}
+```
+- request JSON (MAINTENANCE):
+```
+{
+    "type": "MAINTENANCE",
+    "name": "Water Works",
+    "phone_number": "(800)123-8000",
+    "email": "waterworks@gmail.com",
+    "ein_number": "12-8888888",
+    "services_fees": [{
+        "name": "Toilet Plumbing",
+        "type": "$",
+        "charge": 75,
+        "of": "",
+        "frequency": "Hourly"
+    }]
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update business
+- request JSON:
+```
+{
+    "business_uid": "600-000001",
+    "type": "MANAGEMENT",
+    "name": "Infinite Options",
+    "phone_number": "(800)123-1234",
+    "email": "iomanagement@gmail.com",
+    "ein_number": "12-1234567",
+    "services_fees": [{
+        "name": "Service Charge",
+        "type": "%",
+        "charge": 10,
+        "of": "Gross Rent",
+        "frequency": "Monthly"
+    }]
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
+### /employees
+
+##### GET
+- with no args, return all employees
+- add args to endpoint to filter results (ex: /businessAssociations?business_uid=700-0000001)
+- available filters
+  - employee_uid
+  - user_uid
+  - business_uid
+  - employee_role
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [{
+        "employee_uid": "700-000001",
+        "user_uid": "100-000001",
+        "business_uid": "600-000001",
+        "employee_role": "Accountant",
+        "employee_first_name": "John",
+        "employee_last_name": "Doe",
+        "employee_phone_number": "(789)908-9087",
+        "employee_email": "pm@gmail.com",
+        "employee_ssn": "131-89-1839",
+        "employee_ein_number": "12-1313131"
+    }]
+}
+```
+
+##### POST
+- create new employee
+- request JSON:
+```
+{
+    "user_uid": "100-000001",
+    "business_uid": "600-000001",
+    "role": "Accountant",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone_number": "(789)908-9087",
+    "email": "pm@gmail.com",
+    "ssn": "131-89-1839",
+    "ein_number": "12-1313131"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update employee
+- request JSON:
+```
+{
+    "employee_uid": "700-000001",
+    "employee_role": "Accountant",
+    "employee_first_name": "John",
+    "employee_last_name": "Doe",
+    "employee_phone_number": "(789)908-9087",
+    "employee_email": "pm@gmail.com",
+    "employee_ssn": "131-89-1839",
+    "employee_ein_number": "12-1313131"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
+### /maintenanceRequests
+
+##### GET
+- with no args, return all maintenance requests
+- add args to endpoint to filter results (ex: /maintenanceRequests?property_uid=200-0000001)
+- available filters
+  - maintenance_request_uid
+  - property_uid
+  - priority
+  - assigned_business
+  - assigned_worker
+  - status
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [{
+        "maintenance_request_uid": "800-000001",
+        "property_uid": "200-000001",
+        "title": "Bathroom Leaking",
+        "description": "The toilet plumbing is leaking at the base",
+        "images": "[]",
+        "priority": "High",
+        "can_reschedule": 0,
+        "assigned_business": null,
+        "assigned_worker": null,
+        "scheduled_date": null,
+        "frequency": "One time",
+        "notes": null,
+        "status": "NEW"
+    }]
+}
+```
+
+##### POST
+- create new maintenance request
+- send as multipart/form-data
+- include image files as img_0, img_1...
+- request JSON:
+```
+{
+    "property_uid": "200-000001",
+    "title": "Bathroom Leaking",
+    "description": "The toilet plumbing is leaking at the base",
+    "priority": "High",
+    "img_0": "",
+    "img_1": ""
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update maintenance request
+- send as multipart/form-data
+- include image files as img_0, img_1...
+- request JSON:
+```
+{
+    "maintenance_request_uid": "800-000001",
+    "title": "Bathroom Leaking",
+    "description": "The toilet plumbing is leaking at the base",
+    "priority": "High",
+    "can_reschedule": true
+    "assigned_business": "600-000001",
+    "assigned_worker": "700-000005",
+    "scheduled_date": "2022-03-06",
+    "status": "SCHEDULED",
+    "notes": "",
+    "img_0": "",
+    "img_1": "",
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
+### /maintenanceQuotes
+
+##### GET
+- with no args, return all maintenance quotes
+- add args to endpoint to filter results (ex: /maintenanceQuotes?status=REQUESTED)
+- available filters
+  - maintenance_quote_uid
+  - maintenance_request_uid
+  - business_uid
+  - status
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [{
+        "maintenance_quote_uid": "900-000001",
+        "maintenance_request_uid": "800-000001",
+        "business_uid": "600-000001",
+        "services_expenses": "[{\"fees\": 30, \"payment_term\": \"One-time cost\", \"service_notes\": \"Sealing base - labor cost\"}]",
+        "earliest_availability": "2022-01-03 00:00:00",
+        "event_type": "2 hour job",
+        "notes": null,
+        "status": "SENT"
+    }]
+}
+```
+
+##### POST
+- create new maintenance quote
+- request JSON (manager requests quote from business):
+```
+{
+    "maintenance_request_uid": "800-000001",
+    "business_uid": "600-000001"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update maintenance quote
+- request JSON (maintenance sends quote):
+```
+{
+    "maintenance_quote_uid": "900-000001",
+    "services_expenses": [{
+      "service_notes": "Sealing base - labor cost",
+      "fees": 30,
+      "payment_term": "One-time cost"
+    }],
+    "earliest_availability": "2022-01-03",
+    "event_type": "2 hour job",
+    "status": "SENT"
+}
+```
+- request JSON (manager rejects quote):
+```
+{
+    "maintenance_quote_uid": "900-000001",
+    "status": "REJECTED",
+    "notes": "Price too high"
+}
+```
+- request JSON (manager accepts quote):
+- follow with PUT /maintenanceRequests/{maintenance_request_uid} (update assigned_business)
+```
+{
+    "maintenance_quote_uid": "900-000001",
+    "status": "ACCEPTED"
 }
 ```
 - response JSON:

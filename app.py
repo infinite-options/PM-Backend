@@ -17,6 +17,10 @@ from ownerProperties import OwnerProperties
 from managerProperties import ManagerProperties
 from tenantProperties import TenantProperties
 from refresh import Refresh
+from businesses import Businesses
+from employees import Employees
+from maintenanceRequests import MaintenanceRequests
+from maintenanceQuotes import MaintenanceQuotes
 
 app = Flask(__name__)
 CORS(app)
@@ -41,6 +45,10 @@ api.add_resource(OwnerProperties, '/ownerProperties')
 api.add_resource(ManagerProperties, '/managerProperties')
 api.add_resource(TenantProperties, '/tenantProperties')
 api.add_resource(Refresh, '/refresh')
+api.add_resource(Businesses, '/businesses')
+api.add_resource(Employees, '/employees')
+api.add_resource(MaintenanceRequests, '/maintenanceRequests')
+api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
 
 if __name__ == '__main__':
     app.run(debug=True)

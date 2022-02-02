@@ -33,3 +33,22 @@ class TenantProfileInfo(Resource):
                         newProfileInfo['tenant_'+field] = fieldValue
             response = db.insert('tenantProfileInfo', newProfileInfo)
         return response
+    def put(self):
+        response = {}
+        user = get_jwt_identity()
+        with connect() as db:
+            data = request.get_json()
+            fields = ['first_name', 'last_name', 'ssn', 'current_salary', 'current_job_title',
+                'current_job_company', 'drivers_license_number', 'current_address', 'previous_addresses']
+            jsonFields = ['current_address', 'previous_addresses']
+            newProfileInfo = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    if field in jsonFields:
+                        newProfileInfo['tenant_'+field] = json.dumps(fieldValue)
+                    else:
+                        newProfileInfo['tenant_'+field] = fieldValue
+            primaryKey = {'tenant_id': user['user_uid']}
+            response = db.update('tenantProfileInfo', primaryKey, newProfileInfo)
+        return response

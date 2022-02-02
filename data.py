@@ -1,6 +1,27 @@
 import pymysql
 import datetime
 import json
+import boto3
+from botocore.response import StreamingBody
+
+s3 = boto3.client('s3')
+
+def uploadImage(file, key):
+    bucket = 'io-pm'
+    contentType = 'image/jpeg'
+    if type(file) != StreamingBody and '.svg' in file.filename:
+        contentType = 'image/svg+xml'
+    if file:
+        filename = f'https://s3-us-west-1.amazonaws.com/{bucket}/{key}'
+        upload_file = s3.put_object(
+            Bucket=bucket,
+            Body=file.read(),
+            Key=key,
+            ACL='public-read',
+            ContentType=contentType
+        )
+        return filename
+    return None
 
 def connect():
     conn = pymysql.connect(

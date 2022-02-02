@@ -2,29 +2,10 @@
 from flask import request
 from flask_restful import Resource
 
-from data import connect
 import boto3
-from botocore.response import StreamingBody
+from data import connect, uploadImage
 import json
 from datetime import datetime
-s3 = boto3.client('s3')
-
-def uploadImage(file, key):
-    bucket = 'io-pm'
-    contentType = 'image/jpeg'
-    if type(file) != StreamingBody and '.svg' in file.filename:
-        contentType = 'image/svg+xml'
-    if file:
-        filename = f'https://s3-us-west-1.amazonaws.com/{bucket}/{key}'
-        upload_file = s3.put_object(
-            Bucket=bucket,
-            Body=file.read(),
-            Key=key,
-            ACL='public-read',
-            ContentType=contentType
-        )
-        return filename
-    return None
 
 def updateImages(imageFiles, property_uid):
     for filename in imageFiles:
@@ -92,6 +73,43 @@ class Properties(Resource):
                 i += 1
             newProperty['images'] = json.dumps(images)
             response = db.insert('properties', newProperty)
+        return response
+
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            property_uid = data.get('property_uid')
+            fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
+                'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
+                'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+            newProperty = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newProperty[field] = data.get(field)
+            images = []
+            i = -1
+            imageFiles = {}
+            while True:
+                filename = f'img_{i}'
+                if i == -1:
+                    filename = 'img_cover'
+                file = request.files.get(filename)
+                s3Link = data.get(filename)
+                if file:
+                    imageFiles[filename] = file
+                elif s3Link:
+                    imageFiles[filename] = s3Link
+                else:
+                    break
+                i += 1
+            images = updateImages(imageFiles, property_uid)
+            newProperty['images'] = json.dumps(images)
+            primaryKey = {
+                'property_uid': property_uid
+            }
+            response = db.update('properties', primaryKey, newProperty)
         return response
 
 class Property(Resource):

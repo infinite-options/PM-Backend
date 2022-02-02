@@ -27,3 +27,16 @@ class OwnerProfileInfo(Resource):
                 newProfileInfo['owner_'+field] = data.get(field)
             response = db.insert('ownerProfileInfo', newProfileInfo)
         return response
+    def put(self):
+        response = {}
+        user = get_jwt_identity()
+        with connect() as db:
+            data = request.get_json()
+            fields = ['first_name', 'last_name', 'phone_number', 'email', 'ein_number', 'ssn',
+                'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
+            newProfileInfo = {}
+            for field in fields:
+                newProfileInfo['owner_'+field] = data.get(field)
+            primaryKey = {'owner_id': user['user_uid']}
+            response = db.update('ownerProfileInfo', primaryKey, newProfileInfo)
+        return response

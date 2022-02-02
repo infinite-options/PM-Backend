@@ -33,3 +33,22 @@ class BusinessProfileInfo(Resource):
                         newProfileInfo['business_'+field] = fieldValue
             response = db.insert('businessProfileInfo', newProfileInfo)
         return response
+    def put(self):
+        response = {}
+        user = get_jwt_identity()
+        with connect() as db:
+            data = request.get_json()
+            fields = ['name', 'ein_number', 'paypal', 'apple_pay', 'zelle',
+                'venmo', 'account_number', 'routing_number', 'services', 'contact']
+            jsonFields = ['services', 'contact']
+            newProfileInfo = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    if field in jsonFields:
+                        newProfileInfo['business_'+field] = json.dumps(fieldValue)
+                    else:
+                        newProfileInfo['business_'+field] = fieldValue
+            primaryKey = {'business_id': user['user_uid']}
+            response = db.update('businessProfileInfo', primaryKey, newProfileInfo)
+        return response
