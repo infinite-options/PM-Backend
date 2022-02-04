@@ -3,7 +3,7 @@ from flask import request
 from flask_restful import Resource
 
 import boto3
-from data import connect, uploadImage
+from data import connect, uploadImage, s3
 import json
 from datetime import datetime
 
@@ -122,7 +122,9 @@ class Property(Resource):
                 'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             newProperty = {}
             for field in fields:
-                newProperty[field] = data.get(field)
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newProperty[field] = fieldValue
             images = []
             i = -1
             imageFiles = {}

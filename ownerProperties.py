@@ -15,5 +15,5 @@ class OwnerProperties(Resource):
             where = {
                 'owner_id': user['user_uid']
             }
-            response = db.select('propertyInfo', where)
+            response = db.select('propertyInfo2', where)
         return response

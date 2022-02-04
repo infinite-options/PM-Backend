@@ -258,42 +258,42 @@
 {
     "message": "Successfully executed SQL query",
     "code": 200,
-    "result": [{
+    "result": [
+        {
             "property_uid": "200-000001",
             "owner_id": "100-000001",
-            "manager_id": "100-000002",
-            "address": "123 Main St",
-            "unit": "#35",
+            "manager_id": "600-000001",
+            "address": "101 Main St",
+            "unit": "#30",
             "city": "San Jose",
             "state": "CA",
             "zip": "95120",
             "property_type": "Apartment",
             "num_beds": 2.0,
-            "num_baths": 2.0,
+            "num_baths": 2.5,
             "area": 1000,
-            "listed_rent": 1800,
-            "deposit": 800,
-            "appliances": "{\"Dryer\": false, \"Range\": false, \"Washer\": false, \"Microwave\": true, \"Dishwasher\": false, \"Refrigerator\": true, \"Air Conditioner\": true}",
-            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": true, \"Water\": false, \"Electricity\": false}",
-            "pets_allowed": 1,
-            "deposit_for_rent": 1,
-            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_cover\", \"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_0\"]",
+            "listed_rent": 1200,
+            "deposit": 1000,
+            "appliances": "{\"Dryer\": true, \"Range\": true, \"Washer\": true, \"Microwave\": false, \"Dishwasher\": false, \"Refrigerator\": true}",
+            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": false, \"Water\": true, \"Electricity\": false}",
+            "pets_allowed": 0,
+            "deposit_for_rent": 0,
+            "images": "[]",
             "taxes": null,
             "mortgages": null,
             "owner_first_name": "Owner",
             "owner_last_name": "Test",
-            "owner_phone_number": "(800)000-0001",
-            "owner_email": "owner@gmail.com",
-            "manager_first_name": "Manager",
-            "manager_last_name": "Test",
-            "manager_phone_number": "(800)000-0002",
-            "manager_email": "manager@gmail.com",
+            "owner_phone_number": "(800)123-1231",
+            "owner_email": "pm@gmail.com",
+            "manager_business_name": "IO Management",
+            "manager_phone_number": "(800)123-1234",
+            "manager_email": "iomanagement@gmail.com",
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
             "actual_rent": 1800,
-            "lease_start": "1/22",
-            "lease_end": "1/23",
+            "lease_start": "2022-02-01",
+            "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
             "tenant_first_name": "Tenant",
             "tenant_last_name": "Test",
@@ -301,6 +301,7 @@
         }
     ]
 }
+
 ```
 
 ---
@@ -310,52 +311,54 @@
 ##### GET
 - include JWT in header
 - returns information for manager properties, including related owner and purchase info
+- must be called by owner of manager business
 - response JSON:
 ```
 {
     "message": "Successfully executed SQL query",
     "code": 200,
-    "result": [{
-        "property_uid": "200-000001",
-        "owner_id": "100-000001",
-        "manager_id": "100-000002",
-        "address": "123 Main St",
-        "unit": "#35",
-        "city": "San Jose",
-        "state": "CA",
-        "zip": "95120",
-        "property_type": "Apartment",
-        "num_beds": 2.0,
-        "num_baths": 2.0,
-        "area": 1000,
-        "listed_rent": 1800,
-        "deposit": 800,
-        "appliances": "{\"Dryer\": false, \"Range\": false, \"Washer\": false, \"Microwave\": true, \"Dishwasher\": false, \"Refrigerator\": true, \"Air Conditioner\": true}",
-        "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": true, \"Water\": false, \"Electricity\": false}",
-        "pets_allowed": 1,
-        "deposit_for_rent": 1,
-        "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_cover\", \"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_0\"]",
-        "taxes": null,
-        "mortgages": null,
-        "owner_first_name": "Owner",
-        "owner_last_name": "Test",
-        "owner_phone_number": "(800)000-0001",
-        "owner_email": "owner@gmail.com",
-        "manager_first_name": "Manager",
-        "manager_last_name": "Test",
-        "manager_phone_number": "(800)000-0002",
-        "manager_email": "manager@gmail.com",
-        "rental_uid": "300-000001",
-        "rental_property_id": "200-000001",
-        "tenant_id": "100-000003",
-        "actual_rent": 1800,
-        "lease_start": "1/22",
-        "lease_end": "1/23",
-        "rental_status": "ACTIVE",
-        "tenant_first_name": "Tenant",
-        "tenant_last_name": "Test",
-        "purchases": "[{\"payer\": \"100-000003\", \"amount\": 1800.0, \"receiver\": \"100-000001\", \"description\": \"Rent for January 2022\", \"purchase_uid\": \"400-000001\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"First month's rent\", \"pur_property_id\": \"200-000001\"}, {\"payer\": \"100-000001\", \"amount\": 40.0, \"receiver\": \"100-000004\", \"description\": \"Toilet Plumbing\", \"purchase_uid\": \"400-000002\", \"purchase_type\": \"MAINTENANCE\", \"purchase_notes\": null, \"pur_property_id\": \"200-000001\"}]"
-    }]
+    "result": [
+        {
+            "property_uid": "200-000001",
+            "owner_id": "100-000001",
+            "manager_id": "600-000001",
+            "address": "101 Main St",
+            "unit": "#30",
+            "city": "San Jose",
+            "state": "CA",
+            "zip": "95120",
+            "property_type": "Apartment",
+            "num_beds": 2.0,
+            "num_baths": 2.5,
+            "area": 1000,
+            "listed_rent": 1200,
+            "deposit": 1000,
+            "appliances": "{\"Dryer\": true, \"Range\": true, \"Washer\": true, \"Microwave\": false, \"Dishwasher\": false, \"Refrigerator\": true}",
+            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": false, \"Water\": true, \"Electricity\": false}",
+            "pets_allowed": 0,
+            "deposit_for_rent": 0,
+            "images": "[]",
+            "taxes": null,
+            "mortgages": null,
+            "owner_first_name": "Owner",
+            "owner_last_name": "Test",
+            "owner_phone_number": "(800)123-1231",
+            "owner_email": "pm@gmail.com",
+            "manager_business_name": "IO Management",
+            "manager_phone_number": "(800)123-1234",
+            "manager_email": "iomanagement@gmail.com",
+            "rental_uid": "300-000001",
+            "rental_property_id": "200-000001",
+            "tenant_id": "100-000003",
+            "actual_rent": 1800,
+            "lease_start": "2022-02-01",
+            "lease_end": "2022-03-01",
+            "rental_status": "ACTIVE",
+            "tenant_first_name": "Tenant",
+            "tenant_last_name": "Test",
+            "purchases": "[{\"payer\": \"100-000003\", \"amount\": 1800.0, \"receiver\": \"100-000001\", \"description\": \"Rent for January 2022\", \"purchase_uid\": \"400-000001\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"First month's rent\", \"pur_property_id\": \"200-000001\"}, {\"payer\": \"100-000001\", \"amount\": 40.0, \"receiver\": \"100-000004\", \"description\": \"Toilet Plumbing\", \"purchase_uid\": \"400-000002\", \"purchase_type\": \"MAINTENANCE\", \"purchase_notes\": null, \"pur_property_id\": \"200-000001\"}]"
+        }
+    ]
 }
 ```
 
@@ -371,42 +374,42 @@
 {
     "message": "Successfully executed SQL query",
     "code": 200,
-    "result": [{
+    "result": [
+        {
             "property_uid": "200-000001",
             "owner_id": "100-000001",
-            "manager_id": "100-000002",
-            "address": "123 Main St",
-            "unit": "#35",
+            "manager_id": "600-000001",
+            "address": "101 Main St",
+            "unit": "#30",
             "city": "San Jose",
             "state": "CA",
             "zip": "95120",
             "property_type": "Apartment",
             "num_beds": 2.0,
-            "num_baths": 2.0,
+            "num_baths": 2.5,
             "area": 1000,
-            "listed_rent": 1800,
-            "deposit": 800,
-            "appliances": "{\"Dryer\": false, \"Range\": false, \"Washer\": false, \"Microwave\": true, \"Dishwasher\": false, \"Refrigerator\": true, \"Air Conditioner\": true}",
-            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": true, \"Water\": false, \"Electricity\": false}",
-            "pets_allowed": 1,
-            "deposit_for_rent": 1,
-            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_cover\", \"https://s3-us-west-1.amazonaws.com/io-pm/properties/200-000001/img_0\"]",
+            "listed_rent": 1200,
+            "deposit": 1000,
+            "appliances": "{\"Dryer\": true, \"Range\": true, \"Washer\": true, \"Microwave\": false, \"Dishwasher\": false, \"Refrigerator\": true}",
+            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": false, \"Water\": true, \"Electricity\": false}",
+            "pets_allowed": 0,
+            "deposit_for_rent": 0,
+            "images": "[]",
             "taxes": null,
             "mortgages": null,
             "owner_first_name": "Owner",
             "owner_last_name": "Test",
-            "owner_phone_number": "(800)000-0001",
-            "owner_email": "owner@gmail.com",
-            "manager_first_name": "Manager",
-            "manager_last_name": "Test",
-            "manager_phone_number": "(800)000-0002",
-            "manager_email": "manager@gmail.com",
+            "owner_phone_number": "(800)123-1231",
+            "owner_email": "pm@gmail.com",
+            "manager_business_name": "IO Management",
+            "manager_phone_number": "(800)123-1234",
+            "manager_email": "iomanagement@gmail.com",
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
             "actual_rent": 1800,
-            "lease_start": "1/22",
-            "lease_end": "1/23",
+            "lease_start": "2022-02-01",
+            "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
             "tenant_first_name": "Tenant",
             "tenant_last_name": "Test",
@@ -759,6 +762,7 @@
         "tenant_last_name": "Test",
         "tenant_ssn": "000-00-0003",
         "tenant_current_salary": 75000,
+        "tenant_salary_frequency": "Annually",
         "tenant_current_job_title": "Software Engineer",
         "tenant_current_job_company": "Infinite Options",
         "tenant_drivers_license_number": "A0000003",
@@ -779,6 +783,7 @@
     "ssn": "000-00-0003",
     "drivers_license_number": "A0000003",
     "current_salary": 75000,
+    "salary_frequency": "Annually",
     "current_job_title": "Software Engineer",
     "current_job_company": "Infinite Options",
     "current_address": {
@@ -815,6 +820,7 @@
     "ssn": "000-00-0003",
     "drivers_license_number": "A0000003",
     "current_salary": 75000,
+    "salary_frequency": "Annually",
     "current_job_title": "Software Engineer",
     "current_job_company": "Infinite Options",
     "current_address": {
@@ -965,20 +971,27 @@
 {
     "message": "Successfully executed SQL query",
     "code": 200,
-    "result": [{
-        "rental_uid": "300-000001",
-        "rental_property_id": "200-000001",
-        "tenant_id": "100-000003",
-        "actual_rent": "1800",
-        "lease_start": "1/22",
-        "lease_end": "1/23",
-        "rental_status": "ACTIVE"
-    }]
+    "result": [
+        {
+            "rental_uid": "300-000001",
+            "rental_property_id": "200-000001",
+            "tenant_id": "100-000003",
+            "actual_rent": 1800,
+            "lease_start": "2022-02-01",
+            "lease_end": "2022-03-01",
+            "rental_status": "ACTIVE",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"1800\", \"fee_name\": \"Monthly Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "assigned_contacts": "[{\"email\": \"pm@gmail.com\", \"last_name\": \"Test\", \"first_name\": \"Manager\", \"company_role\": \"Owner\", \"phone_number\": \"(800)123-1231\"}]",
+            "documents": "[]"
+        }
+    ]
 }
 ```
 
 ##### POST
 - create new rental
+- send as multipart/form-data
+- include document files as doc_0, doc_1...
 - request JSON:
 ```
 {
@@ -986,7 +999,162 @@
   "tenant_id": "100-000003",
   "actual_rent": "1800",
   "lease_start": "1/22",
-  "lease_end": "1/23"
+  "lease_end": "1/23",
+  "rent_payments": [{
+    "title": "Monthly Rent",
+    "charge_type": "$",
+    "charge": 100,
+    "frequency": "Monthly"
+  }],
+  "assigned_contacts": [{
+    "first_name": "Greg",
+    "last_name": "Brewer",
+    "company_role": "Manager",
+    "phone_number": "(789)908-9087",
+    "email": "greg@beverlyman.com"
+  }],
+  "doc_0": "",
+  "doc_1": ""
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update rental
+- send as multipart/form-data
+- include document files as doc_0, doc_1...
+- request JSON:
+```
+{
+  "rental_uid": "300-000001",
+  "actual_rent": "1800",
+  "lease_start": "1/22",
+  "lease_end": "1/23",
+  "rent_payments": [{
+    "title": "Monthly Rent",
+    "charge_type": "$",
+    "charge": 100,
+    "frequency": "Monthly"
+  }],
+  "contact_details": [{
+    "first_name": "Greg",
+    "last_name": "Brewer",
+    "company_role": "Manager",
+    "phone_number": "(789)908-9087",
+    "email": "greg@beverlyman.com"
+  }],
+  "doc_0": "",
+  "doc_1": ""
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
+### /contracts
+
+##### GET
+- with no args, return all contracts
+- add args to endpoint to filter results (ex: /contracts?business_uid=600-000001)
+- available filters
+  - contract_uid
+  - property_uid
+  - business_uid
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [
+        {
+            "contract_uid": "010-000003",
+            "property_uid": "200-000001",
+            "business_uid": "600-000001",
+            "start_date": "2021-12-31",
+            "end_date": "2022-03-01",
+            "contract_fees": "[{\"of\": \"Gross Rent\", \"charge\": \"10\", \"fee_name\": \"Charge\", \"fee_type\": \"%\", \"frequency\": \"Weekly\"}]",
+            "assigned_contacts": "[{\"email\": \"zacharywolfflind@gmail.com\", \"last_name\": \"Lind\", \"first_name\": \"Zach\", \"company_role\": \"CEO\", \"phone_number\": \"(925)984-0473\"}]",
+            "documents": "[\"https://s3-us-west-1.amazonaws.com/io-pm/contracts/010-000003/doc_0\"]"
+        }
+    ]
+}
+```
+
+##### POST
+- create new contract
+- send as multipart/form-data
+- include document files as doc_0, doc_1...
+- request JSON:
+```
+{
+  "property_uid": "200-000001",
+  "business_uid": "600-000001",
+  "start_date": "1/22",
+  "end_date": "1/23",
+  "contract_fees": [{
+    "title": "Monthly Rent",
+    "charge_type": "$",
+    "charge": 100,
+    "frequency": "One-time"
+  }],
+  "assigned_contacts": [{
+    "first_name": "Greg",
+    "last_name": "Brewer",
+    "company_role": "Manager",
+    "phone_number": "(789)908-9087",
+    "email": "greg@beverlyman.com"
+  }],
+  "doc_0": "",
+  "doc_1": ""
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update contract
+- send as multipart/form-data
+- include document files as doc_0, doc_1...
+- request JSON:
+```
+{
+  "contract_uid": "010-000001",
+  "property_uid": "200-000001",
+  "business_uid": "600-000001",
+  "start_date": "1/22",
+  "end_date": "1/23",
+  "contract_fees": [{
+    "title": "Monthly Rent",
+    "charge_type": "$",
+    "charge": 100,
+    "frequency": "One-time"
+  }],
+  "assigned_contacts": [{
+    "first_name": "Greg",
+    "last_name": "Brewer",
+    "company_role": "Manager",
+    "phone_number": "(789)908-9087",
+    "email": "greg@beverlyman.com"
+  }],
+  "doc_0": "",
+  "doc_1": ""
 }
 ```
 - response JSON:

@@ -6,7 +6,7 @@ import boto3
 from data import connect, uploadImage, s3
 import json
 
-def updateDocuments(docFiles, rental_uid):
+def updateDocuments(docFiles, contract_uid):
     for filename in docFiles:
         if type(docFiles[filename]) == str:
             bucket = 'io-pm'
@@ -18,68 +18,66 @@ def updateDocuments(docFiles, rental_uid):
             docFiles[filename] = data['Body']
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
-    bucket.objects.filter(Prefix=f'rentals/{rental_uid}/').delete()
+    bucket.objects.filter(Prefix=f'contracts/{contract_uid}/').delete()
     documents = []
     for i in range(len(docFiles.keys())):
         filename = f'doc_{i}'
-        key = f'rentals/{rental_uid}/{filename}'
+        key = f'contracts/{contract_uid}/{filename}'
         doc = uploadImage(docFiles[filename], key)
         documents.append(doc)
     return documents
 
-class Rentals(Resource):
+class Contracts(Resource):
     def get(self):
-        filters = ['rental_uid', 'rental_property_id', 'tenant_id', 'rental_status']
+        filters = ['contract_uid', 'property_uid', 'business_uid']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
                 where[filter] = filterValue
         with connect() as db:
-            response = db.select('rentals', where)
+            response = db.select('contracts', where)
         return response
 
     def post(self):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                'rent_payments', 'assigned_contacts']
-            newRental = {}
+            fields = ['property_uid', 'business_uid', 'start_date', 'end_date', 'contract_fees',
+                'assigned_contacts']
+            newContract = {}
             for field in fields:
-                newRental[field] = data.get(field)
-            newRentalID = db.call('new_rental_id')['result'][0]['new_id']
-            newRental['rental_uid'] = newRentalID
-            newRental['rental_status'] = 'ACTIVE'
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newContract[field] = fieldValue
+            newContractID = db.call('new_contract_id')['result'][0]['new_id']
+            newContract['contract_uid'] = newContractID
             documents = []
             i = 0
             while True:
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
                 if file:
-                    key = f'rentals/{newRentalID}/{filename}'
+                    key = f'contracts/{newContractID}/{filename}'
                     doc = uploadImage(file, key)
                     documents.append(doc)
                 else:
                     break
                 i += 1
-            newRental['documents'] = json.dumps(documents)
-            print(newRental)
-            response = db.insert('rentals', newRental)
+            newContract['documents'] = json.dumps(documents)
+            print(newContract)
+            response = db.insert('contracts', newContract)
         return response
 
     def put(self):
         response = {}
         with connect() as db:
             data = request.form
-            rental_uid = data.get('rental_uid')
-            fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                'rent_payments', 'assigned_contacts', 'rental_status']
-            newRental = {}
+            contract_uid = data.get('contract_uid')
+            fields = ['start_date', 'end_date', 'contract_fees', 'assigned_contacts']
+            newContract = {}
             for field in fields:
-                fieldValue = data.get(field)
-                if fieldValue:
-                    newRental[field] = fieldValue
+                newContract[field] = data.get(field)
             i = 0
             docFiles = {}
             while True:
@@ -87,14 +85,14 @@ class Rentals(Resource):
                 file = request.files.get(filename)
                 s3Link = data.get(filename)
                 if file:
-                    imageFiles[filename] = file
+                    docFiles[filename] = file
                 elif s3Link:
-                    imageFiles[filename] = s3Link
+                    docFiles[filename] = s3Link
                 else:
                     break
                 i += 1
-            documents = updateDocuments(docFiles, rental_uid)
-            newRental['documents'] = json.dumps(documents)
-            primaryKey = {'rental_uid': rental_uid}
-            response = db.update('rentals', primaryKey, newRental)
+            documents = updateDocuments(docFiles, contract_uid)
+            newContract['documents'] = json.dumps(documents)
+            primaryKey = {'contract_uid': contract_uid}
+            response = db.update('contracts', primaryKey, newContract)
         return response

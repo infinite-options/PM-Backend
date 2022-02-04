@@ -60,7 +60,7 @@ class MaintenanceRequests(Resource):
                 filename = f'img_{i}'
                 file = request.files.get(filename)
                 if file:
-                    key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
+                    key = f'maintenanceRequests/{newRequestID}/{filename}'
                     image = uploadImage(file, key)
                     images.append(image)
                 else:

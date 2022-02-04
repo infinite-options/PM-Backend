@@ -12,8 +12,11 @@ class ManagerProperties(Resource):
         response = {}
         user = get_jwt_identity()
         with connect() as db:
-            where = {
-                'manager_id': user['user_uid']
-            }
-            response = db.select('propertyInfo', where)
+            response = db.select('employees', where={
+                'user_uid': user['user_uid']
+            })
+            business_uid = response['result'][0]['business_uid']
+            response = db.select('propertyInfo2', where={
+                'manager_id': business_uid
+            })
         return response
