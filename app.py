@@ -21,6 +21,7 @@ from businesses import Businesses
 from employees import Employees
 from maintenanceRequests import MaintenanceRequests
 from maintenanceQuotes import MaintenanceQuotes
+from contracts import Contracts
 
 app = Flask(__name__)
 CORS(app)
@@ -49,6 +50,7 @@ api.add_resource(Businesses, '/businesses')
 api.add_resource(Employees, '/employees')
 api.add_resource(MaintenanceRequests, '/maintenanceRequests')
 api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
+api.add_resource(Contracts, '/contracts')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -11,6 +11,8 @@ def uploadImage(file, key):
     contentType = 'image/jpeg'
     if type(file) != StreamingBody and '.svg' in file.filename:
         contentType = 'image/svg+xml'
+    elif type(file) != StreamingBody and '.pdf' in file.filename:
+        contentType = 'application/pdf'
     if file:
         filename = f'https://s3-us-west-1.amazonaws.com/{bucket}/{key}'
         upload_file = s3.put_object(

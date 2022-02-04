@@ -36,7 +36,9 @@ class OwnerProfileInfo(Resource):
                 'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
             newProfileInfo = {}
             for field in fields:
-                newProfileInfo['owner_'+field] = data.get(field)
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newProfileInfo['owner_'+field] = fieldValue
             primaryKey = {'owner_id': user['user_uid']}
             response = db.update('ownerProfileInfo', primaryKey, newProfileInfo)
         return response
