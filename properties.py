@@ -52,9 +52,14 @@ class Properties(Resource):
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
                 'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                 'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+            boolFields = ['pets_allowed', 'deposit_for_rent']
             newProperty = {}
             for field in fields:
-                newProperty[field] = data.get(field)
+                fieldValue = data.get(field)
+                if field in boolFields:
+                    newProperty[field] = bool(data.get(field))
+                else:
+                    newProperty[field] = data.get(field)
             newPropertyID = db.call('new_property_id')['result'][0]['new_id']
             newProperty['property_uid'] = newPropertyID
             images = []
@@ -72,6 +77,7 @@ class Properties(Resource):
                     break
                 i += 1
             newProperty['images'] = json.dumps(images)
+            print(newProperty)
             response = db.insert('properties', newProperty)
         return response
 
