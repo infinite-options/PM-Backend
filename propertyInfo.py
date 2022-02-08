@@ -6,14 +6,15 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from data import connect
 import json
 
-class OwnerProperties(Resource):
-    decorators = [jwt_required()]
+class PropertyInfo(Resource):
     def get(self):
         response = {}
-        user = get_jwt_identity()
+        filters = ['property_uid', 'owner_id', 'manager_id', 'tenant_id']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[filter] = filterValue
         with connect() as db:
-            where = {
-                'owner_id': user['user_uid']
-            }
             response = db.select('propertyInfo', where)
         return response

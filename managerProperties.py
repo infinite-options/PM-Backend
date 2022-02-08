@@ -16,7 +16,7 @@ class ManagerProperties(Resource):
                 'user_uid': user['user_uid']
             })
             business_uid = response['result'][0]['business_uid']
-            response = db.select('propertyInfo2', where={
+            response = db.select('propertyInfo', where={
                 'manager_id': business_uid
             })
         return response
