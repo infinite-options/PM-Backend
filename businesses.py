@@ -1,12 +1,14 @@
 
 from flask import request
 from flask_restful import Resource
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect
 import json
 from datetime import datetime
 
 class Businesses(Resource):
+    decorators = [jwt_required(optional=True)]
     def get(self):
         response = {}
         filters = ['business_uid', 'business_type', 'business_name']
@@ -23,8 +25,12 @@ class Businesses(Resource):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees']
-            jsonFields = ['services_fees']
+            user = get_jwt_identity()
+            if not user:
+                return 401, response
+            fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees', 'locations',
+                'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
+            jsonFields = ['services_fees', 'locations']
             newBusiness = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -36,14 +42,29 @@ class Businesses(Resource):
             newBusinessID = db.call('new_business_id')['result'][0]['new_id']
             newBusiness['business_uid'] = newBusinessID
             response = db.insert('businesses', newBusiness)
+            newEmployee = {
+                'user_uid': user['user_uid'],
+                'business_uid': newBusinessID,
+                'employee_role': 'Owner',
+                'employee_first_name': user['first_name'],
+                'employee_last_name': user['last_name'],
+                'employee_phone_number': user['phone_number'],
+                'employee_email': user['email'],
+                'employee_ssn': '',
+                'employee_ein_number': ''
+            }
+            newEmployeeID = db.call('new_employee_id')['result'][0]['new_id']
+            newEmployee['employee_uid'] = newEmployeeID
+            db.insert('employees', newEmployee)
         return response
 
     def put(self):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees']
-            jsonFields = ['services_fees']
+            fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees', 'locations',
+                'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
+            jsonFields = ['services_fees', 'locations']
             newBusiness = {}
             for field in fields:
                 fieldValue = data.get(field)

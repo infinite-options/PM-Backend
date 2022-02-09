@@ -15,6 +15,8 @@ class ManagerProperties(Resource):
             response = db.select('employees', where={
                 'user_uid': user['user_uid']
             })
+            if len(response['result'] == 0):
+                return response
             business_uid = response['result'][0]['business_uid']
             response = db.select('propertyInfo', where={
                 'manager_id': business_uid

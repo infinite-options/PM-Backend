@@ -74,13 +74,13 @@ class DatabaseConnection:
         try:
             with self.conn.cursor() as cur:
                 cur.execute(sql, args)
-                if cmd == 'get':
+                if 'get' in cmd:
                     result = cur.fetchall()
                     result = serializeJSON(result)
                     response['message'] = 'Successfully executed SQL query'
                     response['code'] = 200
                     response['result'] = result
-                elif cmd == 'post':
+                elif 'post' in cmd:
                     self.conn.commit()
                     response['message'] = 'Successfully committed SQL query'
                     response['code'] = 200

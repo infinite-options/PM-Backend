@@ -70,7 +70,7 @@ class Properties(Resource):
                     filename = 'img_cover'
                 file = request.files.get(filename)
                 if file:
-                    key = f'properties/{property_uid}/{filename}'
+                    key = f'properties/{newPropertyID}/{filename}'
                     image = uploadImage(file, key)
                     images.append(image)
                 else:
