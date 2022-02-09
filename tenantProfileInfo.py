@@ -21,7 +21,7 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             data = request.get_json()
             fields = ['first_name', 'last_name', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                'current_job_company', 'drivers_license_number', 'current_address', 'previous_address']
+                'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
             jsonFields = ['current_address', 'previous_address']
             newProfileInfo = {'tenant_id': user['user_uid']}
             for field in fields:
@@ -39,7 +39,7 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             data = request.get_json()
             fields = ['first_name', 'last_name', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                'current_job_company', 'drivers_license_number', 'current_address', 'previous_address']
+                'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
             jsonFields = ['current_address', 'previous_address']
             newProfileInfo = {}
             for field in fields:

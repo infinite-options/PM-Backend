@@ -16,6 +16,8 @@
 - [/properties/{property_uid}](#properties/{property_uid})
 - [/ownerProperties](#ownerproperties)
 - [/managerProperties](#managerproperties)
+- [/tenantProperties](#tenantproperties)
+- [/propertyInfo](#propertyinfo)
 - [/users](#users)
 - [/login](#login)
 - [/ownerProfileInfo](#ownerprofileinfo)
@@ -766,6 +768,7 @@
         "tenant_current_job_title": "Software Engineer",
         "tenant_current_job_company": "Infinite Options",
         "tenant_drivers_license_number": "A0000003",
+        "tenant_drivers_license_state": "CA",
         "tenant_current_address": "{\"zip\": \"95120\", \"city\": \"San Jose\", \"rent\": 1800, \"unit\": \"\", \"state\": \"CA\", \"street\": \"123 Main St\", \"pm_name\": \"Manager Test\", \"lease_end\": \"1/22\", \"pm_number\": \"00-0000002\", \"lease_start\": \"6/19\"}",
         "tenant_previous_addresses": null
     }]
@@ -782,6 +785,7 @@
     "last_name": "Test",
     "ssn": "000-00-0003",
     "drivers_license_number": "A0000003",
+    "drivers_license_state": "CA",
     "current_salary": 75000,
     "salary_frequency": "Annually",
     "current_job_title": "Software Engineer",
@@ -819,6 +823,7 @@
     "last_name": "Test",
     "ssn": "000-00-0003",
     "drivers_license_number": "A0000003",
+    "drivers_license_state": "CA",
     "current_salary": 75000,
     "salary_frequency": "Annually",
     "current_job_title": "Software Engineer",
