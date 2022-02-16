@@ -5,6 +5,7 @@ from flask_restful import Resource
 import boto3
 from data import connect, uploadImage, s3
 import json
+from purchases import newPurchase
 
 def updateDocuments(docFiles, rental_uid):
     for filename in docFiles:
@@ -66,6 +67,21 @@ class Rentals(Resource):
             newRental['documents'] = json.dumps(documents)
             print(newRental)
             response = db.insert('rentals', newRental)
+            rentPayments = json.loads(newRental['rent_payments'])
+            for payment in rentPayments:
+                purchaseResponse = newPurchase(
+                    linked_purchase_id=None,
+                    pur_property_id=newRental['rental_property_id'],
+                    payer=newRental['tenant_id'],
+                    receiver=newRental['rental_property_id'],
+                    purchase_type='RENT',
+                    description=payment['fee_name'],
+                    amount=payment['charge'],
+                    purchase_notes='',
+                    purchase_date=newRental['lease_start'],
+                    purchase_frequency=payment['frequency']
+                )
+                print(purchaseResponse)
         return response
 
     def put(self):

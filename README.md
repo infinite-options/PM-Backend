@@ -1006,9 +1006,10 @@
   "lease_start": "1/22",
   "lease_end": "1/23",
   "rent_payments": [{
-    "title": "Monthly Rent",
-    "charge_type": "$",
+    "fee_name": "Monthly Rent",
+    "fee_type": "$",
     "charge": 100,
+    "of": "",
     "frequency": "Monthly"
   }],
   "assigned_contacts": [{
@@ -1245,18 +1246,9 @@
     "result": [{
         "payment_uid": "500-000001",
         "pay_purchase_id": "400-000001",
-        "subtotal": 1800.0,
-        "amount_discount": 0.0,
-        "service_fee": 0.0,
-        "taxes": 0.0,
         "amount_due": 1800.0,
-        "amount_paid": 1800.0,
-        "cc_num": "1234-5678-9012-3456",
-        "cc_exp_date": "3/24",
-        "cc_cvv": "123",
-        "cc_zip": "12345",
-        "charge_id": null,
-        "payment_type": "CARD",
+        "charge_id": "pi_3KTMYpLMju5RPMEv0zFXZoFK",
+        "payment_type": "STRIPE",
         "payment_date": "2022-01-10 16:05:29"
     }]
 }
@@ -1268,17 +1260,9 @@
 ```
 {
     "pay_purchase_id": "400-000001",
-    "subtotal": 1800,
-    "amount_discount": 0,
-    "service_fee": 0,
-    "taxes": 0,
     "amount_due": 1800,
-    "amount_paid": 1800,
-    "cc_num": "1234-5678-9012-3456",
-    "cc_exp_date": "3/24",
-    "cc_cvv": "123",
-    "cc_zip": "12345",
-    "payment_type": "CARD"
+    "payment_type": "STRIPE",
+    "charge_id": "pi_3KTMYpLMju5RPMEv0zFXZoFK"
 }
 ```
 - response JSON:
