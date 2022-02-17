@@ -7,6 +7,20 @@ from data import connect
 import json
 from datetime import datetime
 
+def getEmployeeBusinesses(user):
+    response = {}
+    with connect() as db:
+        sql = '''
+            SELECT b.business_uid, b.business_type, e.employee_role
+            FROM employees e LEFT JOIN businesses b ON e.business_uid = b.business_uid
+            WHERE user_uid = %(user_uid)s
+        '''
+        args = {
+            'user_uid': user['user_uid']
+        }
+        response = db.execute(sql, args)
+    return response
+
 class Businesses(Resource):
     decorators = [jwt_required(optional=True)]
     def get(self):

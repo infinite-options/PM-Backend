@@ -29,6 +29,7 @@ class Payments(Resource):
             fields = [
                 'pay_purchase_id',
                 'amount_due',
+                'payment_notes',
                 'charge_id',
                 'payment_type'
             ]
