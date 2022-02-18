@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect
 import json
+from purchases import updatePurchase
 
 class Payments(Resource):
     def get(self):
@@ -28,7 +29,7 @@ class Payments(Resource):
             data = request.get_json()
             fields = [
                 'pay_purchase_id',
-                'amount_due',
+                'amount',
                 'payment_notes',
                 'charge_id',
                 'payment_type'
@@ -39,6 +40,14 @@ class Payments(Resource):
             newPaymentID = db.call('new_payment_id')['result'][0]['new_id']
             newPayment['payment_uid'] = newPaymentID
             response = db.insert('payments', newPayment)
+            purchaseResponse = db.select('purchases', {
+                'purchase_uid': newPayment['pay_purchase_id']
+            })
+            linkedPurchase = purchaseResponse['result'][0]
+            linkedPurchase['amount_paid'] += newPayment['amount']
+            if linkedPurchase['amount_paid'] >= linkedPurchase['amount_due']:
+                linkedPurchase['purchase_status'] = 'PAID'
+            updatePurchase(linkedPurchase)
         return response
 
 

@@ -6,7 +6,7 @@ from data import connect
 import json
 
 def newPurchase(linked_purchase_id, pur_property_id, payer, receiver, purchase_type,
-description, amount, purchase_notes, purchase_date, purchase_frequency):
+description, amount_due, purchase_notes, purchase_date, purchase_frequency):
     response = {}
     with connect() as db:
         newPurchase = {
@@ -16,15 +16,25 @@ description, amount, purchase_notes, purchase_date, purchase_frequency):
             'receiver': receiver,
             'purchase_type': purchase_type,
             'description': description,
-            'amount': amount,
+            'amount_due': amount_due,
             'purchase_notes': purchase_notes,
             'purchase_date': purchase_date,
             'purchase_frequency': purchase_frequency
         }
         newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
+        newPurchase['amount_paid'] = 0
         newPurchase['purchase_uid'] = newPurchaseID
         newPurchase['purchase_status'] = 'UNPAID'
         response = db.insert('purchases', newPurchase)
+    return response
+
+def updatePurchase(newPurchase):
+    response = {}
+    with connect() as db:
+        primaryKey = {
+            'purchase_uid': newPurchase['purchase_uid']
+        }
+        response = db.update('purchases', primaryKey, newPurchase)
     return response
 
 class Purchases(Resource):
@@ -55,7 +65,7 @@ class Purchases(Resource):
             data.get('receiver'),
             data.get('purchase_type'),
             data.get('description'),
-            data.get('amount'),
+            data.get('amount_due'),
             data.get('purchase_notes'),
             data.get('purchase_date'),
             data.get('purchase_frequency')
