@@ -18,3 +18,10 @@ class PropertyInfo(Resource):
         with connect() as db:
             response = db.select('propertyInfo', where)
         return response
+
+class AvailableProperties(Resource):
+    def get(self):
+        response = {}
+        with connect() as db:
+            response = db.execute('SELECT * FROM propertyInfo WHERE rental_uid IS NULL')
+        return response
