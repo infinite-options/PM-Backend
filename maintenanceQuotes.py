@@ -16,7 +16,7 @@ class MaintenanceQuotes(Resource):
             if filterValue is not None:
                 where[filter] = filterValue
         with connect() as db:
-            response = db.select('maintenanceQuotes', where)
+            response = db.select('maintenanceQuotes mq LEFT JOIN maintenanceRequests mr ON mq.maintenance_request_uid = mr.maintenance_request_uid', where)
         return response
 
     def post(self):
@@ -29,10 +29,21 @@ class MaintenanceQuotes(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newQuote[field] = fieldValue
-            newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
-            newQuote['maintenance_quote_uid'] = newQuoteID
-            newQuote['status'] = 'REQUEST'
-            response = db.insert('maintenanceQuotes', newQuote)
+            if type(newQuote['business_uid']) is list:
+                response['responses'] = []
+                businesses = newQuote['business_uid']
+                for business_uid in businesses:
+                    newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
+                    newQuote['maintenance_quote_uid'] = newQuoteID
+                    newQuote['business_uid'] = business_uid
+                    newQuote['status'] = 'REQUESTED'
+                    newResponse = db.insert('maintenanceQuotes', newQuote)
+                    response['responses'].append(newResponse)
+            else:
+                newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
+                newQuote['maintenance_quote_uid'] = newQuoteID
+                newQuote['status'] = 'REQUESTED'
+                response = db.insert('maintenanceQuotes', newQuote)
         return response
 
     def put(self):

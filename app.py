@@ -23,6 +23,7 @@ from maintenanceRequests import MaintenanceRequests
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
 from propertyInfo import PropertyInfo, AvailableProperties
+from applications import Applications
 
 app = Flask(__name__)
 CORS(app)
@@ -55,6 +56,7 @@ api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
 api.add_resource(Contracts, '/contracts')
 api.add_resource(PropertyInfo, '/propertyInfo')
 api.add_resource(AvailableProperties, '/availableProperties')
+api.add_resource(Applications, '/applications')
 
 if __name__ == '__main__':
     app.run(debug=True)

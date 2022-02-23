@@ -1627,3 +1627,66 @@
     "code": 200
 }
 ```
+
+---
+
+### /applications
+
+##### GET
+- with no args, return all applications
+- add args to endpoint to filter results (ex: /applications?tenant_id=100-000001)
+- available filters
+  - application_uid
+  - property_uid
+  - tenant_id
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [{
+        "application_uid": "020-000001",
+        "property_uid": "200-000021",
+        "tenant_id": "100-000003",
+        "message": "Can I please rent this apartment",
+        "application_status": "NEW",
+        "application_date": "2022-02-22 07:36:40"
+    }]
+}
+```
+
+##### POST
+- create new application
+- requires JWT authorization
+- request JSON:
+```
+{
+    "property_uid": "200-000001",
+    "message": "I would love to rent this apartment"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+- update application
+- request JSON:
+```
+{
+    "application_uid": "020-000001",
+    "message": "Sorry, the apartment is no longer available",
+    "application_status": "REJECTED"
+}
+```
+- response JSON:
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
