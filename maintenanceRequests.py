@@ -34,7 +34,7 @@ class MaintenanceRequests(Resource):
     def get(self):
         response = {}
         filters = ['maintenance_request_uid', 'property_uid', 'priority',
-            'assigned_business', 'assigned_worker', 'status']
+            'assigned_business', 'assigned_worker', 'request_status']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -67,7 +67,7 @@ class MaintenanceRequests(Resource):
                     break
                 i += 1
             newRequest['images'] = json.dumps(images)
-            newRequest['status'] = 'NEW'
+            newRequest['request_status'] = 'NEW'
             newRequest['frequency'] = 'One time'
             newRequest['can_reschedule'] = False
             response = db.insert('maintenanceRequests', newRequest)
@@ -79,7 +79,7 @@ class MaintenanceRequests(Resource):
             data = request.form
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                'assigned_business', 'assigned_worker', 'scheduled_date', 'status']
+                'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status']
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)

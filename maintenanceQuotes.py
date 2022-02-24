@@ -9,7 +9,7 @@ from datetime import datetime
 class MaintenanceQuotes(Resource):
     def get(self):
         response = {}
-        filters = ['maintenance_quote_uid', 'maintenance_request_uid', 'business_uid', 'status']
+        filters = ['maintenance_quote_uid', 'maintenance_request_uid', 'business_uid', 'quote_status']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -36,13 +36,13 @@ class MaintenanceQuotes(Resource):
                     newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
                     newQuote['maintenance_quote_uid'] = newQuoteID
                     newQuote['business_uid'] = business_uid
-                    newQuote['status'] = 'REQUESTED'
+                    newQuote['quote_status'] = 'REQUESTED'
                     newResponse = db.insert('maintenanceQuotes', newQuote)
                     response['responses'].append(newResponse)
             else:
                 newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
                 newQuote['maintenance_quote_uid'] = newQuoteID
-                newQuote['status'] = 'REQUESTED'
+                newQuote['quote_status'] = 'REQUESTED'
                 response = db.insert('maintenanceQuotes', newQuote)
         return response
 
@@ -50,7 +50,7 @@ class MaintenanceQuotes(Resource):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['services_expenses', 'earliest_availability', 'event_type', 'notes', 'status']
+            fields = ['services_expenses', 'earliest_availability', 'event_type', 'notes', 'quote_status']
             jsonFields = ['services_expenses']
             newQuote = {}
             for field in fields:
