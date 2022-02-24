@@ -1484,7 +1484,7 @@
         "scheduled_date": null,
         "frequency": "One time",
         "notes": null,
-        "status": "NEW"
+        "request_status": "NEW"
     }]
 }
 ```
@@ -1527,7 +1527,7 @@
     "assigned_business": "600-000001",
     "assigned_worker": "700-000005",
     "scheduled_date": "2022-03-06",
-    "status": "SCHEDULED",
+    "request_status": "SCHEDULED",
     "notes": "",
     "img_0": "",
     "img_1": "",
@@ -1546,7 +1546,7 @@
 ### /maintenanceQuotes
 
 ##### GET
-- with no args, return all maintenance quotes
+- with no args, return all maintenance quotes (joined with requests and businesses)
 - add args to endpoint to filter results (ex: /maintenanceQuotes?status=REQUESTED)
 - available filters
   - maintenance_quote_uid
@@ -1559,15 +1559,45 @@
     "message": "Successfully executed SQL query",
     "code": 200,
     "result": [{
-        "maintenance_quote_uid": "900-000001",
-        "maintenance_request_uid": "800-000001",
-        "business_uid": "600-000001",
-        "services_expenses": "[{\"fees\": 30, \"payment_term\": \"One-time cost\", \"service_notes\": \"Sealing base - labor cost\"}]",
-        "earliest_availability": "2022-01-03 00:00:00",
-        "event_type": "2 hour job",
-        "notes": null,
-        "status": "SENT"
-    }]
+            "maintenance_quote_uid": "900-000001",
+            "linked_request_uid": "800-000001",
+            "quote_business_uid": "600-000001",
+            "services_expenses": "[{\"fees\": 30, \"payment_term\": \"One-time cost\", \"service_notes\": \"Sealing base - labor cost\"}]",
+            "earliest_availability": "2022-01-03 00:00:00",
+            "event_type": "2 hour job",
+            "notes": null,
+            "quote_status": "SENT",
+            "quote_created_date": "2022-02-23 06:12:38",
+            "maintenance_request_uid": "800-000001",
+            "property_uid": "200-000001",
+            "title": "Bathroom Leaking",
+            "description": "The toilet plumbing is leaking at the base",
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000005/img_0\", \"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000005/img_0\", \"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000005/img_0\", \"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000005/img_0\", \"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000005/img_0\"]",
+            "priority": "High",
+            "can_reschedule": 1,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "request.notes": null,
+            "request_status": "COMPLETE",
+            "request_created_date": "2022-02-23 06:12:14",
+            "business_uid": "600-000001",
+            "business_type": "MANAGEMENT",
+            "business_name": "IO Management",
+            "business_phone_number": "(800)123-1234",
+            "business_email": "iomanagement@gmail.com",
+            "business_ein_number": "12-1234567",
+            "business_services_fees": "[{\"of\": \"Gross Rent\", \"name\": \"Service Charge\", \"type\": \"%\", \"charge\": 10, \"frequency\": \"Monthly\"}]",
+            "business_locations": null,
+            "business_paypal": null,
+            "business_apple_pay": null,
+            "business_zelle": null,
+            "business_venmo": null,
+            "business_account_number": null,
+            "business_routing_number": null
+        }
+    ]
 }
 ```
 
@@ -1576,8 +1606,8 @@
 - request JSON (manager requests quote from business):
 ```
 {
-    "maintenance_request_uid": "800-000001",
-    "business_uid": "600-000001"
+    "linked_request_uid": "800-000001",
+    "quote_business_uid": "600-000001"
 }
 ```
 - response JSON:
@@ -1585,6 +1615,28 @@
 {
     "message": "Successfully committed SQL query",
     "code": 200
+}
+```
+- request JSON (multiple businesses)
+```
+{
+    "linked_request_uid": "800-000001",
+    "quote_business_uid": ["600-000001", "600-000002"]
+}
+```
+- response JSON:
+```
+{
+    "responses": [
+        {
+            "message": "Successfully committed SQL query",
+            "code": 200
+        },
+        {
+            "message": "Successfully committed SQL query",
+            "code": 200
+        }
+    ]
 }
 ```
 
@@ -1601,23 +1653,30 @@
     }],
     "earliest_availability": "2022-01-03",
     "event_type": "2 hour job",
-    "status": "SENT"
+    "quote_status": "SENT"
+}
+```
+- request JSON (maintenance refuses quote):
+```
+{
+    "maintenance_quote_uid": "900-000001",
+    "quote_status": "REFUSED",
+    "notes": "No availability"
 }
 ```
 - request JSON (manager rejects quote):
 ```
 {
     "maintenance_quote_uid": "900-000001",
-    "status": "REJECTED",
+    "quote_status": "REJECTED",
     "notes": "Price too high"
 }
 ```
 - request JSON (manager accepts quote):
-- follow with PUT /maintenanceRequests/{maintenance_request_uid} (update assigned_business)
 ```
 {
     "maintenance_quote_uid": "900-000001",
-    "status": "ACCEPTED"
+    "quote_status": "ACCEPTED"
 }
 ```
 - response JSON:
