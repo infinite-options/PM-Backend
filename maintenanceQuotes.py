@@ -6,6 +6,27 @@ from data import connect
 import json
 from datetime import datetime
 
+def acceptQuote(quote_id):
+    with connect() as db:
+        response = db.select('maintenanceQuotes', where={'maintenance_quote_uid': quote_id})
+        quote = response['result'][0]
+        requestKey = {
+            'maintenance_request_uid': quote['linked_request_uid']
+        }
+        newRequest = {
+            'assigned_business': quote['quote_business_uid']
+        }
+        requestUpdate = db.update('maintenanceRequests', requestKey, newRequest)
+        print(requestUpdate)
+        quoteKey = {
+            'linked_request_uid': quote['linked_request_uid']
+        }
+        newQuote = {
+            'quote_status': 'WITHDRAWN'
+        }
+        quoteUpdate = db.update('maintenanceQuotes', quoteKey, newQuote)
+        print(quoteUpdate)
+
 class MaintenanceQuotes(Resource):
     def get(self):
         response = {}
@@ -33,6 +54,13 @@ class MaintenanceQuotes(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newQuote[field] = fieldValue
+            requestKey = {
+                'maintenance_request_uid': newQuote.get('linked_request_uid')
+            }
+            newStatus = {
+                'request_status': 'PROCESSING'
+            }
+            db.update('maintenanceRequests', requestKey, newStatus)
             if type(newQuote['quote_business_uid']) is list:
                 response['responses'] = []
                 businesses = newQuote['quote_business_uid']
@@ -64,6 +92,8 @@ class MaintenanceQuotes(Resource):
                         newQuote[field] = json.dumps(fieldValue)
                     else:
                         newQuote[field] = fieldValue
+            if newQuote.get('quote_status') == 'ACCEPTED':
+                acceptQuote(data.get('maintenance_quote_uid'))
             primaryKey = {
                 'maintenance_quote_uid': data.get('maintenance_quote_uid')
             }
