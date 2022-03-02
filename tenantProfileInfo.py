@@ -42,15 +42,11 @@ class TenantProfileInfo(Resource):
             data = request.form
             fields = ['first_name', 'last_name', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
                 'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
-            jsonFields = ['current_address', 'previous_address']
             newProfileInfo = {'tenant_id': user['user_uid']}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
-                    if field in jsonFields:
-                        newProfileInfo['tenant_'+field] = json.dumps(fieldValue)
-                    else:
-                        newProfileInfo['tenant_'+field] = fieldValue
+                    newProfileInfo['tenant_'+field] = fieldValue
             documents = json.loads(data.get('documents'))
             for i in range(len(documents)):
                 filename = f'doc_{i}'
@@ -71,15 +67,11 @@ class TenantProfileInfo(Resource):
             data = request.get_json()
             fields = ['first_name', 'last_name', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
                 'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
-            jsonFields = ['current_address', 'previous_address']
             newProfileInfo = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
-                    if field in jsonFields:
-                        newProfileInfo['tenant_'+field] = json.dumps(fieldValue)
-                    else:
-                        newProfileInfo['tenant_'+field] = fieldValue
+                    newProfileInfo['tenant_'+field] = fieldValue
             documents = json.loads(data.get('documents'))
             for i, doc in enumerate(documents):
                 filename = f'doc_{i}'
