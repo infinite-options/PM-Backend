@@ -9,25 +9,25 @@ from purchases import newPurchase
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-def updateDocuments(docFiles, rental_uid):
-    for filename in docFiles:
-        if type(docFiles[filename]) == str:
+def updateDocuments(documents, rental_uid):
+    for i, doc in enumerate(documents):
+        if 'link' in doc:
             bucket = 'io-pm'
-            key = docFiles[filename].split('/io-pm/')[1]
+            key = doc['link'].split('/io-pm/')[1]
             data = s3.get_object(
                 Bucket=bucket,
                 Key=key
             )
-            docFiles[filename] = data['Body']
+            doc['file'] = data['Body']
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'rentals/{rental_uid}/').delete()
-    documents = []
-    for i in range(len(docFiles.keys())):
+    for i, doc in enumerate(documents):
         filename = f'doc_{i}'
         key = f'rentals/{rental_uid}/{filename}'
-        doc = uploadImage(docFiles[filename], key)
-        documents.append(doc)
+        link = uploadImage(doc['file'], key)
+        doc['link'] = link
+        del doc['file']
     return documents
 
 class Rentals(Resource):
@@ -54,18 +54,16 @@ class Rentals(Resource):
             newRentalID = db.call('new_rental_id')['result'][0]['new_id']
             newRental['rental_uid'] = newRentalID
             newRental['rental_status'] = 'ACTIVE'
-            documents = []
-            i = 0
-            while True:
+            documents = json.loads(data.get('documents'))
+            for i in range(len(documents)):
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
                 if file:
                     key = f'rentals/{newRentalID}/{filename}'
                     doc = uploadImage(file, key)
-                    documents.append(doc)
+                    documents[i]['link'] = doc
                 else:
                     break
-                i += 1
             newRental['documents'] = json.dumps(documents)
             print(newRental)
             response = db.insert('rentals', newRental)
@@ -118,20 +116,18 @@ class Rentals(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newRental[field] = fieldValue
-            i = 0
-            docFiles = {}
-            while True:
+            documents = json.loads(data.get('documents'))
+            for i, doc in enumerate(documents):
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
-                s3Link = data.get(filename)
+                s3Link = doc.get('link')
                 if file:
-                    imageFiles[filename] = file
+                    doc['file'] = file
                 elif s3Link:
-                    imageFiles[filename] = s3Link
+                    doc['link'] = s3Link
                 else:
                     break
-                i += 1
-            documents = updateDocuments(docFiles, rental_uid)
+            documents = updateDocuments(documents, rental_uid)
             newRental['documents'] = json.dumps(documents)
             primaryKey = {'rental_uid': rental_uid}
             response = db.update('rentals', primaryKey, newRental)

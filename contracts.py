@@ -6,25 +6,25 @@ import boto3
 from data import connect, uploadImage, s3
 import json
 
-def updateDocuments(docFiles, contract_uid):
-    for filename in docFiles:
-        if type(docFiles[filename]) == str:
+def updateDocuments(documents, contract_uid):
+    for i, doc in enumerate(documents):
+        if 'link' in doc:
             bucket = 'io-pm'
-            key = docFiles[filename].split('/io-pm/')[1]
+            key = doc['link'].split('/io-pm/')[1]
             data = s3.get_object(
                 Bucket=bucket,
                 Key=key
             )
-            docFiles[filename] = data['Body']
+            doc['file'] = data['Body']
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'contracts/{contract_uid}/').delete()
-    documents = []
-    for i in range(len(docFiles.keys())):
+    for i, doc in enumerate(documents):
         filename = f'doc_{i}'
         key = f'contracts/{contract_uid}/{filename}'
-        doc = uploadImage(docFiles[filename], key)
-        documents.append(doc)
+        link = uploadImage(doc['file'], key)
+        doc['link'] = link
+        del doc['file']
     return documents
 
 class Contracts(Resource):
@@ -52,18 +52,16 @@ class Contracts(Resource):
                     newContract[field] = fieldValue
             newContractID = db.call('new_contract_id')['result'][0]['new_id']
             newContract['contract_uid'] = newContractID
-            documents = []
-            i = 0
-            while True:
+            documents = json.loads(data.get('documents'))
+            for i in range(len(documents)):
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
                 if file:
                     key = f'contracts/{newContractID}/{filename}'
                     doc = uploadImage(file, key)
-                    documents.append(doc)
+                    documents[i]['link'] = doc
                 else:
                     break
-                i += 1
             newContract['documents'] = json.dumps(documents)
             print(newContract)
             response = db.insert('contracts', newContract)
@@ -78,20 +76,18 @@ class Contracts(Resource):
             newContract = {}
             for field in fields:
                 newContract[field] = data.get(field)
-            i = 0
-            docFiles = {}
-            while True:
+            documents = json.loads(data.get('documents'))
+            for i, doc in enumerate(documents):
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
-                s3Link = data.get(filename)
+                s3Link = doc.get('link')
                 if file:
-                    docFiles[filename] = file
+                    doc['file'] = file
                 elif s3Link:
-                    docFiles[filename] = s3Link
+                    doc['link'] = s3Link
                 else:
                     break
-                i += 1
-            documents = updateDocuments(docFiles, contract_uid)
+            documents = updateDocuments(documents, contract_uid)
             newContract['documents'] = json.dumps(documents)
             primaryKey = {'contract_uid': contract_uid}
             response = db.update('contracts', primaryKey, newContract)
