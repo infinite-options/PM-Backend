@@ -3,6 +3,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_mail import Mail, Message
 
 from properties import Properties, Property
 from users import Users, Login
@@ -32,6 +33,24 @@ app.config['JWT_SECRET_KEY'] = 'secret'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
 app.config['PROPAGATE_EXCEPTIONS'] = True
 jwt = JWTManager(app)
+app.config["MAIL_SERVER"] = "smtp.mydomain.com"
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USE_TLS"] = False
+app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_USERNAME"] = "support@skedul.online"
+app.config["MAIL_PASSWORD"] = "SupportSkedul1"
+app.config["MAIL_DEFAULT_SENDER"] = "support@skedul.online"
+app.config["MAIL_SUPPRESS_SEND"] = False
+mail = Mail(app)
+def sendEmail(recipient, subject, body):
+    msg = Message(
+        sender='support@skedul.online',
+        recipients=[recipient],
+        subject=subject,
+        body=body
+    )
+    mail.send(msg)
+app.sendEmail = sendEmail
 
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')

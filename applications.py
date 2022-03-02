@@ -1,6 +1,6 @@
 
 
-from flask import request
+from flask import request, current_app
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -52,6 +52,11 @@ class Applications(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newApplication[field] = fieldValue
+            # if newApplication['application_status'] == 'ACCEPTED':
+            #     recipient = 'zacharywolfflind@gmail.com'
+            #     subject = 'Application Accepted'
+            #     body = 'Your application for the apartment has been accepted'
+            #     current_app.sendEmail(recipient, subject, body)
             primaryKey = {
                 'application_uid': data.get('application_uid')
             }
