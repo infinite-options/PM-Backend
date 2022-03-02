@@ -27,7 +27,6 @@ def createUser(firstName, lastName, phoneNumber, email, password, role):
             'role': role
         }
         response = db.insert('users', newUser)
-        db.insert('users', newUser)
         return newUser
 
 class Login(Resource):

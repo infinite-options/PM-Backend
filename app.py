@@ -25,6 +25,7 @@ from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
 from propertyInfo import PropertyInfo, AvailableProperties
 from applications import Applications
+from socialLogin import UserSocialLogin, UserSocialSignup
 
 app = Flask(__name__)
 CORS(app)
@@ -76,6 +77,8 @@ api.add_resource(Contracts, '/contracts')
 api.add_resource(PropertyInfo, '/propertyInfo')
 api.add_resource(AvailableProperties, '/availableProperties')
 api.add_resource(Applications, '/applications')
+api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
+api.add_resource(UserSocialSignup, '/userSocialSignup')
 
 if __name__ == '__main__':
     app.run(debug=True)
