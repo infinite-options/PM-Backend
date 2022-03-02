@@ -26,7 +26,7 @@ class UserSocialSignup(Resource):
         with connect() as db:
             data = request.get_json(force=True)
             fields = ['email', 'first_name', 'last_name', 'time_zone', 'google_auth_token',
-                'social_id', 'google_refresh_token', 'access_expires_in']
+                'social_id', 'google_refresh_token', 'access_expires_in', 'role']
             newUser = {}
             for field in fields:
                 fieldValue = data.get(field)
