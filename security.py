@@ -24,6 +24,7 @@ def createTokens(user):
         'phone_number': user['phone_number'],
         'email': user['email'],
         'role': user['role'],
+        'google_auth_token': user['google_auth_token'],
         'businesses': businesses
     }
     return {

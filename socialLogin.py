@@ -3,7 +3,7 @@ from flask import request
 from flask_restful import Resource
 
 from data import connect
-from users import getUserByEmail
+from users import getUserByEmail, createUser
 
 class UserSocialLogin(Resource):
     def get(self, email):
@@ -25,20 +25,29 @@ class UserSocialSignup(Resource):
         response = {}
         with connect() as db:
             data = request.get_json(force=True)
-            fields = ['email', 'first_name', 'last_name', 'time_zone', 'google_auth_token',
-                'social_id', 'google_refresh_token', 'access_expires_in', 'role']
-            newUser = {}
-            for field in fields:
-                fieldValue = data.get(field)
-                if fieldValue:
-                    newUser[field] = fieldValue
-            user = getUserByEmail(newUser['email'])
+
+            email = data.get('email')
+            phoneNumber = data.get('phone_number')
+            firstName = data.get('first_name')
+            lastName = data.get('last_name')
+            role = data.get('role')
+            google_auth_token = data.get('google_auth_token')
+            google_refresh_token = data.get('google_refresh_token')
+            social_id = data.get('social_id')
+            access_expires_in = data.get('access_expires_in')
+            password = data.get('password')
+            user = getUserByEmail(email)
             if user:
                 response['message'] = 'User already exists'
             else:
-                newUserID = db.call('new_user_id')['result'][0]['new_id']
-                newUser['user_uid'] = newUserID
-                db.insert('users', newUser)
-                response['message'] = 'successful'
-                response['result'] = newUserID
+                user = createUser(firstName, lastName, phoneNumber, email, password, role,
+                    google_auth_token, google_refresh_token, social_id, access_expires_in)
+                response['message'] = 'Signup success'
+                response['code'] = 200
+                response['result'] = createTokens(user)
+                # newUserID = db.call('new_user_id')['result'][0]['new_id']
+                # newUser['user_uid'] = newUserID
+                # db.insert('users', newUser)
+                # response['message'] = 'successful'
+                # response['result'] = newUserID
         return response

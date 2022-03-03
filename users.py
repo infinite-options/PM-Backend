@@ -11,7 +11,8 @@ def getUserByEmail(email):
         if len(result['result']) > 0:
             return result['result'][0]
 
-def createUser(firstName, lastName, phoneNumber, email, password, role):
+def createUser(firstName, lastName, phoneNumber, email, password, role,
+    google_auth_token=None, google_refresh_token=None, social_id=None, access_expires_in=None):
     with connect() as db:
         newUserID = db.call('new_user_id')['result'][0]['new_id']
         passwordSalt = createSalt()
@@ -24,7 +25,11 @@ def createUser(firstName, lastName, phoneNumber, email, password, role):
             'email': email,
             'password_salt': passwordSalt,
             'password_hash': passwordHash,
-            'role': role
+            'role': role,
+            'google_auth_token': google_auth_token,
+            'google_refresh_token': google_refresh_token,
+            'social_id': social_id,
+            'access_expires_in': access_expires_in
         }
         response = db.insert('users', newUser)
         return newUser
