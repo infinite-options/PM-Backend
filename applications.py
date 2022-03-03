@@ -17,9 +17,12 @@ class Applications(Resource):
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
-                where[filter] = filterValue
+                where[f'a.{filter}'] = filterValue
         with connect() as db:
-            response = db.select('applications', where)
+            sql = 'SELECT  FROM applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id'
+            cols = 'application_uid, property_uid, message, application_status, t.*'
+            tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id'
+            response = db.select(cols=cols, tables=tables, where=where)
         return response
 
     def post(self):

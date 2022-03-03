@@ -91,10 +91,10 @@ class DatabaseConnection:
             response['error'] = e
         return response
 
-    def select(self, table, where={}):
+    def select(self, tables, where={}, cols='*'):
         response = {}
         try:
-            sql = f'SELECT * FROM {table}'
+            sql = f'SELECT {cols} FROM {tables}'
             for i, key in enumerate(where.keys()):
                 if i == 0:
                     sql += ' WHERE '
