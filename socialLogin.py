@@ -4,6 +4,7 @@ from flask_restful import Resource
 
 from data import connect
 from users import getUserByEmail, createUser
+from security import createTokens
 
 class UserSocialLogin(Resource):
     def get(self, email):
