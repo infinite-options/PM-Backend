@@ -31,6 +31,7 @@
 - [/employees](#employees)
 - [/maintenanceRequests](#maintenanceRequests)
 - [/maintenanceQuotes](#maintenanceQuotes)
+- [/applications](#applications)
 
 ---
 
@@ -42,7 +43,7 @@
 - available filters
   - property_uid
   - owner_id
-  - manager_business
+  - manager_id
   - address
   - city
   - state
@@ -143,7 +144,7 @@
 ##### PUT
 - update property
 - send as multipart/form-data
-- include image files as img_cover, img_0, img_1...
+- include image files or links as img_cover, img_0, img_1...
 - request JSON:
 ```
 {
@@ -194,7 +195,7 @@
 
 ---
 
-### /properties/{property_uid}
+### /properties/{property_uid} *** deprecated, use /properties PUT
 
 #### PUT
 - update property
@@ -293,17 +294,16 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "actual_rent": 1800,
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
             "tenant_first_name": "Tenant",
             "tenant_last_name": "Test",
-            "purchases": "[{\"payer\": \"100-000003\", \"amount\": 1800.0, \"receiver\": \"100-000001\", \"description\": \"Rent for January 2022\", \"purchase_uid\": \"400-000001\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"First month's rent\", \"pur_property_id\": \"200-000001\"}, {\"payer\": \"100-000001\", \"amount\": 40.0, \"receiver\": \"100-000004\", \"description\": \"Toilet Plumbing\", \"purchase_uid\": \"400-000002\", \"purchase_type\": \"MAINTENANCE\", \"purchase_notes\": null, \"pur_property_id\": \"200-000001\"}]"
+            "purchases": "[{\"payer\": \"100-000007\", \"receiver\": \"200-000004\", \"amount_due\": 2000.0, \"amount_paid\": 0.0, \"description\": \"Rent\", \"purchase_uid\": \"400-000010\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"March\", \"pur_property_id\": \"200-000004\", \"purchase_status\": \"UNPAID\"}]"
         }
     ]
 }
-
 ```
 
 ---
@@ -352,13 +352,13 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "actual_rent": 1800,
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
             "tenant_first_name": "Tenant",
             "tenant_last_name": "Test",
-            "purchases": "[{\"payer\": \"100-000003\", \"amount\": 1800.0, \"receiver\": \"100-000001\", \"description\": \"Rent for January 2022\", \"purchase_uid\": \"400-000001\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"First month's rent\", \"pur_property_id\": \"200-000001\"}, {\"payer\": \"100-000001\", \"amount\": 40.0, \"receiver\": \"100-000004\", \"description\": \"Toilet Plumbing\", \"purchase_uid\": \"400-000002\", \"purchase_type\": \"MAINTENANCE\", \"purchase_notes\": null, \"pur_property_id\": \"200-000001\"}]"
+            "purchases": "[{\"payer\": \"100-000007\", \"receiver\": \"200-000004\", \"amount_due\": 2000.0, \"amount_paid\": 0.0, \"description\": \"Rent\", \"purchase_uid\": \"400-000010\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"March\", \"pur_property_id\": \"200-000004\", \"purchase_status\": \"UNPAID\"}]"
         }
     ]
 }
@@ -409,13 +409,75 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "actual_rent": 1800,
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
             "tenant_first_name": "Tenant",
             "tenant_last_name": "Test",
-            "purchases": "[{\"payer\": \"100-000003\", \"amount\": 1800.0, \"receiver\": \"100-000001\", \"description\": \"Rent for January 2022\", \"purchase_uid\": \"400-000001\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"First month's rent\", \"pur_property_id\": \"200-000001\"}, {\"payer\": \"100-000001\", \"amount\": 40.0, \"receiver\": \"100-000004\", \"description\": \"Toilet Plumbing\", \"purchase_uid\": \"400-000002\", \"purchase_type\": \"MAINTENANCE\", \"purchase_notes\": null, \"pur_property_id\": \"200-000001\"}]"
+            "purchases": "[{\"payer\": \"100-000007\", \"receiver\": \"200-000004\", \"amount_due\": 2000.0, \"amount_paid\": 0.0, \"description\": \"Rent\", \"purchase_uid\": \"400-000010\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"March\", \"pur_property_id\": \"200-000004\", \"purchase_status\": \"UNPAID\"}]"
+        }
+    ]
+}
+```
+
+---
+
+### /propertyInfo
+
+##### GET
+- with no args, returns all properties and related information
+- add args to endpoint to filter results (ex: /propertyInfo?manager_id=600-000001)
+- available filters
+  - property_uid
+  - owner_id
+  - manager_id
+  - tenant_id
+- response JSON:
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [
+        {
+            "property_uid": "200-000001",
+            "owner_id": "100-000001",
+            "manager_id": "600-000001",
+            "address": "101 Main St",
+            "unit": "#30",
+            "city": "San Jose",
+            "state": "CA",
+            "zip": "95120",
+            "property_type": "Apartment",
+            "num_beds": 2.0,
+            "num_baths": 2.5,
+            "area": 1000,
+            "listed_rent": 1200,
+            "deposit": 1000,
+            "appliances": "{\"Dryer\": true, \"Range\": true, \"Washer\": true, \"Microwave\": false, \"Dishwasher\": false, \"Refrigerator\": true}",
+            "utilities": "{\"Gas\": true, \"Wifi\": false, \"Trash\": false, \"Water\": true, \"Electricity\": false}",
+            "pets_allowed": 0,
+            "deposit_for_rent": 0,
+            "images": "[]",
+            "taxes": null,
+            "mortgages": null,
+            "owner_first_name": "Owner",
+            "owner_last_name": "Test",
+            "owner_phone_number": "(800)123-1231",
+            "owner_email": "pm@gmail.com",
+            "manager_business_name": "IO Management",
+            "manager_phone_number": "(800)123-1234",
+            "manager_email": "iomanagement@gmail.com",
+            "rental_uid": "300-000001",
+            "rental_property_id": "200-000001",
+            "tenant_id": "100-000003",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "lease_start": "2022-02-01",
+            "lease_end": "2022-03-01",
+            "rental_status": "ACTIVE",
+            "tenant_first_name": "Tenant",
+            "tenant_last_name": "Test",
+            "purchases": "[{\"payer\": \"100-000007\", \"receiver\": \"200-000004\", \"amount_due\": 2000.0, \"amount_paid\": 0.0, \"description\": \"Rent\", \"purchase_uid\": \"400-000010\", \"purchase_type\": \"RENT\", \"purchase_notes\": \"March\", \"pur_property_id\": \"200-000004\", \"purchase_status\": \"UNPAID\"}]"
         }
     ]
 }
@@ -438,16 +500,22 @@
 {
     "message": "Successfully executed SQL query",
     "code": 200,
-    "result": [{
+    "result": [
+        {
             "user_uid": "100-000001",
-            "first_name": "Owner",
-            "last_name": "Test",
-            "phone_number": "(800)000-0001",
-            "email": "owner@gmail.com",
-            "password_salt": "9803f419b4e0f81dbd443e526c074351b91f2cb43a91bb16cdea6ccb1523388f",
-            "password_hash": "600d7cf7e13fef382e4377b6290f55a52194e400c2690c22dd0dd23af2ce6d9a",
-            "role": "OWNER",
-            "created_date": "2022-01-05 08:00:01"
+            "first_name": "tenant",
+            "last_name": "0225",
+            "phone_number": "1231231231",
+            "email": "tenant0225@gmail.com",
+            "password_salt": "9328247596753792ecf11a77eef415ec7cf5235d389af98771c96819b4128f00",
+            "password_hash": "844b08ac3253fdb2a5acade2085bb248eb81e536a9f8cab416913d4b59817ae7",
+            "role": "TENANT",
+            "created_date": "2022-02-25 16:32:43",
+            "google_auth_token": null,
+            "google_refresh_token": null,
+            "social_id": null,
+            "access_expires_in": null,
+            "time_zone": null
         }
     ]
 }
@@ -472,15 +540,17 @@
     "message": "Signup success",
     "code": 200,
     "result": {
-        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0MTM2OTYwMSwianRpIjoiMzYxYWE0ZGQtOWU3OS00ODJiLWE2MGQtNzBiNDg3MDNlM2VkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VyX2lkIjoiMTAwLTAwMDAwMSIsImZ1bGxfbmFtZSI6Ik93bmVyIFRlc3QiLCJwaG9uZV9udW1iZXIiOiIoODAwKTAwMC0wMDAxIiwiZW1haWwiOiJvd25lckBnbWFpbC5jb20iLCJyb2xlIjoiT1dORVIifSwibmJmIjoxNjQxMzY5NjAxLCJleHAiOjE2NDEzNzA1MDF9.wucRiHI7XzC7WSEzC0U_oGm3ysY5l2FVLFNj-Dvmz9s",
-        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0MTM2OTYwMSwianRpIjoiYTdkOWM4YjMtNWYyOC00M2VhLWI2NGEtMWQwZWI2NjMzN2NmIiwidHlwZSI6InJlZnJlc2giLCJzdWIiOnsidXNlcl9pZCI6IjEwMC0wMDAwMDEiLCJmdWxsX25hbWUiOiJPd25lciBUZXN0IiwicGhvbmVfbnVtYmVyIjoiKDgwMCkwMDAtMDAwMSIsImVtYWlsIjoib3duZXJAZ21haWwuY29tIiwicm9sZSI6Ik9XTkVSIn0sIm5iZiI6MTY0MTM2OTYwMSwiZXhwIjoxNjQzOTYxNjAxfQ.HQ83n6Ux45O4IYTxzNHF_eXM8xWzZefQF9TgjsFZE-E",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0NjM3OTM1NywianRpIjoiNmVmZDAyZjYtY2Y5Mi00MWNlLWFhM2YtNjMyODk5ZDAwMmE3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VyX3VpZCI6IjEwMC0wMDAwMDYiLCJmaXJzdF9uYW1lIjoiT3duZXIiLCJsYXN0X25hbWUiOiJUZXN0IiwicGhvbmVfbnVtYmVyIjoiKDEyMyk0NTYtMDAwMSIsImVtYWlsIjoib3duZXJAZ21haWwuY29tIiwicm9sZSI6Ik9XTkVSIiwiZ29vZ2xlX2F1dGhfdG9rZW4iOm51bGwsImJ1c2luZXNzZXMiOltdfSwibmJmIjoxNjQ2Mzc5MzU3LCJleHAiOjE2NDYzODI5NTd9.KWcVAe_OfC6tAHHiySTyFdxhtubnnUXl6Q-acVGR_fU",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0NjM3OTM1NywianRpIjoiYWViYzU3M2MtNGI4NC00ZGIyLTllZTItNDdhZjUxMTJmZWU2IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOnsidXNlcl91aWQiOiIxMDAtMDAwMDA2IiwiZmlyc3RfbmFtZSI6Ik93bmVyIiwibGFzdF9uYW1lIjoiVGVzdCIsInBob25lX251bWJlciI6IigxMjMpNDU2LTAwMDEiLCJlbWFpbCI6Im93bmVyQGdtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsImdvb2dsZV9hdXRoX3Rva2VuIjpudWxsLCJidXNpbmVzc2VzIjpbXX0sIm5iZiI6MTY0NjM3OTM1NywiZXhwIjoxNjQ4OTcxMzU3fQ.y6nY70xLH-h6CBK0ES3j942FW9PL2dM05Lr2QAv2dlI",
         "user": {
-            "user_uid": "100-000001",
+            "user_uid": "100-000006",
             "first_name": "Owner",
             "last_name": "Test",
-            "phone_number": "(800)000-0001",
+            "phone_number": "(123)456-0001",
             "email": "owner@gmail.com",
-            "role": "OWNER"
+            "role": "OWNER",
+            "google_auth_token": null,
+            "businesses": []
         }
     }
 }
@@ -513,15 +583,17 @@
     "message": "Login successful",
     "code": 200,
     "result": {
-        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0MTM2OTY2MiwianRpIjoiZjczZTY5MGEtMTNmMi00YzVkLTkxYzMtMGEyMzgwZWVhMzFiIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VyX2lkIjoiMTAwLTAwMDAwMSIsImZ1bGxfbmFtZSI6Ik93bmVyIFRlc3QiLCJwaG9uZV9udW1iZXIiOiIoODAwKTAwMC0wMDAxIiwiZW1haWwiOiJvd25lckBnbWFpbC5jb20iLCJyb2xlIjoiT1dORVIifSwibmJmIjoxNjQxMzY5NjYyLCJleHAiOjE2NDEzNzA1NjJ9.wSCK6FKNVsPpgTBFBB_DqZ85EEw6DaNsEPIuZFR_WW4",
-        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0MTM2OTY2MiwianRpIjoiNjBlNTgzZGQtZTEyMy00NWI1LTkzNjEtNGNlMTYxYzBlOGMyIiwidHlwZSI6InJlZnJlc2giLCJzdWIiOnsidXNlcl9pZCI6IjEwMC0wMDAwMDEiLCJmdWxsX25hbWUiOiJPd25lciBUZXN0IiwicGhvbmVfbnVtYmVyIjoiKDgwMCkwMDAtMDAwMSIsImVtYWlsIjoib3duZXJAZ21haWwuY29tIiwicm9sZSI6Ik9XTkVSIn0sIm5iZiI6MTY0MTM2OTY2MiwiZXhwIjoxNjQzOTYxNjYyfQ.BgTTlZ2Smq3ZFWoBvdtfuXxi-thulojBDT7xVbpk7SM",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0NjM3OTM1NywianRpIjoiNmVmZDAyZjYtY2Y5Mi00MWNlLWFhM2YtNjMyODk5ZDAwMmE3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VyX3VpZCI6IjEwMC0wMDAwMDYiLCJmaXJzdF9uYW1lIjoiT3duZXIiLCJsYXN0X25hbWUiOiJUZXN0IiwicGhvbmVfbnVtYmVyIjoiKDEyMyk0NTYtMDAwMSIsImVtYWlsIjoib3duZXJAZ21haWwuY29tIiwicm9sZSI6Ik9XTkVSIiwiZ29vZ2xlX2F1dGhfdG9rZW4iOm51bGwsImJ1c2luZXNzZXMiOltdfSwibmJmIjoxNjQ2Mzc5MzU3LCJleHAiOjE2NDYzODI5NTd9.KWcVAe_OfC6tAHHiySTyFdxhtubnnUXl6Q-acVGR_fU",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0NjM3OTM1NywianRpIjoiYWViYzU3M2MtNGI4NC00ZGIyLTllZTItNDdhZjUxMTJmZWU2IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOnsidXNlcl91aWQiOiIxMDAtMDAwMDA2IiwiZmlyc3RfbmFtZSI6Ik93bmVyIiwibGFzdF9uYW1lIjoiVGVzdCIsInBob25lX251bWJlciI6IigxMjMpNDU2LTAwMDEiLCJlbWFpbCI6Im93bmVyQGdtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsImdvb2dsZV9hdXRoX3Rva2VuIjpudWxsLCJidXNpbmVzc2VzIjpbXX0sIm5iZiI6MTY0NjM3OTM1NywiZXhwIjoxNjQ4OTcxMzU3fQ.y6nY70xLH-h6CBK0ES3j942FW9PL2dM05Lr2QAv2dlI",
         "user": {
-            "user_uid": "100-000001",
+            "user_uid": "100-000006",
             "first_name": "Owner",
             "last_name": "Test",
-            "phone_number": "(800)000-0001",
+            "phone_number": "(123)456-0001",
             "email": "owner@gmail.com",
-            "role": "OWNER"
+            "role": "OWNER",
+            "google_auth_token": null,
+            "businesses": []
         }
     }
 }
@@ -629,7 +701,7 @@
 
 ---
 
-### /managerProfileInfo
+### /managerProfileInfo *** deprecated, use /businesses or /employees
 
 ##### GET
 - requires JWT authorization
@@ -759,18 +831,19 @@
     "message": "Successfully executed SQL query",
     "code": 200,
     "result": [{
-        "tenant_id": "100-000003",
+        "tenant_id": "100-000014",
         "tenant_first_name": "Tenant",
         "tenant_last_name": "Test",
-        "tenant_ssn": "000-00-0003",
-        "tenant_current_salary": 75000,
-        "tenant_salary_frequency": "Annually",
+        "tenant_ssn": "123-45-6789",
+        "tenant_current_salary": "75000",
+        "tenant_salary_frequency": "Annual",
         "tenant_current_job_title": "Software Engineer",
         "tenant_current_job_company": "Infinite Options",
-        "tenant_drivers_license_number": "A0000003",
+        "tenant_drivers_license_number": "123456789",
         "tenant_drivers_license_state": "CA",
-        "tenant_current_address": "{\"zip\": \"95120\", \"city\": \"San Jose\", \"rent\": 1800, \"unit\": \"\", \"state\": \"CA\", \"street\": \"123 Main St\", \"pm_name\": \"Manager Test\", \"lease_end\": \"1/22\", \"pm_number\": \"00-0000002\", \"lease_start\": \"6/19\"}",
-        "tenant_previous_addresses": null
+        "tenant_current_address": "{\"zip\": \"95120\", \"city\": \"San Jose\", \"rent\": \"\", \"unit\": \"\", \"state\": \"CA\", \"street\": \"101 Main St\", \"pm_name\": \"\", \"lease_end\": \"\", \"pm_number\": \"\", \"lease_start\": \"\"}",
+        "tenant_previous_address": "null",
+        "documents": "[{\"link\": \"https://s3-us-west-1.amazonaws.com/io-pm/tenants/100-000014/doc_0\", \"name\": \"Resume\", \"description\": \"document description\"}]"
     }]
 }
 ```
@@ -778,6 +851,9 @@
 ##### POST
 - create new tenant info
 - requires JWT authorization
+- send as multipart/form-data
+- include document files as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 ```
 {
@@ -802,7 +878,14 @@
       "lease_end": "1/22",
       "rent": 1800
     },
-    "previous_address": []
+    "previous_address": [],
+    "doc_0": "",
+    "documents": [
+      {
+        "name": "Resume",
+        "description": "My resume"
+      }
+    ]
 }
 ```
 - response JSON:
@@ -816,6 +899,9 @@
 ##### PUT
 - update tenant info
 - requires JWT authorization
+- send as multipart/form-data
+- include document files or links as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 ```
 {
@@ -840,7 +926,14 @@
       "lease_end": "1/22",
       "rent": 1800
     },
-    "previous_address": []
+    "previous_address": [],
+    "doc_0": "",
+    "documents": [
+      {
+        "name": "Resume",
+        "description": "My resume"
+      }
+    ]
 }
 ```
 - response JSON:
@@ -853,7 +946,7 @@
 
 ---
 
-### /businessProfileInfo
+### /businessProfileInfo *** deprecated, use /businesses or /employees
 
 ##### GET
 - requires JWT authorization
@@ -997,6 +1090,7 @@
 - create new rental
 - send as multipart/form-data
 - include document files as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 ```
 {
@@ -1020,7 +1114,12 @@
     "email": "greg@beverlyman.com"
   }],
   "doc_0": "",
-  "doc_1": ""
+  "documents": [
+    {
+      "name": "Resume",
+      "description": "My resume"
+    }
+  ]
 }
 ```
 - response JSON:
@@ -1034,7 +1133,8 @@
 ##### PUT
 - update rental
 - send as multipart/form-data
-- include document files as doc_0, doc_1...
+- include document files or links as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 ```
 {
@@ -1056,7 +1156,12 @@
     "email": "greg@beverlyman.com"
   }],
   "doc_0": "",
-  "doc_1": ""
+  "documents": [
+    {
+      "name": "Resume",
+      "description": "My resume"
+    }
+  ]
 }
 ```
 - response JSON:
@@ -1102,6 +1207,7 @@
 - create new contract
 - send as multipart/form-data
 - include document files as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 ```
 {
@@ -1123,7 +1229,12 @@
     "email": "greg@beverlyman.com"
   }],
   "doc_0": "",
-  "doc_1": ""
+  "documents": [
+    {
+      "name": "Resume",
+      "description": "My resume"
+    }
+  ]
 }
 ```
 - response JSON:
@@ -1137,7 +1248,8 @@
 ##### PUT
 - update contract
 - send as multipart/form-data
-- include document files as doc_0, doc_1...
+- include document files or links as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 ```
 {
@@ -1160,7 +1272,12 @@
     "email": "greg@beverlyman.com"
   }],
   "doc_0": "",
-  "doc_1": ""
+  "documents": [
+    {
+      "name": "Resume",
+      "description": "My resume"
+    }
+  ]
 }
 ```
 - response JSON:
@@ -1192,15 +1309,17 @@
     "result": [{
         "purchase_uid": "400-000001",
         "linked_purchase_id": null,
-        "pay_property_id": "200-000001",
-        "payer": "100-000003",
-        "receiver": "100-000001",
+        "pur_property_id": "200-000001",
+        "payer": "100-000001",
+        "receiver": "200-000001",
         "purchase_type": "RENT",
-        "description": "Rent for January 2022",
-        "amount": 1800.0,
-        "purchase_notes": "First month's rent",
-        "purchase_date": "2022-01-10 07:19:16",
-        "purchase_status": "UNPAID"
+        "description": "Rent",
+        "amount_due": 2000.0,
+        "amount_paid": 2000.0,
+        "purchase_notes": "March",
+        "purchase_date": "2022-03-04 00:00:00",
+        "purchase_frequency": "Monthly",
+        "purchase_status": "PAID"
     }]
 }
 ```
@@ -1216,8 +1335,10 @@
     "receiver": "100-000001",
     "purchase_type": "RENT",
     "description": "Rent for January 2022",
-    "amount": "1800",
-    "purchase_notes": "First month's rent"
+    "amount_due": "1800",
+    "purchase_notes": "First month's rent",
+    "purchase_date": "2022-03-04 00:00:00",
+    "purchase_frequency": "Monthly"
 }
 ```
 - response JSON:
@@ -1246,7 +1367,8 @@
     "result": [{
         "payment_uid": "500-000001",
         "pay_purchase_id": "400-000001",
-        "amount_due": 1800.0,
+        "amount": 2000.0,
+        "payment_notes": "M4METEST",
         "charge_id": "pi_3KTMYpLMju5RPMEv0zFXZoFK",
         "payment_type": "STRIPE",
         "payment_date": "2022-01-10 16:05:29"
@@ -1260,7 +1382,8 @@
 ```
 {
     "pay_purchase_id": "400-000001",
-    "amount_due": 1800,
+    "amount": 1800,
+    "payment_notes": "M4METEST",
     "payment_type": "STRIPE",
     "charge_id": "pi_3KTMYpLMju5RPMEv0zFXZoFK"
 }
@@ -1290,13 +1413,20 @@
     "message": "Successfully executed SQL query",
     "code": 200,
     "result": [{
-        "business_uid": "600-000001",
-        "business_type": "MANAGEMENT",
-        "business_name": "Infinite Options",
-        "business_phone_number": "(800)123-1234",
-        "business_email": "iomanagement@gmail.com",
-        "business_ein_number": "12-1234567",
-        "business_services_fees": "[{\"of\": \"Gross Rent\", \"name\": \"Service Charge\", \"type\": \"%\", \"charge\": 10, \"frequency\": \"Monthly\"}]"
+        "business_uid": "600-000016",
+        "business_type": "MAINTENANCE",
+        "business_name": "Maintenance 225",
+        "business_phone_number": "(123)456-0225",
+        "business_email": "maintenance225@gmail.com",
+        "business_ein_number": "12-2252252",
+        "business_services_fees": "[{\"per\": \"Hour\", \"charge\": \"20\", \"service_name\": \"Plumbing\"}]",
+        "business_locations": "[{\"distance\": \"5\", \"location\": \"San Jose, CA\"}]",
+        "business_paypal": "maintenance225@gmail.com",
+        "business_apple_pay": null,
+        "business_zelle": null,
+        "business_venmo": null,
+        "business_account_number": null,
+        "business_routing_number": null
     }]
 }
 ```
@@ -1317,7 +1447,17 @@
         "charge": 10,
         "of": "Gross Rent",
         "frequency": "Monthly"
-    }]
+    }],
+    "locations": [{
+      "location": "San Jose, CA"
+      "distance": 5,
+    }],
+    "paypal": "maintenance225@gmail.com",
+    "apple_pay": null,
+    "zelle": null,
+    "venmo": null,
+    "account_number": null,
+    "routing_number": null
 }
 ```
 - request JSON (MAINTENANCE):
@@ -1334,7 +1474,17 @@
         "charge": 75,
         "of": "",
         "frequency": "Hourly"
-    }]
+    }],
+    "locations": [{
+      "location": "San Jose, CA"
+      "distance": 5,
+    }],
+    "paypal": "waterworks@gmail.com",
+    "apple_pay": null,
+    "zelle": null,
+    "venmo": null,
+    "account_number": null,
+    "routing_number": null
 }
 ```
 - response JSON:
@@ -1362,7 +1512,17 @@
         "charge": 10,
         "of": "Gross Rent",
         "frequency": "Monthly"
-    }]
+    }],
+    "locations": [{
+      "location": "San Jose, CA"
+      "distance": 5,
+    }],
+    "paypal": "maintenance225@gmail.com",
+    "apple_pay": null,
+    "zelle": null,
+    "venmo": null,
+    "account_number": null,
+    "routing_number": null
 }
 ```
 - response JSON:
@@ -1435,13 +1595,15 @@
 ```
 {
     "employee_uid": "700-000001",
-    "employee_role": "Accountant",
-    "employee_first_name": "John",
-    "employee_last_name": "Doe",
-    "employee_phone_number": "(789)908-9087",
-    "employee_email": "pm@gmail.com",
-    "employee_ssn": "131-89-1839",
-    "employee_ein_number": "12-1313131"
+    "user_uid": "100-000001",
+    "business_uid": "600-000001",
+    "role": "Accountant",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone_number": "(789)908-9087",
+    "email": "pm@gmail.com",
+    "ssn": "131-89-1839",
+    "ein_number": "12-1313131"
 }
 ```
 - response JSON:
@@ -1465,7 +1627,7 @@
   - priority
   - assigned_business
   - assigned_worker
-  - status
+  - request_status
 - response JSON:
 ```
 {
@@ -1474,17 +1636,18 @@
     "result": [{
         "maintenance_request_uid": "800-000001",
         "property_uid": "200-000001",
-        "title": "Bathroom Leaking",
-        "description": "The toilet plumbing is leaking at the base",
-        "images": "[]",
+        "title": "Paint",
+        "description": "Living room ",
+        "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000001/img_0\"]",
         "priority": "High",
         "can_reschedule": 0,
-        "assigned_business": null,
+        "assigned_business": "600-000016",
         "assigned_worker": null,
         "scheduled_date": null,
         "frequency": "One time",
         "notes": null,
-        "request_status": "NEW"
+        "request_status": "PROCESSING",
+        "request_created_date": "2022-02-25 16:58:49"
     }]
 }
 ```
@@ -1515,7 +1678,7 @@
 ##### PUT
 - update maintenance request
 - send as multipart/form-data
-- include image files as img_0, img_1...
+- include image files or links as img_0, img_1...
 - request JSON:
 ```
 {
@@ -1550,9 +1713,9 @@
 - add args to endpoint to filter results (ex: /maintenanceQuotes?status=REQUESTED)
 - available filters
   - maintenance_quote_uid
-  - maintenance_request_uid
-  - business_uid
-  - status
+  - linked_request_uid
+  - quote_business_uid
+  - quote_status
 - response JSON:
 ```
 {
@@ -1610,13 +1773,6 @@
     "quote_business_uid": "600-000001"
 }
 ```
-- response JSON:
-```
-{
-    "message": "Successfully committed SQL query",
-    "code": 200
-}
-```
 - request JSON (multiple businesses)
 ```
 {
@@ -1627,16 +1783,8 @@
 - response JSON:
 ```
 {
-    "responses": [
-        {
-            "message": "Successfully committed SQL query",
-            "code": 200
-        },
-        {
-            "message": "Successfully committed SQL query",
-            "code": 200
-        }
-    ]
+    "message": "Successfully committed SQL query",
+    "code": 200
 }
 ```
 

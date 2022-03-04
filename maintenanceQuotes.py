@@ -62,15 +62,15 @@ class MaintenanceQuotes(Resource):
             }
             db.update('maintenanceRequests', requestKey, newStatus)
             if type(newQuote['quote_business_uid']) is list:
-                response['responses'] = []
                 businesses = newQuote['quote_business_uid']
                 for business_uid in businesses:
                     newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
                     newQuote['maintenance_quote_uid'] = newQuoteID
                     newQuote['quote_business_uid'] = business_uid
                     newQuote['quote_status'] = 'REQUESTED'
-                    newResponse = db.insert('maintenanceQuotes', newQuote)
-                    response['responses'].append(newResponse)
+                    response = db.insert('maintenanceQuotes', newQuote)
+                    if response['code'] != 200:
+                        return newResponse
             else:
                 newQuoteID = db.call('new_quote_id')['result'][0]['new_id']
                 newQuote['maintenance_quote_uid'] = newQuoteID
