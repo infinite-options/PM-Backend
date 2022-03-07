@@ -1097,8 +1097,8 @@
   "rental_property_id": "200-000001",
   "tenant_id": "100-000003",
   "actual_rent": "1800",
-  "lease_start": "1/22",
-  "lease_end": "1/23",
+  "lease_start": "2022-02-01",
+  "lease_end": "2022-03-01",
   "rent_payments": [{
     "fee_name": "Monthly Rent",
     "fee_type": "$",

@@ -46,7 +46,7 @@ class Rentals(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
+            fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
                 'rent_payments', 'assigned_contacts']
             newRental = {}
             for field in fields:
@@ -67,6 +67,21 @@ class Rentals(Resource):
             newRental['documents'] = json.dumps(documents)
             print(newRental)
             response = db.insert('rentals', newRental)
+            # adding leaseTenants
+            tenants = data.get('tenant_id')
+            print(tenants)
+            if '[' in tenants:
+                tenants = json.loads(tenants)
+            print(tenants)
+            if type(tenants) == str:
+                tenants = [tenants]
+            for tenant_id in tenants:
+                leaseTenant = {
+                    'linked_rental_uid': newRentalID,
+                    'linked_tenant_id': tenant_id
+                }
+                db.insert('leaseTenants', leaseTenant)
+            # creating purchases
             rentPayments = json.loads(newRental['rent_payments'])
             for payment in rentPayments:
                 if payment['frequency'] == 'Monthly':
@@ -77,7 +92,7 @@ class Rentals(Resource):
                         purchaseResponse = newPurchase(
                             linked_purchase_id=None,
                             pur_property_id=newRental['rental_property_id'],
-                            payer=newRental['tenant_id'],
+                            payer=json.dumps(tenants),
                             receiver=newRental['rental_property_id'],
                             purchase_type='RENT',
                             description=payment['fee_name'],
@@ -92,7 +107,7 @@ class Rentals(Resource):
                     purchaseResponse = newPurchase(
                         linked_purchase_id=None,
                         pur_property_id=newRental['rental_property_id'],
-                        payer=newRental['tenant_id'],
+                        payer=json.dumps(tenants),
                         receiver=newRental['rental_property_id'],
                         purchase_type='RENT',
                         description=payment['fee_name'],
