@@ -9,6 +9,7 @@ from purchases import newPurchase
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+
 def updateDocuments(documents, rental_uid):
     for i, doc in enumerate(documents):
         if 'link' in doc:
@@ -30,9 +31,11 @@ def updateDocuments(documents, rental_uid):
         del doc['file']
     return documents
 
+
 class Rentals(Resource):
     def get(self):
-        filters = ['rental_uid', 'rental_property_id', 'tenant_id', 'rental_status']
+        filters = ['rental_uid', 'rental_property_id',
+                   'tenant_id', 'rental_status']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -47,13 +50,13 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
-                'rent_payments', 'assigned_contacts']
+                      'rent_payments', 'assigned_contacts', 'rental_status']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
             newRentalID = db.call('new_rental_id')['result'][0]['new_id']
             newRental['rental_uid'] = newRentalID
-            newRental['rental_status'] = 'ACTIVE'
+            # newRental['rental_status'] = 'ACTIVE'
             documents = json.loads(data.get('documents'))
             for i in range(len(documents)):
                 filename = f'doc_{i}'
@@ -125,7 +128,7 @@ class Rentals(Resource):
             data = request.form
             rental_uid = data.get('rental_uid')
             fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                'rent_payments', 'assigned_contacts', 'rental_status']
+                      'rent_payments', 'assigned_contacts', 'rental_status']
             newRental = {}
             for field in fields:
                 fieldValue = data.get(field)

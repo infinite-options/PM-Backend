@@ -1113,6 +1113,7 @@
     "phone_number": "(789)908-9087",
     "email": "greg@beverlyman.com"
   }],
+  "rental_status":"PENDING",
   "doc_0": "",
   "documents": [
     {
