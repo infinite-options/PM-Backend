@@ -3,7 +3,10 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect, uploadImage
+import boto3
+from data import connect, uploadImage, s3
 import json
+
 
 def updateDocuments(documents, tenant_id):
     for i, doc in enumerate(documents):
@@ -26,8 +29,10 @@ def updateDocuments(documents, tenant_id):
         del doc['file']
     return documents
 
+
 class TenantProfileInfo(Resource):
     decorators = [jwt_required()]
+
     def get(self):
         response = {}
         user = get_jwt_identity()
@@ -35,13 +40,14 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             response = db.select('tenantProfileInfo', where)
         return response
+
     def post(self):
         response = {}
         user = get_jwt_identity()
         with connect() as db:
             data = request.form
             fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
+                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
             newProfileInfo = {'tenant_id': user['user_uid']}
             for field in fields:
                 fieldValue = data.get(field)
@@ -60,13 +66,14 @@ class TenantProfileInfo(Resource):
             newProfileInfo['documents'] = json.dumps(documents)
             response = db.insert('tenantProfileInfo', newProfileInfo)
         return response
+
     def put(self):
         response = {}
         user = get_jwt_identity()
         with connect() as db:
-            data = request.get_json()
+            data = request.form
             fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
+                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
             newProfileInfo = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -83,8 +90,9 @@ class TenantProfileInfo(Resource):
                     doc['link'] = s3Link
                 else:
                     break
-            documents = updateDocuments(documents, rental_uid)
+            documents = updateDocuments(documents, user['user_uid'])
             newProfileInfo['documents'] = json.dumps(documents)
             primaryKey = {'tenant_id': user['user_uid']}
-            response = db.update('tenantProfileInfo', primaryKey, newProfileInfo)
+            response = db.update('tenantProfileInfo',
+                                 primaryKey, newProfileInfo)
         return response
