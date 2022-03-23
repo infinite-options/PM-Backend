@@ -7,6 +7,7 @@ from data import connect, uploadImage, s3
 import json
 from datetime import datetime
 
+
 def updateImages(imageFiles, property_uid):
     for filename in imageFiles:
         if type(imageFiles[filename]) == str:
@@ -30,12 +31,13 @@ def updateImages(imageFiles, property_uid):
         images.append(image)
     return images
 
+
 class Properties(Resource):
     def get(self):
         response = {}
         filters = ['property_uid', 'owner_id', 'manager_id', 'address', 'city',
-            'state', 'zip', 'type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-            'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+                   'state', 'zip', 'type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
+                   'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -50,8 +52,8 @@ class Properties(Resource):
         with connect() as db:
             data = request.form
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
-                'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+                      'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             boolFields = ['pets_allowed', 'deposit_for_rent']
             newProperty = {}
             for field in fields:
@@ -86,9 +88,9 @@ class Properties(Resource):
         with connect() as db:
             data = request.form
             property_uid = data.get('property_uid')
-            fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
-                'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+            fields = ['owner_id', 'address', 'unit', 'city', 'state',
+                      'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -115,8 +117,17 @@ class Properties(Resource):
             primaryKey = {
                 'property_uid': property_uid
             }
+            manager_id = data.get('manager_id')
+            management_status = data.get('management_status')
+            propertyManager = {
+                'linked_property_id': property_uid,
+                'linked_business_id': manager_id,
+                'management_status': management_status
+            }
+            db.insert('propertyManager', propertyManager)
             response = db.update('properties', primaryKey, newProperty)
         return response
+
 
 class Property(Resource):
     def put(self, property_uid):
@@ -124,8 +135,8 @@ class Property(Resource):
         with connect() as db:
             data = request.form
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
-                'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+                      'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)

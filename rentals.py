@@ -68,17 +68,21 @@ class Rentals(Resource):
                 else:
                     break
             newRental['documents'] = json.dumps(documents)
-            print(newRental)
+            print('newRental', newRental)
             response = db.insert('rentals', newRental)
             # adding leaseTenants
             tenants = data.get('tenant_id')
-            print(tenants)
+            print('tenants1', tenants)
             if '[' in tenants:
+                print('tenants2', tenants)
                 tenants = json.loads(tenants)
-            print(tenants)
+                print('tenants3', tenants)
+            print('tenants4', tenants)
             if type(tenants) == str:
                 tenants = [tenants]
+                print('tenants5', tenants)
             for tenant_id in tenants:
+                print('tenants6', tenant_id)
                 leaseTenant = {
                     'linked_rental_uid': newRentalID,
                     'linked_tenant_id': tenant_id

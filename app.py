@@ -26,7 +26,7 @@ from contracts import Contracts
 from propertyInfo import PropertyInfo, AvailableProperties
 from applications import Applications
 from socialLogin import UserSocialLogin, UserSocialSignup
-
+from skedul_api import UserDetails
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -43,6 +43,8 @@ app.config["MAIL_PASSWORD"] = "SupportSkedul1"
 app.config["MAIL_DEFAULT_SENDER"] = "support@skedul.online"
 app.config["MAIL_SUPPRESS_SEND"] = False
 mail = Mail(app)
+
+
 def sendEmail(recipient, subject, body):
     msg = Message(
         sender='support@skedul.online',
@@ -51,6 +53,8 @@ def sendEmail(recipient, subject, body):
         body=body
     )
     mail.send(msg)
+
+
 app.sendEmail = sendEmail
 
 api.add_resource(Properties, '/properties')
@@ -79,6 +83,7 @@ api.add_resource(AvailableProperties, '/availableProperties')
 api.add_resource(Applications, '/applications')
 api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
+api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
 
 if __name__ == '__main__':
     app.run(debug=True)
