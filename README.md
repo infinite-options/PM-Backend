@@ -1,10 +1,9 @@
-
-
 # PropertyManagement backend
 
 ---
 
 ### URLs
+
 - Development: http://localhost:5000
 - Production: https://t00axvabvb.execute-api.us-west-1.amazonaws.com/dev
 
@@ -32,12 +31,14 @@
 - [/maintenanceRequests](#maintenanceRequests)
 - [/maintenanceQuotes](#maintenanceQuotes)
 - [/applications](#applications)
+- [/leaseTenants](#leaseTenants)
 
 ---
 
 ### /properties
 
 ##### GET
+
 - with no args, return all properties
 - add args to endpoint to filter results (ex: /properties?num_beds=1)
 - available filters
@@ -59,6 +60,7 @@
   - pets_allowed
   - deposit_for_rent
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -91,10 +93,12 @@
 ```
 
 ##### POST
+
 - create new property
 - send as multipart/form-data
 - include image files as img_cover, img_0, img_1...
 - request JSON:
+
 ```
 {
     "owner_id": "100-000001",
@@ -133,7 +137,9 @@
     "img_1": ""
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -142,10 +148,12 @@
 ```
 
 ##### PUT
+
 - update property
 - send as multipart/form-data
 - include image files or links as img_cover, img_0, img_1...
 - request JSON:
+
 ```
 {
     "property_uid": "200-000001",
@@ -185,7 +193,9 @@
     "img_1": ""
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -195,14 +205,16 @@
 
 ---
 
-### /properties/{property_uid} *** deprecated, use /properties PUT
+### /properties/{property_uid} \*\*\* deprecated, use /properties PUT
 
 #### PUT
+
 - update property
 - route changes based on property_uid (ex: /properties/200-000001)
 - send as multipart/form-data
 - include image files or links as img_cover, img_0, img_1...
 - request JSON:
+
 ```
 {
     "owner_id": "100-000001",
@@ -241,7 +253,9 @@
     "img_1": ""
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -254,9 +268,11 @@
 ### /ownerProperties
 
 ##### GET
+
 - include JWT in header
 - returns information for owner properties, including related manager and purchase info
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -311,10 +327,12 @@
 ### /managerProperties
 
 ##### GET
+
 - include JWT in header
 - returns information for manager properties, including related owner and purchase info
 - must be called by owner of manager business
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -369,9 +387,11 @@
 ### /tenantProperties
 
 ##### GET
+
 - include JWT in header
 - returns information for tenant properties, including related owner/manager and purchase info
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -426,6 +446,7 @@
 ### /propertyInfo
 
 ##### GET
+
 - with no args, returns all properties and related information
 - add args to endpoint to filter results (ex: /propertyInfo?manager_id=600-000001)
 - available filters
@@ -434,6 +455,7 @@
   - manager_id
   - tenant_id
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -485,10 +507,10 @@
 
 ---
 
-
 ### /users
 
 ##### GET
+
 - with no args, return all users
 - add args to endpoint to filter results (ex: /users?role=TENANT)
 - available filters
@@ -496,6 +518,7 @@
   - email
   - role
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -522,8 +545,10 @@
 ```
 
 ##### POST
+
 - user signup
 - request JSON:
+
 ```
 {
     "first_name": "Owner",
@@ -534,7 +559,9 @@
     "role": "OWNER"
 }
 ```
+
 - response JSON (success):
+
 ```
 {
     "message": "Signup success",
@@ -555,7 +582,9 @@
     }
 }
 ```
+
 - response JSON (email taken)
+
 ```
 {
     "message": "Email taken",
@@ -565,19 +594,22 @@
 
 ---
 
-
 ### /login
 
 ##### POST
+
 - user login
 - request JSON:
+
 ```
 {
     "email": "owner@gmail.com",
     "password": "test"
 }
 ```
+
 - response JSON (success):
+
 ```
 {
     "message": "Login successful",
@@ -598,14 +630,18 @@
     }
 }
 ```
+
 - response JSON (email not found):
+
 ```
 {
     "message": "Email not found",
     "code": 404
 }
 ```
+
 - response JSON (incorrect password):
+
 ```
 {
     "message": "Incorrect password",
@@ -618,9 +654,11 @@
 ### /ownerProfileInfo
 
 ##### GET
+
 - requires JWT authorization
 - return any owner info for user
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -644,9 +682,11 @@
 ```
 
 ##### POST
+
 - create new owner info
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "first_name": "Owner",
@@ -663,7 +703,9 @@
     "routing_number": "NULL"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -672,9 +714,11 @@
 ```
 
 ##### PUT
+
 - update owner info
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "first_name": "Owner",
@@ -691,7 +735,9 @@
     "routing_number": "NULL"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -701,12 +747,14 @@
 
 ---
 
-### /managerProfileInfo *** deprecated, use /businesses or /employees
+### /managerProfileInfo \*\*\* deprecated, use /businesses or /employees
 
 ##### GET
+
 - requires JWT authorization
 - return any manager info for user
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -732,9 +780,11 @@
 ```
 
 ##### POST
+
 - create new manager info
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "first_name": "Manager",
@@ -767,7 +817,9 @@
     ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -776,9 +828,11 @@
 ```
 
 ##### PUT
+
 - update manager info
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "first_name": "Manager",
@@ -811,21 +865,26 @@
     ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
     "code": 200
 }
 ```
+
 ---
 
 ### /tenantProfileInfo
 
 ##### GET
+
 - requires JWT authorization
 - return any tenant info for user
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -849,12 +908,14 @@
 ```
 
 ##### POST
+
 - create new tenant info
 - requires JWT authorization
 - send as multipart/form-data
 - include document files as doc_0, doc_1...
 - include documents array to supply name, description for files
 - request JSON:
+
 ```
 {
     "first_name": "Tenant",
@@ -888,7 +949,9 @@
     ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -897,12 +960,14 @@
 ```
 
 ##### PUT
+
 - update tenant info
 - requires JWT authorization
 - send as multipart/form-data
 - include document files or links as doc_0, doc_1...
 - include documents array to supply name, description for files
 - request JSON:
+
 ```
 {
     "first_name": "Tenant",
@@ -936,7 +1001,9 @@
     ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -946,12 +1013,14 @@
 
 ---
 
-### /businessProfileInfo *** deprecated, use /businesses or /employees
+### /businessProfileInfo \*\*\* deprecated, use /businesses or /employees
 
 ##### GET
+
 - requires JWT authorization
 - return any business info for user
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -973,9 +1042,11 @@
 ```
 
 ##### POST
+
 - create new business info
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "name": "Hector's Plumbing",
@@ -1004,7 +1075,9 @@
     ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1013,9 +1086,11 @@
 ```
 
 ##### PUT
+
 - update business info
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "name": "Hector's Plumbing",
@@ -1044,7 +1119,9 @@
     ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1057,6 +1134,7 @@
 ### /rentals
 
 ##### GET
+
 - with no args, return all rentals
 - add args to endpoint to filter results (ex: /rentals?property_id=200-000001)
 - available filters
@@ -1065,6 +1143,7 @@
   - tenant_id
   - rental_status
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1087,11 +1166,13 @@
 ```
 
 ##### POST
+
 - create new rental
 - send as multipart/form-data
 - include document files as doc_0, doc_1...
 - include documents array to supply name, description for files
 - request JSON:
+
 ```
 {
   "rental_property_id": "200-000001",
@@ -1123,7 +1204,9 @@
   ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1132,11 +1215,13 @@
 ```
 
 ##### PUT
+
 - update rental
 - send as multipart/form-data
 - include document files or links as doc_0, doc_1...
 - include documents array to supply name, description for files
 - request JSON:
+
 ```
 {
   "rental_uid": "300-000001",
@@ -1165,7 +1250,9 @@
   ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1178,6 +1265,7 @@
 ### /contracts
 
 ##### GET
+
 - with no args, return all contracts
 - add args to endpoint to filter results (ex: /contracts?business_uid=600-000001)
 - available filters
@@ -1185,6 +1273,7 @@
   - property_uid
   - business_uid
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1205,11 +1294,13 @@
 ```
 
 ##### POST
+
 - create new contract
 - send as multipart/form-data
 - include document files as doc_0, doc_1...
 - include documents array to supply name, description for files
 - request JSON:
+
 ```
 {
   "property_uid": "200-000001",
@@ -1238,7 +1329,9 @@
   ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1247,11 +1340,13 @@
 ```
 
 ##### PUT
+
 - update contract
 - send as multipart/form-data
 - include document files or links as doc_0, doc_1...
 - include documents array to supply name, description for files
 - request JSON:
+
 ```
 {
   "contract_uid": "010-000001",
@@ -1281,7 +1376,9 @@
   ]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1294,6 +1391,7 @@
 ### /purchases
 
 ##### GET
+
 - with no args, return all purchases
 - add args to endpoint to filter results (ex: /purchases?linked_property_id=200-000001)
 - available filters
@@ -1303,6 +1401,7 @@
   - payer
   - receiver
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1326,8 +1425,10 @@
 ```
 
 ##### POST
+
 - create new purchase
 - request JSON:
+
 ```
 {
     "linked_purchase_id": null,
@@ -1342,7 +1443,9 @@
     "purchase_frequency": "Monthly"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1355,12 +1458,14 @@
 ### /payments
 
 ##### GET
+
 - with no args, return all payments
 - add args to endpoint to filter results (ex: /payments?pay_purchase_id=400-000001)
 - available filters
   - payment_uid
   - pay_purchase_id
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1378,8 +1483,10 @@
 ```
 
 ##### POST
+
 - create new payment
 - request JSON:
+
 ```
 {
     "pay_purchase_id": "400-000001",
@@ -1389,7 +1496,9 @@
     "charge_id": "pi_3KTMYpLMju5RPMEv0zFXZoFK"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1402,6 +1511,7 @@
 ### /businesses
 
 ##### GET
+
 - with no args, return all businesses
 - add args to endpoint to filter results (ex: /businesses?business_type=MANAGEMENT)
 - available filters
@@ -1409,6 +1519,7 @@
   - business_type
   - business_name
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1433,8 +1544,10 @@
 ```
 
 ##### POST
+
 - create new business
 - request JSON (MANAGEMENT):
+
 ```
 {
     "type": "MANAGEMENT",
@@ -1461,7 +1574,9 @@
     "routing_number": null
 }
 ```
+
 - request JSON (MAINTENANCE):
+
 ```
 {
     "type": "MAINTENANCE",
@@ -1488,7 +1603,9 @@
     "routing_number": null
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1497,8 +1614,10 @@
 ```
 
 ##### PUT
+
 - update business
 - request JSON:
+
 ```
 {
     "business_uid": "600-000001",
@@ -1526,7 +1645,9 @@
     "routing_number": null
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1539,6 +1660,7 @@
 ### /employees
 
 ##### GET
+
 - with no args, return all employees
 - add args to endpoint to filter results (ex: /businessAssociations?business_uid=700-0000001)
 - available filters
@@ -1547,6 +1669,7 @@
   - business_uid
   - employee_role
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1567,8 +1690,10 @@
 ```
 
 ##### POST
+
 - create new employee
 - request JSON:
+
 ```
 {
     "user_uid": "100-000001",
@@ -1582,7 +1707,9 @@
     "ein_number": "12-1313131"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1591,8 +1718,10 @@
 ```
 
 ##### PUT
+
 - update employee
 - request JSON:
+
 ```
 {
     "employee_uid": "700-000001",
@@ -1607,7 +1736,9 @@
     "ein_number": "12-1313131"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1620,6 +1751,7 @@
 ### /maintenanceRequests
 
 ##### GET
+
 - with no args, return all maintenance requests
 - add args to endpoint to filter results (ex: /maintenanceRequests?property_uid=200-0000001)
 - available filters
@@ -1630,6 +1762,7 @@
   - assigned_worker
   - request_status
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1654,10 +1787,12 @@
 ```
 
 ##### POST
+
 - create new maintenance request
 - send as multipart/form-data
 - include image files as img_0, img_1...
 - request JSON:
+
 ```
 {
     "property_uid": "200-000001",
@@ -1668,7 +1803,9 @@
     "img_1": ""
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1677,10 +1814,12 @@
 ```
 
 ##### PUT
+
 - update maintenance request
 - send as multipart/form-data
 - include image files or links as img_0, img_1...
 - request JSON:
+
 ```
 {
     "maintenance_request_uid": "800-000001",
@@ -1697,7 +1836,9 @@
     "img_1": "",
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1710,6 +1851,7 @@
 ### /maintenanceQuotes
 
 ##### GET
+
 - with no args, return all maintenance quotes (joined with requests and businesses)
 - add args to endpoint to filter results (ex: /maintenanceQuotes?status=REQUESTED)
 - available filters
@@ -1718,6 +1860,7 @@
   - quote_business_uid
   - quote_status
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1766,22 +1909,28 @@
 ```
 
 ##### POST
+
 - create new maintenance quote
 - request JSON (manager requests quote from business):
+
 ```
 {
     "linked_request_uid": "800-000001",
     "quote_business_uid": "600-000001"
 }
 ```
+
 - request JSON (multiple businesses)
+
 ```
 {
     "linked_request_uid": "800-000001",
     "quote_business_uid": ["600-000001", "600-000002"]
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1790,8 +1939,10 @@
 ```
 
 ##### PUT
+
 - update maintenance quote
 - request JSON (maintenance sends quote):
+
 ```
 {
     "maintenance_quote_uid": "900-000001",
@@ -1805,7 +1956,9 @@
     "quote_status": "SENT"
 }
 ```
+
 - request JSON (maintenance refuses quote):
+
 ```
 {
     "maintenance_quote_uid": "900-000001",
@@ -1813,7 +1966,9 @@
     "notes": "No availability"
 }
 ```
+
 - request JSON (manager rejects quote):
+
 ```
 {
     "maintenance_quote_uid": "900-000001",
@@ -1821,14 +1976,18 @@
     "notes": "Price too high"
 }
 ```
+
 - request JSON (manager accepts quote):
+
 ```
 {
     "maintenance_quote_uid": "900-000001",
     "quote_status": "ACCEPTED"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1841,6 +2000,7 @@
 ### /applications
 
 ##### GET
+
 - with no args, return all applications
 - add args to endpoint to filter results (ex: /applications?tenant_id=100-000001)
 - available filters
@@ -1848,6 +2008,7 @@
   - property_uid
   - tenant_id
 - response JSON:
+
 ```
 {
     "message": "Successfully executed SQL query",
@@ -1864,16 +2025,20 @@
 ```
 
 ##### POST
+
 - create new application
 - requires JWT authorization
 - request JSON:
+
 ```
 {
     "property_uid": "200-000001",
     "message": "I would love to rent this apartment"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
@@ -1882,8 +2047,10 @@
 ```
 
 ##### PUT
+
 - update application
 - request JSON:
+
 ```
 {
     "application_uid": "020-000001",
@@ -1891,10 +2058,59 @@
     "application_status": "REJECTED"
 }
 ```
+
 - response JSON:
+
 ```
 {
     "message": "Successfully committed SQL query",
     "code": 200
+}
+```
+
+---
+
+### /leaseTenants
+
+##### GET
+
+- with no args, return all leaseTenants
+- add args to endpoint to filter results (ex: /leaseTenants?linked_tenant_id=100-000001)
+- available filters
+  - linked_tenant_id
+- response JSON:
+
+```
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [
+        {
+            "linked_tenant_id": "100-000001",
+            "rental_uid": "300-000001",
+            "rental_property_id": "200-000001",
+            "tenant_id": "100-000001",
+            "actual_rent": null,
+            "lease_start": "2022-03-04",
+            "lease_end": "2022-11-21",
+            "rental_status": "ACTIVE",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "assigned_contacts": "[]",
+            "documents": "[]"
+        },
+        {
+            "linked_tenant_id": "100-000001",
+            "rental_uid": "300-000003",
+            "rental_property_id": "200-000003",
+            "tenant_id": "",
+            "actual_rent": null,
+            "lease_start": "2022-02-01",
+            "lease_end": "2022-03-01",
+            "rental_status": "ACTIVE",
+            "rent_payments": "[{\"of\": \"\", \"charge\": 1800, \"fee_name\": \"Monthly Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "assigned_contacts": "[]",
+            "documents": "[]"
+        }
+    ]
 }
 ```
