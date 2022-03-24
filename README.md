@@ -1226,15 +1226,16 @@
 {
   "rental_uid": "300-000001",
   "actual_rent": "1800",
-  "lease_start": "1/22",
-  "lease_end": "1/23",
+  "lease_start": "2022-02-01",
+  "lease_end": "2023-02-01",
   "rent_payments": [{
-    "title": "Monthly Rent",
-    "charge_type": "$",
+    "fee_name": "Monthly Rent",
+    "fee_type": "$",
     "charge": 100,
+    "of": "",
     "frequency": "Monthly"
   }],
-  "contact_details": [{
+  "assigned_contacts": [{
     "first_name": "Greg",
     "last_name": "Brewer",
     "company_role": "Manager",
@@ -1242,6 +1243,7 @@
     "email": "greg@beverlyman.com"
   }],
   "doc_0": "",
+  "rental_status":"PENDING",
   "documents": [
     {
       "name": "Resume",
