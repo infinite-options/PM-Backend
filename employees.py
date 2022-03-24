@@ -6,6 +6,7 @@ from data import connect
 import json
 from datetime import datetime
 
+
 class Employees(Resource):
     def get(self):
         response = {}
@@ -24,7 +25,7 @@ class Employees(Resource):
         with connect() as db:
             data = request.json
             fields = ['user_uid', 'business_uid', 'role', 'first_name', 'last_name',
-                'phone_number', 'email', 'ssn', 'ein_number']
+                      'phone_number', 'email', 'ssn', 'ein_number']
             bareFields = ['user_uid', 'business_uid']
             newEmployee = {}
             for field in fields:
@@ -36,6 +37,8 @@ class Employees(Resource):
                         newEmployee[f'employee_{field}'] = fieldValue
             newEmployeeID = db.call('new_employee_id')['result'][0]['new_id']
             newEmployee['employee_uid'] = newEmployeeID
+            newEmployee['employee_status'] = 'INACTIVE'
+            newEmployee['employee_signedin'] = 'Employee'
             response = db.insert('employees', newEmployee)
         return response
 
@@ -44,7 +47,7 @@ class Employees(Resource):
         with connect() as db:
             data = request.json
             fields = ['user_uid', 'business_uid', 'role', 'first_name',
-                'last_name', 'phone_number', 'email', 'ssn', 'ein_number']
+                      'last_name', 'phone_number', 'email', 'ssn', 'ein_number']
             bareFields = ['user_uid', 'business_uid']
             newEmployee = {}
             for field in fields:

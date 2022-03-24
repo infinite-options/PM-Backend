@@ -7,6 +7,7 @@ from data import connect
 import json
 from datetime import datetime
 
+
 def getEmployeeBusinesses(user):
     response = {}
     with connect() as db:
@@ -21,8 +22,10 @@ def getEmployeeBusinesses(user):
         response = db.execute(sql, args)
     return response
 
+
 class Businesses(Resource):
     decorators = [jwt_required(optional=True)]
+
     def get(self):
         response = {}
         filters = ['business_uid', 'business_type', 'business_name']
@@ -43,14 +46,15 @@ class Businesses(Resource):
             if not user:
                 return 401, response
             fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees', 'locations',
-                'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
+                      'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
             jsonFields = ['services_fees', 'locations']
             newBusiness = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     if field in jsonFields:
-                        newBusiness[f'business_{field}'] = json.dumps(fieldValue)
+                        newBusiness[f'business_{field}'] = json.dumps(
+                            fieldValue)
                     else:
                         newBusiness[f'business_{field}'] = fieldValue
             newBusinessID = db.call('new_business_id')['result'][0]['new_id']
@@ -65,7 +69,9 @@ class Businesses(Resource):
                 'employee_phone_number': user['phone_number'],
                 'employee_email': user['email'],
                 'employee_ssn': '',
-                'employee_ein_number': ''
+                'employee_ein_number': '',
+                'employee_status': 'ACTIVE',
+                'employee_signedin': 'Owner'
             }
             newEmployeeID = db.call('new_employee_id')['result'][0]['new_id']
             newEmployee['employee_uid'] = newEmployeeID
@@ -77,14 +83,15 @@ class Businesses(Resource):
         with connect() as db:
             data = request.json
             fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees', 'locations',
-                'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
+                      'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
             jsonFields = ['services_fees', 'locations']
             newBusiness = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     if field in jsonFields:
-                        newBusiness[f'business_{field}'] = json.dumps(fieldValue)
+                        newBusiness[f'business_{field}'] = json.dumps(
+                            fieldValue)
                     else:
                         newBusiness[f'business_{field}'] = fieldValue
             primaryKey = {
