@@ -1262,6 +1262,15 @@
 }
 ```
 
+- request JSON(tenants accepts/rejects lease updating rental_status)
+
+```
+{
+    "rental_uid":"300-000018",
+    "rental_status":"PROCESSING"
+}
+```
+
 ---
 
 ### /contracts

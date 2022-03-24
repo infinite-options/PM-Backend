@@ -138,19 +138,35 @@ class Rentals(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newRental[field] = fieldValue
-            documents = json.loads(data.get('documents'))
-            for i, doc in enumerate(documents):
-                filename = f'doc_{i}'
-                file = request.files.get(filename)
-                s3Link = doc.get('link')
-                if file:
-                    doc['file'] = file
-                elif s3Link:
-                    doc['link'] = s3Link
-                else:
-                    break
-            documents = updateDocuments(documents, rental_uid)
-            newRental['documents'] = json.dumps(documents)
+                    print('fieldvalue', fieldValue)
+                if field == 'documents':
+                    documents = json.loads(data.get('documents'))
+                    for i, doc in enumerate(documents):
+                        filename = f'doc_{i}'
+                        file = request.files.get(filename)
+                        s3Link = doc.get('link')
+                        if file:
+                            doc['file'] = file
+                        elif s3Link:
+                            doc['link'] = s3Link
+                        else:
+                            break
+                    documents = updateDocuments(documents, rental_uid)
+                    newRental['documents'] = json.dumps(documents)
+
+            # documents = json.loads(data.get('documents'))
+            # for i, doc in enumerate(documents):
+            #     filename = f'doc_{i}'
+            #     file = request.files.get(filename)
+            #     s3Link = doc.get('link')
+            #     if file:
+            #         doc['file'] = file
+            #     elif s3Link:
+            #         doc['link'] = s3Link
+            #     else:
+            #         break
+            # documents = updateDocuments(documents, rental_uid)
+            # newRental['documents'] = json.dumps(documents)
             primaryKey = {'rental_uid': rental_uid}
             response = db.update('rentals', primaryKey, newRental)
         return response
