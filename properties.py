@@ -44,7 +44,11 @@ class Properties(Resource):
             if filterValue is not None:
                 where[filter] = filterValue
         with connect() as db:
-            response = db.select('properties', where)
+            sql = 'SELECT  FROM properties p LEFT JOIN propertyManager pm ON p.property_uid = pm.linked_property_id'
+            cols = 'pm.*, p.*'
+            tables = 'properties p LEFT JOIN propertyManager pm ON p.property_uid = pm.linked_property_id'
+            response = db.select(cols=cols, tables=tables, where=where)
+            # response = db.select('properties', where)
         return response
 
     def post(self):
