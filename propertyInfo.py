@@ -22,9 +22,19 @@ class PropertyInfo(Resource):
 
 
 class AvailableProperties(Resource):
-    def get(self):
+    def get(self, tenant_id):
         response = {}
+        print(tenant_id)
         with connect() as db:
-            response = db.execute(
-                "SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL")
+            print(tenant_id)
+            # sql = """SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = \'"""
+            # + tenant_id
+            # + """\'"""
+            # print(sql)
+            response = db.execute("""SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = \'"""
+                                  + tenant_id
+                                  + """\'""")
+            # response = db.execute(sql)
+            # response = db.execute(
+            #     "SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = %(tenant_id)s")
         return response
