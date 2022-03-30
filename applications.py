@@ -8,8 +8,10 @@ from data import connect
 import json
 from datetime import datetime
 
+
 class Applications(Resource):
     decorators = [jwt_required(optional=True)]
+
     def get(self):
         response = {}
         filters = ['application_uid', 'property_uid', 'tenant_id']
@@ -19,9 +21,9 @@ class Applications(Resource):
             if filterValue is not None:
                 where[f'a.{filter}'] = filterValue
         with connect() as db:
-            sql = 'SELECT  FROM applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id'
-            cols = 'application_uid, property_uid, message, application_status, t.*'
-            tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id'
+            sql = 'SELECT  FROM applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid'
+            cols = 'application_uid, message, application_status, t.*, p.*'
+            tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid'
             response = db.select(cols=cols, tables=tables, where=where)
         return response
 
@@ -38,7 +40,8 @@ class Applications(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newApplication[field] = fieldValue
-            newApplicationID = db.call('new_application_id')['result'][0]['new_id']
+            newApplicationID = db.call('new_application_id')[
+                'result'][0]['new_id']
             newApplication['application_uid'] = newApplicationID
             newApplication['tenant_id'] = user['user_uid']
             newApplication['application_status'] = 'NEW'
