@@ -168,5 +168,6 @@ class Rentals(Resource):
             # documents = updateDocuments(documents, rental_uid)
             # newRental['documents'] = json.dumps(documents)
             primaryKey = {'rental_uid': rental_uid}
+            print('newRental', newRental)
             response = db.update('rentals', primaryKey, newRental)
         return response

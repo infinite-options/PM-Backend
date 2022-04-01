@@ -2161,7 +2161,30 @@
 }
 ```
 
+##### PUT
+
+- update application when tenant accepts the application 
+- if multiple tenants, when only one of the tenant approves lease, its application_status will change to 'ACCEPTED' and the other will remain 'FORWARDED'. When the other tenant also approves, application_status for both the tenants changes to "RENTED" and the application_status for the rest of the tenants changes to 'REJECTED'. The rental_status in the rentals table changes to 'ACTIVE'
+- request JSON:
+
+```
+{
+    "application_uid": "020-000024",
+    "application_status": "RENTED",
+    "property_uid":"200-000015"
+}
 ---
+
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
 
 ### /leaseTenants
 
