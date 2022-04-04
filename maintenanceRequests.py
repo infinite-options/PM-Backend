@@ -7,6 +7,7 @@ import json
 from datetime import datetime
 import boto3
 
+
 def updateImages(imageFiles, maintenance_request_uid):
     for filename in imageFiles:
         if type(imageFiles[filename]) == str:
@@ -19,7 +20,8 @@ def updateImages(imageFiles, maintenance_request_uid):
             imageFiles[filename] = data['Body']
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
-    bucket.objects.filter(Prefix=f'maintenanceRequests/{maintenance_request_uid}/').delete()
+    bucket.objects.filter(
+        Prefix=f'maintenanceRequests/{maintenance_request_uid}/').delete()
     images = []
     for i in range(len(imageFiles.keys())):
         filename = f'img_{i-1}'
@@ -30,19 +32,38 @@ def updateImages(imageFiles, maintenance_request_uid):
         images.append(image)
     return images
 
+
 class MaintenanceRequests(Resource):
     def get(self):
         response = {}
         filters = ['maintenance_request_uid', 'property_uid', 'priority',
-            'assigned_business', 'assigned_worker', 'request_status']
+                   'assigned_business', 'assigned_worker', 'request_status']
+
         where = {}
-        for filter in filters:
-            filterValue = request.args.get(filter)
-            if filterValue is not None:
-                where[filter] = filterValue
+        res = []
         with connect() as db:
-            response = db.select('maintenanceRequests', where)
-        return response
+            for filter in filters:
+
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+                    # print(filter)
+                    # print(where[filter], where)
+                    if filter == 'property_uid':
+                        pf = where[filter].split(',')
+                        print('pf', pf)
+                        for p in pf:
+                            where[filter] = p
+                            print('where', where)
+                            response = db.select('maintenanceRequests', where)
+
+                            if(len(response['result']) > 0):
+                                print('response', response['result'])
+                                res.append(response['result'])
+                    else:
+                        res = db.select('maintenanceRequests', where)
+
+        return res
 
     def post(self):
         response = {}
@@ -79,7 +100,7 @@ class MaintenanceRequests(Resource):
             data = request.form
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status']
+                      'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status']
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)
