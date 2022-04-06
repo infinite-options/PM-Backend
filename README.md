@@ -598,6 +598,54 @@
 }
 ```
 
+##### PUT
+
+- user signup update add another role
+- request JSON:
+
+```
+{
+    "first_name": "Owner",
+    "last_name": "Test",
+    "phone_number": "(800)000-0001",
+    "email": "owner@gmail.com",
+    "password": "test",
+    "role": "OWNER"
+}
+```
+
+- response JSON (success):
+
+```
+{
+    "message": "Signup success",
+    "code": 200,
+    "result": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0NjM3OTM1NywianRpIjoiNmVmZDAyZjYtY2Y5Mi00MWNlLWFhM2YtNjMyODk5ZDAwMmE3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJ1c2VyX3VpZCI6IjEwMC0wMDAwMDYiLCJmaXJzdF9uYW1lIjoiT3duZXIiLCJsYXN0X25hbWUiOiJUZXN0IiwicGhvbmVfbnVtYmVyIjoiKDEyMyk0NTYtMDAwMSIsImVtYWlsIjoib3duZXJAZ21haWwuY29tIiwicm9sZSI6Ik9XTkVSIiwiZ29vZ2xlX2F1dGhfdG9rZW4iOm51bGwsImJ1c2luZXNzZXMiOltdfSwibmJmIjoxNjQ2Mzc5MzU3LCJleHAiOjE2NDYzODI5NTd9.KWcVAe_OfC6tAHHiySTyFdxhtubnnUXl6Q-acVGR_fU",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY0NjM3OTM1NywianRpIjoiYWViYzU3M2MtNGI4NC00ZGIyLTllZTItNDdhZjUxMTJmZWU2IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOnsidXNlcl91aWQiOiIxMDAtMDAwMDA2IiwiZmlyc3RfbmFtZSI6Ik93bmVyIiwibGFzdF9uYW1lIjoiVGVzdCIsInBob25lX251bWJlciI6IigxMjMpNDU2LTAwMDEiLCJlbWFpbCI6Im93bmVyQGdtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsImdvb2dsZV9hdXRoX3Rva2VuIjpudWxsLCJidXNpbmVzc2VzIjpbXX0sIm5iZiI6MTY0NjM3OTM1NywiZXhwIjoxNjQ4OTcxMzU3fQ.y6nY70xLH-h6CBK0ES3j942FW9PL2dM05Lr2QAv2dlI",
+        "user": {
+            "user_uid": "100-000006",
+            "first_name": "Owner",
+            "last_name": "Test",
+            "phone_number": "(123)456-0001",
+            "email": "owner@gmail.com",
+            "role": "OWNER",
+            "google_auth_token": null,
+            "businesses": []
+        }
+    }
+}
+```
+
+- response JSON (email taken)
+
+```
+{
+    "message": "Email taken",
+    "code": 409
+}
+```
+
 ---
 
 ### /login

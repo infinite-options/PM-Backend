@@ -10,7 +10,8 @@ from datetime import datetime
 class Employees(Resource):
     def get(self):
         response = {}
-        filters = ['employee_uid', 'user_uid', 'business_uid', 'employee_role']
+        filters = ['employee_uid', 'user_uid',
+                   'business_uid', 'employee_role', 'employee_email']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)

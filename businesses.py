@@ -28,7 +28,8 @@ class Businesses(Resource):
 
     def get(self):
         response = {}
-        filters = ['business_uid', 'business_type', 'business_name']
+        filters = ['business_uid', 'business_type',
+                   'business_name', 'business_email']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)

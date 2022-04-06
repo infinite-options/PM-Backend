@@ -6,6 +6,7 @@ from data import connect
 from users import getUserByEmail, createUser
 from security import createTokens
 
+
 class UserSocialLogin(Resource):
     def get(self, email):
         response = {}
@@ -20,6 +21,7 @@ class UserSocialLogin(Resource):
                 response['result'] = False
                 response['message'] = 'Email ID doesnt exist'
         return response
+
 
 class UserSocialSignup(Resource):
     def post(self):
@@ -42,7 +44,7 @@ class UserSocialSignup(Resource):
                 response['message'] = 'User already exists'
             else:
                 user = createUser(firstName, lastName, phoneNumber, email, password, role,
-                    google_auth_token, google_refresh_token, social_id, access_expires_in)
+                                  google_auth_token, google_refresh_token, social_id, access_expires_in)
                 response['message'] = 'Signup success'
                 response['code'] = 200
                 response['result'] = createTokens(user)
@@ -51,4 +53,35 @@ class UserSocialSignup(Resource):
                 # db.insert('users', newUser)
                 # response['message'] = 'successful'
                 # response['result'] = newUserID
+        return response
+
+    def put(self):
+        response = {}
+        data = request.get_json()
+
+        email = data.get('email')
+        phoneNumber = data.get('phone_number')
+        firstName = data.get('first_name')
+        lastName = data.get('last_name')
+        role = data.get('role')
+
+        password = data.get('password')
+        user = getUserByEmail(email)
+
+        if user:
+            print(user)
+            uid = {'user_uid': user['user_uid']}
+            updateRole = {'role': user['role'] + ',' + role}
+            with connect() as db:
+                res = db.update('users', uid, updateRole)
+                u = getUserByEmail(email)
+                response['message'] = 'Signup success'
+                response['code'] = 200
+                response['result'] = createTokens(u)
+
+        else:
+
+            response['message'] = 'Account does not exist! Please Signup'
+            response['code'] = 200
+
         return response
