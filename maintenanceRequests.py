@@ -40,28 +40,38 @@ class MaintenanceRequests(Resource):
                    'assigned_business', 'assigned_worker', 'request_status']
 
         where = {}
-        res = []
+        res = {"message": '', "code": "", 'result': []}
+        fv = []
         with connect() as db:
             for filter in filters:
-
                 filterValue = request.args.get(filter)
+
                 if filterValue is not None:
+                    fv.append(filterValue)
                     where[filter] = filterValue
                     # print(filter)
                     # print(where[filter], where)
                     if filter == 'property_uid':
                         pf = where[filter].split(',')
-                        print('pf', pf)
+                        # print('pf', pf)
                         for p in pf:
                             where[filter] = p
                             print('where', where)
                             response = db.select('maintenanceRequests', where)
-
+                            print(len(response['result']))
+                            print((response['result'][0]))
                             if(len(response['result']) > 0):
-                                print('response', response['result'])
-                                res.append(response['result'])
+                                # print('response', response['result'])
+                                for r in response['result']:
+                                    res["message"] = "Successfully executed SQL query"
+                                    res["code"] = 200
+                                    res["result"].append(r)
+                                # res["result"] = r
                     else:
                         res = db.select('maintenanceRequests', where)
+            print(len(fv))
+            if len(fv) == 0:
+                res = db.select('maintenanceRequests', where)
 
         return res
 
