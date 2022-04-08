@@ -33,6 +33,7 @@
 - [/applications](#applications)
 - [/leaseTenants](#leaseTenants)
 - [/availableProperties/{tenant_id}](#availableProperties/{tenant_id})
+- [/maintenanceRequestsandQuotes](#maintenanceRequestsandQuotes)
 
 ---
 
@@ -2467,3 +2468,341 @@
 }
 ]
 }
+
+---
+
+### /maintenanceRequestsandQuotes
+
+##### GET
+
+- with no args, return all maintenance requests, along with their quotes
+- add args to endpoint to filter results (ex: /property_uid?200-000012)
+
+```
+
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [
+        {
+            "maintenance_request_uid": "800-000001",
+            "property_uid": "200-000001",
+            "title": "Paint",
+            "description": "Living room ",
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000001/img_0\"]",
+            "priority": "High",
+            "can_reschedule": 0,
+            "assigned_business": "600-000016",
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "PROCESSING",
+            "request_created_date": "2022-02-25 16:58:49",
+            "quotes": [
+                {
+                    "maintenance_quote_uid": "900-000001",
+                    "linked_request_uid": "800-000001",
+                    "quote_business_uid": "600-000016",
+                    "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"50\", \"service_name\": \"Paint\"}]",
+                    "earliest_availability": "2022-02-25 00:00:00",
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "ACCEPTED",
+                    "quote_created_date": "2022-02-25 17:01:19"
+                },
+                {
+                    "maintenance_quote_uid": "900-000002",
+                    "linked_request_uid": "800-000001",
+                    "quote_business_uid": "600-000001",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REQUESTED",
+                    "quote_created_date": "2022-03-04 08:22:03"
+                },
+                {
+                    "maintenance_quote_uid": "900-000003",
+                    "linked_request_uid": "800-000001",
+                    "quote_business_uid": "600-000002",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REQUESTED",
+                    "quote_created_date": "2022-03-04 08:22:03"
+                }
+            ],
+            "total_quotes": 3
+        },
+        {
+            "maintenance_request_uid": "800-000002",
+            "property_uid": "200-000001",
+            "title": "kitchen",
+            "description": "Kitchen wall needs repaint",
+            "images": "[]",
+            "priority": "Medium",
+            "can_reschedule": 0,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "NEW",
+            "request_created_date": "2022-02-25 18:13:15",
+            "quotes": [],
+            "total_quotes": 0
+        },
+        {
+            "maintenance_request_uid": "800-000003",
+            "property_uid": "200-000001",
+            "title": "Paint",
+            "description": "Needs fresh coat of paint",
+            "images": "[]",
+            "priority": "Medium",
+            "can_reschedule": 0,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "NEW",
+            "request_created_date": "2022-04-01 09:36:52",
+            "quotes": [],
+            "total_quotes": 0
+        },
+        {
+            "maintenance_request_uid": "800-000004",
+            "property_uid": "200-000012",
+            "title": "paint ceiling",
+            "description": "paint peeling off ",
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000004/img_0\"]",
+            "priority": "Medium",
+            "can_reschedule": 0,
+            "assigned_business": "600-000021",
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "PROCESSING",
+            "request_created_date": "2022-04-01 16:19:59",
+            "quotes": [
+                {
+                    "maintenance_quote_uid": "900-000004",
+                    "linked_request_uid": "800-000004",
+                    "quote_business_uid": "600-000019",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "WITHDRAWN",
+                    "quote_created_date": "2022-04-01 16:41:14"
+                },
+                {
+                    "maintenance_quote_uid": "900-000005",
+                    "linked_request_uid": "800-000004",
+                    "quote_business_uid": "600-000021",
+                    "services_expenses": null,
+                    "earliest_availability": "2022-04-02 00:00:00",
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "ACCEPTED",
+                    "quote_created_date": "2022-04-01 16:41:14"
+                }
+            ],
+            "total_quotes": 2
+        },
+        {
+            "maintenance_request_uid": "800-000005",
+            "property_uid": "200-000012",
+            "title": "faucet leak",
+            "description": "kitchen sink is leaking",
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000005/img_0\"]",
+            "priority": "High",
+            "can_reschedule": 0,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "NEW",
+            "request_created_date": "2022-04-03 23:14:56",
+            "quotes": [],
+            "total_quotes": 0
+        },
+        {
+            "maintenance_request_uid": "800-000006",
+            "property_uid": "200-000013",
+            "title": "fence repair",
+            "description": "outside fence broken needs repair",
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000006/img_0\"]",
+            "priority": "Low",
+            "can_reschedule": 0,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "NEW",
+            "request_created_date": "2022-04-04 07:28:41",
+            "quotes": [],
+            "total_quotes": 0
+        },
+        {
+            "maintenance_request_uid": "800-000007",
+            "property_uid": "200-000016",
+            "title": "Re-tiling the bathroom",
+            "description": "Bathroom in the first floor needs re-tiling",
+            "images": "[\"https://s3-us-west-1.amazonaws.com/io-pm/maintenanceRequests/800-000007/img_0\"]",
+            "priority": "Medium",
+            "can_reschedule": 0,
+            "assigned_business": "600-000021",
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "PROCESSING",
+            "request_created_date": "2022-04-07 03:12:55",
+            "quotes": [
+                {
+                    "maintenance_quote_uid": "900-000006",
+                    "linked_request_uid": "800-000007",
+                    "quote_business_uid": "600-000021",
+                    "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"50\", \"service_name\": \"Tiling Fee\"}]",
+                    "earliest_availability": "2022-04-09 00:00:00",
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "ACCEPTED",
+                    "quote_created_date": "2022-04-08 07:32:43"
+                }
+            ],
+            "total_quotes": 1
+        },
+        {
+            "maintenance_request_uid": "800-000008",
+            "property_uid": "200-000016",
+            "title": "Garage needs woodworking",
+            "description": "Wood working services for garage",
+            "images": "[]",
+            "priority": "High",
+            "can_reschedule": 0,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "PROCESSING",
+            "request_created_date": "2022-04-08 07:38:35",
+            "quotes": [
+                {
+                    "maintenance_quote_uid": "900-000007",
+                    "linked_request_uid": "800-000008",
+                    "quote_business_uid": "600-000021",
+                    "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"100\", \"service_name\": \"Carpentry Fee\"}]",
+                    "earliest_availability": "2022-04-16 00:00:00",
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REJECTED",
+                    "quote_created_date": "2022-04-08 07:38:56"
+                },
+                {
+                    "maintenance_quote_uid": "900-000008",
+                    "linked_request_uid": "800-000008",
+                    "quote_business_uid": "600-000021",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REJECTED",
+                    "quote_created_date": "2022-04-08 07:41:34"
+                }
+            ],
+            "total_quotes": 2
+        },
+        {
+            "maintenance_request_uid": "800-000009",
+            "property_uid": "200-000016",
+            "title": "Lawn repair",
+            "description": "Lawn need care and repair",
+            "images": "[]",
+            "priority": "Medium",
+            "can_reschedule": 0,
+            "assigned_business": "600-000021",
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "PROCESSING",
+            "request_created_date": "2022-04-08 16:16:49",
+            "quotes": [
+                {
+                    "maintenance_quote_uid": "900-000009",
+                    "linked_request_uid": "800-000009",
+                    "quote_business_uid": "600-000021",
+                    "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"50\", \"service_name\": \"Mowing feee\"}]",
+                    "earliest_availability": "2022-04-09 00:00:00",
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "ACCEPTED",
+                    "quote_created_date": "2022-04-08 16:17:23"
+                }
+            ],
+            "total_quotes": 1
+        },
+        {
+            "maintenance_request_uid": "800-000010",
+            "property_uid": "200-000016",
+            "title": "Toilet plumbing",
+            "description": "Plumbing service in both bathrooms",
+            "images": "[]",
+            "priority": "High",
+            "can_reschedule": 0,
+            "assigned_business": null,
+            "assigned_worker": null,
+            "scheduled_date": null,
+            "frequency": "One time",
+            "notes": null,
+            "request_status": "PROCESSING",
+            "request_created_date": "2022-04-08 16:23:59",
+            "quotes": [
+                {
+                    "maintenance_quote_uid": "900-000010",
+                    "linked_request_uid": "800-000010",
+                    "quote_business_uid": "600-000016",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REQUESTED",
+                    "quote_created_date": "2022-04-08 16:24:16"
+                },
+                {
+                    "maintenance_quote_uid": "900-000011",
+                    "linked_request_uid": "800-000010",
+                    "quote_business_uid": "600-000019",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REQUESTED",
+                    "quote_created_date": "2022-04-08 16:24:16"
+                },
+                {
+                    "maintenance_quote_uid": "900-000012",
+                    "linked_request_uid": "800-000010",
+                    "quote_business_uid": "600-000021",
+                    "services_expenses": null,
+                    "earliest_availability": null,
+                    "event_type": null,
+                    "notes": null,
+                    "quote_status": "REQUESTED",
+                    "quote_created_date": "2022-04-08 16:24:16"
+                }
+            ],
+            "total_quotes": 3
+        }
+    ]
+}
+
+```

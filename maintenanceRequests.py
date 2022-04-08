@@ -137,3 +137,28 @@ class MaintenanceRequests(Resource):
             }
             response = db.update('maintenanceRequests', primaryKey, newRequest)
         return response
+
+
+class MaintenanceRequestsandQuotes(Resource):
+    def get(self):
+        response = {}
+        filters = ['property_uid']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[filter] = filterValue
+        with connect() as db:
+            response = db.select(''' maintenanceRequests request ''', where)
+            for i in range(len(response['result'])):
+                req_id = response['result'][i]['maintenance_request_uid']
+                print(req_id)
+                rid = {'linked_request_uid': req_id}
+                quotes_res = db.select(''' maintenanceQuotes quote ''', rid)
+                print(quotes_res)
+                response['result'][i]['quotes'] = list(
+                    quotes_res['result'])
+                response['result'][i]['total_quotes'] = len(
+                    quotes_res['result'])
+
+        return response
