@@ -605,11 +605,7 @@
 
 ```
 {
-    "first_name": "Owner",
-    "last_name": "Test",
-    "phone_number": "(800)000-0001",
     "email": "owner@gmail.com",
-    "password": "test",
     "role": "OWNER"
 }
 ```

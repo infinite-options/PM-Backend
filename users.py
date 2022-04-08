@@ -101,11 +101,7 @@ class Users(Resource):
     def put(self):
         response = {}
         data = request.get_json()
-        firstName = data.get('first_name')
-        lastName = data.get('last_name')
-        phoneNumber = data.get('phone_number')
         email = data.get('email')
-        password = data.get('password')
         role = data.get('role')
         user = getUserByEmail(email)
         if user:

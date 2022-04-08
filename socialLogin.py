@@ -60,12 +60,7 @@ class UserSocialSignup(Resource):
         data = request.get_json()
 
         email = data.get('email')
-        phoneNumber = data.get('phone_number')
-        firstName = data.get('first_name')
-        lastName = data.get('last_name')
         role = data.get('role')
-
-        password = data.get('password')
         user = getUserByEmail(email)
 
         if user:
