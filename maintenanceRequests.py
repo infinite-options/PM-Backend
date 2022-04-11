@@ -59,7 +59,7 @@ class MaintenanceRequests(Resource):
                             print('where', where)
                             response = db.select('maintenanceRequests', where)
                             print(len(response['result']))
-                            print((response['result'][0]))
+                            # print((response['result'][0]))
                             if(len(response['result']) > 0):
                                 # print('response', response['result'])
                                 for r in response['result']:
