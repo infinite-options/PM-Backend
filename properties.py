@@ -123,12 +123,19 @@ class Properties(Resource):
             }
             manager_id = data.get('manager_id')
             management_status = data.get('management_status')
+            pk = {
+                'linked_property_id': property_uid
+            }
             propertyManager = {
                 'linked_property_id': property_uid,
                 'linked_business_id': manager_id,
                 'management_status': management_status
             }
-            db.insert('propertyManager', propertyManager)
+            if management_status != 'FORWARDED':
+                db.update('propertyManager', pk, propertyManager)
+            else:
+                db.insert('propertyManager', propertyManager)
+
             response = db.update('properties', primaryKey, newProperty)
         return response
 
