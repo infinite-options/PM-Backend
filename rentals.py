@@ -96,6 +96,36 @@ class Rentals(Resource):
                     lease_end = date.fromisoformat(newRental['lease_end'])
                     while charge_date < lease_end:
                         charge_month = charge_date.strftime('%B')
+                        if(payment['fee_name'] == 'Rent'):
+                            purchaseResponse = newPurchase(
+                                linked_purchase_id=None,
+                                pur_property_id=newRental['rental_property_id'],
+                                payer=json.dumps(tenants),
+                                receiver=newRental['rental_property_id'],
+                                purchase_type='RENT',
+                                description=payment['fee_name'],
+                                amount_due=payment['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=charge_date.isoformat(),
+                                purchase_frequency=payment['frequency']
+                            )
+                        else:
+                            purchaseResponse = newPurchase(
+                                linked_purchase_id=None,
+                                pur_property_id=newRental['rental_property_id'],
+                                payer=json.dumps(tenants),
+                                receiver=newRental['rental_property_id'],
+                                purchase_type='EXTRA CHARGES',
+                                description=payment['fee_name'],
+                                amount_due=payment['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=charge_date.isoformat(),
+                                purchase_frequency=payment['frequency']
+                            )
+                        print(purchaseResponse)
+                        charge_date += relativedelta(months=1)
+                else:
+                    if(payment['fee_name'] == 'Rent'):
                         purchaseResponse = newPurchase(
                             linked_purchase_id=None,
                             pur_property_id=newRental['rental_property_id'],
@@ -104,25 +134,24 @@ class Rentals(Resource):
                             purchase_type='RENT',
                             description=payment['fee_name'],
                             amount_due=payment['charge'],
-                            purchase_notes=charge_month,
-                            purchase_date=charge_date.isoformat(),
+                            purchase_notes='',
+                            purchase_date=newRental['lease_start'],
                             purchase_frequency=payment['frequency']
                         )
-                        print(purchaseResponse)
-                        charge_date += relativedelta(months=1)
-                else:
-                    purchaseResponse = newPurchase(
-                        linked_purchase_id=None,
-                        pur_property_id=newRental['rental_property_id'],
-                        payer=json.dumps(tenants),
-                        receiver=newRental['rental_property_id'],
-                        purchase_type='RENT',
-                        description=payment['fee_name'],
-                        amount_due=payment['charge'],
-                        purchase_notes='',
-                        purchase_date=newRental['lease_start'],
-                        purchase_frequency=payment['frequency']
-                    )
+                    else:
+
+                        purchaseResponse = newPurchase(
+                            linked_purchase_id=None,
+                            pur_property_id=newRental['rental_property_id'],
+                            payer=json.dumps(tenants),
+                            receiver=newRental['rental_property_id'],
+                            purchase_type='EXTRA CHARGES',
+                            description=payment['fee_name'],
+                            amount_due=payment['charge'],
+                            purchase_notes='',
+                            purchase_date=newRental['lease_start'],
+                            purchase_frequency=payment['frequency']
+                        )
                     print(purchaseResponse)
         return response
 
