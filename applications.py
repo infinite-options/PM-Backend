@@ -1,5 +1,3 @@
-
-
 from flask import request, current_app
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -111,6 +109,38 @@ class Applications(Resource):
                             }
                             resRej = db.update(
                                 'applications', pk, rejApplication)
+            elif newApplication['application_status'] == 'REFUSED':
+                response = db.execute(
+                    """SELECT * FROM pm.applications WHERE application_status='FORWARDED' AND property_uid = \'"""
+                    + newApplication['property_uid']
+                    + """\' """)
+                # print('response', response, len(response['result']))
+                if len(response['result']) > 1:
+                    newApplication['application_status'] = 'REFUSED'
+                    response = db.execute(
+                        """UPDATE pm.applications 
+                            SET  
+                            application_status=\'""" + newApplication['application_status'] + """\' 
+                            WHERE 
+                            application_status='FORWARDED' 
+                            AND property_uid = \'""" + newApplication['property_uid'] + """\' """)
+
+                    res = db.execute(
+                        """SELECT * FROM pm.rentals WHERE rental_status='PROCESSING' AND rental_property_id = \'"""
+                        + newApplication['property_uid']
+                        + """\' """)
+                    print('res', res, len(res['result']))
+                    if len(res['result']) > 0:
+                        for res in res['result']:
+                            print('res', res['rental_uid'])
+                            pk1 = {
+                                'rental_uid': res['rental_uid']}
+                            newRental = {
+                                'rental_status': 'REFUSED'}
+                            res = db.update(
+                                'rentals', pk1, newRental)
+                else:
+                    newApplication['application_status'] = 'REFUSED'
 
             #     recipient = 'zacharywolfflind@gmail.com'
             #     subject = 'Application Accepted'
