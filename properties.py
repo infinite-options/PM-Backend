@@ -97,6 +97,7 @@ class Properties(Resource):
                       'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             newProperty = {}
             for field in fields:
+                print('field', field)
                 fieldValue = data.get(field)
                 if fieldValue:
                     newProperty[field] = data.get(field)
@@ -117,25 +118,42 @@ class Properties(Resource):
                     break
                 i += 1
             images = updateImages(imageFiles, property_uid)
+            print('images', images)
             newProperty['images'] = json.dumps(images)
             primaryKey = {
                 'property_uid': property_uid
             }
+
             manager_id = data.get('manager_id')
             management_status = data.get('management_status')
             pk = {
-                'linked_property_id': property_uid
+                'linked_property_id': property_uid,
+                'linked_business_id': manager_id
             }
+            # res = db.select('propertyManager', pk)
+            # print('res', res)
             propertyManager = {
                 'linked_property_id': property_uid,
                 'linked_business_id': manager_id,
                 'management_status': management_status
             }
+            propertyManagerReject = {
+                'linked_property_id': property_uid,
+                'linked_business_id': '',
+                'management_status': management_status
+            }
+            # if management_status == 'REJECT':
+            #     print('in reject')
+            #     db.update('propertyManager', pk, propertyManagerReject)
             if management_status != 'FORWARDED':
+                print('in not forward')
                 db.update('propertyManager', pk, propertyManager)
             else:
+                # if len(res['result']) > 0:
+                #     db.update('propertyManager', pk, propertyManager)
+                # else:
+                #     db.insert('propertyManager', propertyManager)
                 db.insert('propertyManager', propertyManager)
-
             response = db.update('properties', primaryKey, newProperty)
         return response
 
