@@ -24,7 +24,7 @@ from maintenanceRequests import MaintenanceRequests
 from maintenanceRequests import MaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
-from propertyInfo import PropertyInfo, AvailableProperties
+from propertyInfo import PropertiesOwnerDetail, PropertyInfo, AvailableProperties, PropertiesOwner
 from applications import Applications
 from socialLogin import UserSocialLogin, UserSocialSignup
 from skedul_api import UserDetails
@@ -87,6 +87,10 @@ api.add_resource(PropertyInfo, '/propertyInfo')
 #                  '/availableProperties/<string:tenant_id>')
 api.add_resource(AvailableProperties,
                  '/availableProperties')
+api.add_resource(PropertiesOwner,
+                 '/propertiesOwner')
+api.add_resource(PropertiesOwnerDetail,
+                 '/propertiesOwnerDetail')
 api.add_resource(Applications, '/applications')
 api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
