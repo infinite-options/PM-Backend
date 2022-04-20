@@ -17,7 +17,7 @@ class TenantProperties(Resource):
             # where = {
             #     'tenant_id': user['user_uid']
             # }
-            response = db.execute("""SELECT * FROM pm.propertyInfo WHERE rental_status = 'ACTIVE' AND tenant_id = \'"""
+            response = db.execute("""SELECT * FROM pm.propertyInfo WHERE rental_status = 'ACTIVE' AND management_status <> 'REJECTED' AND tenant_id = \'"""
                                   + user['user_uid']
                                   + """\'""")
             # response = db.select(
