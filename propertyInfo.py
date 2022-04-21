@@ -55,7 +55,7 @@ class AvailableProperties(Resource):
             # print(sql)
 
             response = db.execute(
-                "SELECT * FROM pm.propertyInfo WHERE  (rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING') OR rental_status IS NULL AND (manager_id IS NOT NULL)  ")
+                "SELECT * FROM pm.propertyInfo WHERE  (rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING') OR rental_status IS NULL AND (manager_id IS NOT NULL) AND (management_status = 'ACCEPTED') ")
             # response = db.execute("""SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = \'"""
             #                       + tenant_id
             #                       + """\'""")
