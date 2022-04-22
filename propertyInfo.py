@@ -208,6 +208,10 @@ class PropertiesOwnerDetail(Resource):
                                                         WHERE r.rental_property_id = \'""" + property_id + """\'""")
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
+                        if len(rental_res['result']) > 0:
+                            response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
+                        else:
+                            response['result'][i]['rental_status'] = ""
                         purchases_res = db.execute("""SELECT p.*
                                                         FROM pm.purchases p
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'""")
