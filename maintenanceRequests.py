@@ -37,7 +37,7 @@ class MaintenanceRequests(Resource):
     def get(self):
         response = {}
         filters = ['maintenance_request_uid', 'property_uid', 'priority',
-                   'assigned_business', 'assigned_worker', 'request_status']
+                   'assigned_business', 'assigned_worker', 'request_status', 'request_created_by', 'request_type']
 
         where = {}
         res = {"message": '', "code": "", 'result': []}
@@ -79,7 +79,8 @@ class MaintenanceRequests(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['property_uid', 'title', 'description', 'priority']
+            fields = ['property_uid', 'title', 'description',
+                      'priority', 'request_created_by', 'request_type']
             newRequest = {}
             for field in fields:
                 newRequest[field] = data.get(field)
@@ -110,7 +111,7 @@ class MaintenanceRequests(Resource):
             data = request.form
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                      'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status']
+                      'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status', 'request_created_by', 'request_type']
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)

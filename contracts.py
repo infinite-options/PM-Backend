@@ -6,6 +6,7 @@ import boto3
 from data import connect, uploadImage, s3
 import json
 
+
 def updateDocuments(documents, contract_uid):
     for i, doc in enumerate(documents):
         if 'link' in doc:
@@ -27,9 +28,11 @@ def updateDocuments(documents, contract_uid):
         del doc['file']
     return documents
 
+
 class Contracts(Resource):
     def get(self):
-        filters = ['contract_uid', 'property_uid', 'business_uid']
+        filters = ['contract_uid', 'property_uid',
+                   'business_uid', 'contract_name']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -44,7 +47,7 @@ class Contracts(Resource):
         with connect() as db:
             data = request.form
             fields = ['property_uid', 'business_uid', 'start_date', 'end_date', 'contract_fees',
-                'assigned_contacts']
+                      'assigned_contacts', 'contract_name']
             newContract = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -72,7 +75,8 @@ class Contracts(Resource):
         with connect() as db:
             data = request.form
             contract_uid = data.get('contract_uid')
-            fields = ['start_date', 'end_date', 'contract_fees', 'assigned_contacts']
+            fields = ['start_date', 'end_date',
+                      'contract_fees', 'assigned_contacts', 'contract_name']
             newContract = {}
             for field in fields:
                 newContract[field] = data.get(field)

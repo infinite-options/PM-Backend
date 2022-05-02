@@ -1338,6 +1338,7 @@
   - contract_uid
   - property_uid
   - business_uid
+  - contract_name
 - response JSON:
 
 ```
@@ -1371,6 +1372,7 @@
 {
   "property_uid": "200-000001",
   "business_uid": "600-000001",
+  "contract_name": "",
   "start_date": "1/22",
   "end_date": "1/23",
   "contract_fees": [{
@@ -1418,6 +1420,7 @@
   "contract_uid": "010-000001",
   "property_uid": "200-000001",
   "business_uid": "600-000001",
+  "contract_name": "",
   "start_date": "1/22",
   "end_date": "1/23",
   "contract_fees": [{
@@ -1827,6 +1830,8 @@
   - assigned_business
   - assigned_worker
   - request_status
+  - request_created_by
+  - request_type
 - response JSON:
 
 ```
@@ -1865,6 +1870,8 @@
     "title": "Bathroom Leaking",
     "description": "The toilet plumbing is leaking at the base",
     "priority": "High",
+    "request_created_by": "100-000001",
+    "request_type":"REPAIR/MAINTENANCE",
     "img_0": "",
     "img_1": ""
 }
