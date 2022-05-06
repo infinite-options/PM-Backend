@@ -143,23 +143,51 @@ class MaintenanceRequests(Resource):
 class MaintenanceRequestsandQuotes(Resource):
     def get(self):
         response = {}
-        filters = ['property_uid']
+        filters = ['property_uid', 'manager_id']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
                 where[filter] = filterValue
+                print((where))
+
+        print('here',  'manager_id' in where)
         with connect() as db:
-            response = db.select(''' maintenanceRequests request ''', where)
-            for i in range(len(response['result'])):
-                req_id = response['result'][i]['maintenance_request_uid']
-                print(req_id)
-                rid = {'linked_request_uid': req_id}
-                quotes_res = db.select(''' maintenanceQuotes quote ''', rid)
-                print(quotes_res)
-                response['result'][i]['quotes'] = list(
-                    quotes_res['result'])
-                response['result'][i]['total_quotes'] = len(
-                    quotes_res['result'])
+            if 'manager_id' in where:
+                print('in if')
+
+                response = db.execute(""" SELECT * FROM 
+                maintenanceRequests mr
+                LEFT JOIN properties p
+                ON p.property_uid = mr.property_uid
+                LEFT JOIN propertyManager pm
+                ON pm.linked_property_id = p.property_uid
+                WHERE linked_business_id =  \'""" + where['manager_id'] + """\' AND management_status = 'ACCEPTED'  """)
+                print(response)
+                for i in range(len(response['result'])):
+                    req_id = response['result'][i]['maintenance_request_uid']
+                    rid = {'linked_request_uid': req_id}
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    # print(quotes_res)
+                    response['result'][i]['quotes'] = list(
+                        quotes_res['result'])
+                    response['result'][i]['total_quotes'] = len(
+                        quotes_res['result'])
+
+            else:
+                response = db.select(
+                    ''' maintenanceRequests request ''', where)
+                for i in range(len(response['result'])):
+                    req_id = response['result'][i]['maintenance_request_uid']
+                    print(req_id)
+                    rid = {'linked_request_uid': req_id}
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    # print(quotes_res)
+                    response['result'][i]['quotes'] = list(
+                        quotes_res['result'])
+                    response['result'][i]['total_quotes'] = len(
+                        quotes_res['result'])
 
         return response
