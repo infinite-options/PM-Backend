@@ -6,6 +6,7 @@ from botocore.response import StreamingBody
 
 s3 = boto3.client('s3')
 
+
 def uploadImage(file, key):
     bucket = 'io-pm'
     contentType = 'image/jpeg'
@@ -25,6 +26,7 @@ def uploadImage(file, key):
         return filename
     return None
 
+
 def connect():
     conn = pymysql.connect(
         host='io-mysqldb8.cxjnrciilyjq.us-west-1.rds.amazonaws.com',
@@ -36,6 +38,7 @@ def connect():
         cursorclass=pymysql.cursors.DictCursor
     )
     return DatabaseConnection(conn)
+
 
 def serializeJSON(unserialized):
     if type(unserialized) == list:
@@ -61,11 +64,13 @@ def serializeJSON(unserialized):
 class DatabaseConnection:
     def __init__(self, conn):
         self.conn = conn
+
     def disconnect(self):
         self.conn.close()
 
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.disconnect()
 
@@ -73,22 +78,29 @@ class DatabaseConnection:
         response = {}
         try:
             with self.conn.cursor() as cur:
+                print('IN EXECUTE')
                 cur.execute(sql, args)
                 if 'get' in cmd:
+                    print('IN GET')
                     result = cur.fetchall()
                     result = serializeJSON(result)
+                    print('RESULT GET', result)
                     response['message'] = 'Successfully executed SQL query'
                     response['code'] = 200
                     response['result'] = result
+                    print('RESPONSE GET', response)
                 elif 'post' in cmd:
+                    print('IN POST')
                     self.conn.commit()
                     response['message'] = 'Successfully committed SQL query'
                     response['code'] = 200
+                    print('RESPONSE POST', response)
         except Exception as e:
-            print(e)
+            print('ERROR', e)
             response['message'] = 'Error occurred while executing SQL query'
             response['code'] = 500
             response['error'] = e
+            print('RESPONSE ERROR', response)
         return response
 
     def select(self, tables, where={}, cols='*'):

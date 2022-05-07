@@ -196,29 +196,29 @@ class Property(Resource):
         return response
 
 
-class Tax(Resource):
-    def put(self):
-        response = {}
-        with connect() as db:
-            data = request.form
-            print(data)
-            fields = ['property_uid', 'taxes']
-            where = {}
-            newProperty = {}
-            for field in fields:
-                print('field', field)
-                fieldValue = data.get(field)
-                if fieldValue:
-                    print(fieldValue)
-                    newProperty[field] = data.get(field)
+# class Tax(Resource):
+#     def put(self):
+#         response = {}
+#         with connect() as db:
+#             data = request.form
+#             print(data)
+#             fields = ['property_uid', 'taxes']
+#             where = {}
+#             newProperty = {}
+#             for field in fields:
+#                 print('field', field)
+#                 fieldValue = data.get(field)
+#                 if fieldValue:
+#                     print(fieldValue)
+#                     newProperty[field] = data.get(field)
 
-            print('New Property', newProperty)
-            print('New Property id', newProperty['property_uid'])
-            print('New Property tax', type(newProperty['taxes']))
-            response = db.execute("""UPDATE pm.properties SET taxes = \'"""
-                                  + newProperty['taxes']
-                                  + """\' WHERE property_uid =  \'"""
-                                  + newProperty['property_uid']
-                                  + """\'  """)
-            print(response)
-        return response
+#             print('New Property', newProperty)
+#             print('New Property id', newProperty['property_uid'])
+#             print('New Property tax', type(newProperty['taxes']))
+#             response = db.execute("""UPDATE pm.properties SET taxes = \'"""
+#                                   + newProperty['taxes']
+#                                   + """\' WHERE property_uid =  \'"""
+#                                   + newProperty['property_uid']
+#                                   + """\'  """)
+#             print(response)
+#         return response

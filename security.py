@@ -9,14 +9,20 @@ def getHash(value):
     base = str(value).encode()
     return sha256(base).hexdigest()
 
+
 def createSalt():
     return getHash(datetime.now())
+
 
 def createHash(password, salt):
     return getHash(password+salt)
 
+
 def createTokens(user):
+    print('IN CREATETOKENS')
+    print('IN CREATETOKENS', user)
     businesses = getEmployeeBusinesses(user)['result']
+    print('IN CREATETOKENS', businesses)
     userInfo = {
         'user_uid': user['user_uid'],
         'first_name': user['first_name'],
@@ -27,6 +33,7 @@ def createTokens(user):
         'google_auth_token': user['google_auth_token'],
         'businesses': businesses
     }
+    print('IN CREATETOKENS', userInfo)
     return {
         'access_token': create_access_token(userInfo),
         'refresh_token': create_refresh_token(userInfo),

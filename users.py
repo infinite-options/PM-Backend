@@ -40,23 +40,30 @@ def createUser(firstName, lastName, phoneNumber, email, password, role,
 class Login(Resource):
     def post(self):
         response = {}
+        print('IN LOGIN')
         data = request.get_json()
         email = data.get('email')
         password = data.get('password')
         user = getUserByEmail(email)
         if user:
+            print('IN IF LOGIN')
             passwordSalt = user['password_salt']
             passwordHash = createHash(password, passwordSalt)
+            print('IN IF LOGIN', passwordHash, passwordSalt)
             if passwordHash == user['password_hash']:
                 response['message'] = 'Login successful'
                 response['code'] = 200
                 response['result'] = createTokens(user)
+                print('IN IF IF LOGIN', response)
             else:
                 response['message'] = 'Incorrect password'
                 response['code'] = 401
+                print('IN IF ELSE LOGIN', response)
         else:
+            print('IN ELSE LOGIN')
             response['message'] = 'Email not found'
             response['code'] = 404
+            print('IN ELSE LOGIN', response)
         return response
 
 

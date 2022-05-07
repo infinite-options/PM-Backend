@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_mail import Mail, Message
 
-from properties import Properties, Property, Tax
+from properties import Properties, Property
 from users import Users, Login
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo
@@ -31,7 +31,10 @@ from skedul_api import UserDetails
 from leaseTenants import LeaseTenants
 
 app = Flask(__name__)
-CORS(app)
+
+cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
+# cors = CORS(app)
+# CORS(app)
 api = Api(app)
 app.config['JWT_SECRET_KEY'] = 'secret'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
@@ -61,8 +64,6 @@ def sendEmail(recipient, subject, body):
 app.sendEmail = sendEmail
 
 api.add_resource(Properties, '/properties')
-
-api.add_resource(Tax, '/tax')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
