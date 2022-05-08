@@ -32,9 +32,9 @@ from leaseTenants import LeaseTenants
 
 app = Flask(__name__)
 
-cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
+# cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
 # cors = CORS(app)
-# CORS(app)
+CORS(app)
 api = Api(app)
 app.config['JWT_SECRET_KEY'] = 'secret'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
