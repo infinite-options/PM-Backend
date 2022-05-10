@@ -94,7 +94,7 @@ class Properties(Resource):
             property_uid = data.get('property_uid')
             fields = ['owner_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages']
             newProperty = {}
             for field in fields:
                 print('field', field)
@@ -105,6 +105,7 @@ class Properties(Resource):
             i = -1
             imageFiles = {}
             while True:
+                print('if true')
                 filename = f'img_{i}'
                 if i == -1:
                     filename = 'img_cover'
@@ -112,14 +113,18 @@ class Properties(Resource):
                 s3Link = data.get(filename)
                 if file:
                     imageFiles[filename] = file
+                    images = updateImages(imageFiles, property_uid)
+                    print('images', images)
+                    newProperty['images'] = json.dumps(images)
                 elif s3Link:
                     imageFiles[filename] = s3Link
+                    images = updateImages(imageFiles, property_uid)
+                    print('images', images)
+                    newProperty['images'] = json.dumps(images)
                 else:
                     break
                 i += 1
-            images = updateImages(imageFiles, property_uid)
-            print('images', images)
-            newProperty['images'] = json.dumps(images)
+
             primaryKey = {
                 'property_uid': property_uid
             }
@@ -165,7 +170,7 @@ class Property(Resource):
             data = request.form
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages']
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -196,29 +201,62 @@ class Property(Resource):
         return response
 
 
-# class Tax(Resource):
-#     def put(self):
-#         response = {}
-#         with connect() as db:
-#             data = request.form
-#             print(data)
-#             fields = ['property_uid', 'taxes']
-#             where = {}
-#             newProperty = {}
-#             for field in fields:
-#                 print('field', field)
-#                 fieldValue = data.get(field)
-#                 if fieldValue:
-#                     print(fieldValue)
-#                     newProperty[field] = data.get(field)
+class Tax(Resource):
 
-#             print('New Property', newProperty)
-#             print('New Property id', newProperty['property_uid'])
-#             print('New Property tax', type(newProperty['taxes']))
-#             response = db.execute("""UPDATE pm.properties SET taxes = \'"""
-#                                   + newProperty['taxes']
-#                                   + """\' WHERE property_uid =  \'"""
-#                                   + newProperty['property_uid']
-#                                   + """\'  """)
-#             print(response)
-#         return response
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            print(data)
+            fields = ['property_uid', 'taxes']
+            where = {}
+            newProperty = {}
+            for field in fields:
+                print('field', field)
+                fieldValue = data.get(field)
+                if fieldValue:
+                    print(fieldValue)
+                    newProperty[field] = data.get(field)
+
+            print('New Property', newProperty)
+            print('New Property id', newProperty['property_uid'])
+            print('New Property tax', type(newProperty['taxes']))
+            # response = db.execute("""UPDATE pm.properties p SET p.taxes = \'"""
+            #                       + newProperty['taxes']
+            #                       + """\' WHERE property_uid =  \'"""
+            #                       + newProperty['property_uid']
+            #                       + """\'  """)
+            primaryKey = {
+                'property_uid': newProperty['property_uid']
+            }
+            response = db.update('properties', primaryKey, newProperty)
+            print(response)
+        return response
+
+
+class Mortgage(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            print(data)
+            fields = ['property_uid', 'mortgages']
+            where = {}
+            newProperty = {}
+            for field in fields:
+                print('field', field)
+                fieldValue = data.get(field)
+                if fieldValue:
+                    print(fieldValue)
+                    newProperty[field] = data.get(field)
+
+            print('New Property', newProperty)
+            print('New Property id', newProperty['property_uid'])
+            print('New Property tax', type(newProperty['mortgages']))
+
+            primaryKey = {
+                'property_uid': newProperty['property_uid']
+            }
+            response = db.update('properties', primaryKey, newProperty)
+            print(response)
+        return response

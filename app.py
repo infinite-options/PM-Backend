@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_mail import Mail, Message
 
-from properties import Properties, Property
+from properties import Properties, Property, Tax, Mortgage
 from users import Users, Login
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo
@@ -99,6 +99,7 @@ api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
 api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
 api.add_resource(LeaseTenants, "/leaseTenants")
-
+api.add_resource(Tax, '/tax')
+api.add_resource(Mortgage, '/mortgage')
 if __name__ == '__main__':
     app.run(debug=True)
