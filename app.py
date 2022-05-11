@@ -12,7 +12,7 @@ from managerProfileInfo import ManagerProfileInfo
 from tenantProfileInfo import TenantProfileInfo
 from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals
-from purchases import Purchases
+from purchases import Purchases, CreateExpenses
 from payments import Payments, UserPayments
 from ownerProperties import OwnerProperties
 from managerProperties import ManagerProperties
@@ -73,6 +73,7 @@ api.add_resource(TenantProfileInfo, '/tenantProfileInfo')
 api.add_resource(BusinessProfileInfo, '/businessProfileInfo')
 api.add_resource(Rentals, '/rentals')
 api.add_resource(Purchases, '/purchases')
+api.add_resource(CreateExpenses, '/createExpenses')
 api.add_resource(Payments, '/payments')
 api.add_resource(UserPayments, '/userPayments')
 api.add_resource(OwnerProperties, '/ownerProperties')
