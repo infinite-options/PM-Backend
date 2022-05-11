@@ -135,11 +135,20 @@ class PropertiesOwner(Resource):
                             response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
                         else:
                             response['result'][i]['rental_status'] = ""
-                        purchases_res = db.execute("""SELECT p.*
+                        owner_revenue = db.execute("""SELECT p.*
                                                         FROM pm.purchases p
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'""")
-                        response['result'][i]['purchases'] = list(
-                            purchases_res['result'])
+                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND p.purchase_status ="PAID" 
+                                                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
+                        response['result'][i]['owner_revenue'] = list(
+                            owner_revenue['result'])
+                        owner_expense = db.execute("""SELECT p.*
+                                                        FROM pm.purchases p
+                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND p.purchase_status ="PAID" 
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
+                        response['result'][i]['owner_expense'] = list(
+                            owner_expense['result'])
 
                     print(response)
 

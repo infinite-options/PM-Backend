@@ -84,5 +84,9 @@ class UserPayments(Resource):
                 SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
                 WHERE p2.payer = '[\"""" + user_id + """\"]'
             """)
+            response = db.execute("""
+                SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
+                WHERE p2.payer LIKE '%%\"""" + user_id + """\"%%'
+            """)
             # response = db.execute(sql, args)
         return response
