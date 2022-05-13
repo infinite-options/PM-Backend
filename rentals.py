@@ -94,6 +94,8 @@ class Rentals(Resource):
                 if payment['frequency'] == 'Monthly':
                     charge_date = date.fromisoformat(newRental['lease_start'])
                     lease_end = date.fromisoformat(newRental['lease_end'])
+                    print('charge_date', type(charge_date),
+                          charge_date.isoformat())
                     while charge_date < lease_end:
                         charge_month = charge_date.strftime('%B')
                         if(payment['fee_name'] == 'Rent'):
@@ -107,7 +109,8 @@ class Rentals(Resource):
                                 amount_due=payment['charge'],
                                 purchase_notes=charge_month,
                                 purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment['frequency']
+                                purchase_frequency=payment['frequency'],
+                                next_payment=charge_date.replace(day=1)
                             )
                         else:
                             purchaseResponse = newPurchase(
@@ -120,11 +123,12 @@ class Rentals(Resource):
                                 amount_due=payment['charge'],
                                 purchase_notes=charge_month,
                                 purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment['frequency']
+                                purchase_frequency=payment['frequency'],
+                                next_payment=charge_date.replace(day=1)
                             )
-                        print(purchaseResponse)
                         charge_date += relativedelta(months=1)
                 else:
+                    print('lease_start', type(newRental['lease_start']))
                     if(payment['fee_name'] == 'Rent'):
                         purchaseResponse = newPurchase(
                             linked_purchase_id=None,
@@ -136,8 +140,11 @@ class Rentals(Resource):
                             amount_due=payment['charge'],
                             purchase_notes='',
                             purchase_date=newRental['lease_start'],
-                            purchase_frequency=payment['frequency']
+                            purchase_frequency=payment['frequency'],
+                            next_payment=date.fromisoformat(
+                                newRental['lease_start']).replace(day=1)
                         )
+
                     else:
 
                         purchaseResponse = newPurchase(
@@ -150,9 +157,10 @@ class Rentals(Resource):
                             amount_due=payment['charge'],
                             purchase_notes='',
                             purchase_date=newRental['lease_start'],
-                            purchase_frequency=payment['frequency']
+                            purchase_frequency=payment['frequency'],
+                            next_payment=date.fromisoformat(
+                                newRental['lease_start']).replace(day=1)
                         )
-                    print(purchaseResponse)
         return response
 
     def put(self):

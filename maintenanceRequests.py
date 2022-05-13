@@ -111,7 +111,7 @@ class MaintenanceRequests(Resource):
             data = request.form
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                      'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status', 'request_created_by', 'request_type']
+                      'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status', 'request_created_by', 'request_type', "notes"]
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -126,13 +126,16 @@ class MaintenanceRequests(Resource):
                 s3Link = data.get(filename)
                 if file:
                     imageFiles[filename] = file
+                    images = updateImages(imageFiles, maintenance_request_uid)
+                    newRequest['images'] = json.dumps(images)
                 elif s3Link:
                     imageFiles[filename] = s3Link
+                    images = updateImages(imageFiles, maintenance_request_uid)
+                    newRequest['images'] = json.dumps(images)
                 else:
                     break
                 i += 1
-            images = updateImages(imageFiles, maintenance_request_uid)
-            newRequest['images'] = json.dumps(images)
+
             primaryKey = {
                 'maintenance_request_uid': maintenance_request_uid
             }

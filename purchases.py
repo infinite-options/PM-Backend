@@ -9,7 +9,7 @@ import json
 
 
 def newPurchase(linked_purchase_id, pur_property_id, payer, receiver, purchase_type,
-                description, amount_due, purchase_notes, purchase_date, purchase_frequency):
+                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment):
     response = {}
     print('in new purchase')
     with connect() as db:
@@ -24,7 +24,8 @@ def newPurchase(linked_purchase_id, pur_property_id, payer, receiver, purchase_t
             "amount_due": amount_due,
             "purchase_notes": purchase_notes,
             "purchase_date": purchase_date,
-            "purchase_frequency": purchase_frequency
+            "purchase_frequency": purchase_frequency,
+            "next_payment": next_payment
         }
         newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
         newPurchase['amount_paid'] = 0
@@ -88,10 +89,9 @@ class CreateExpenses(Resource):
         if data['purchase_frequency'] == 'Monthly':
             print('here monthly')
             charge_date = date.today()
-            print('here monthly', charge_date)
-            lease_end = date.fromisoformat(data['purchase_date'])
-            print('here monthly', lease_end)
-            while charge_date < lease_end:
+            next_payment = date.fromisoformat(data['next_payment'])
+            print('here monthly', next_payment)
+            while charge_date < next_payment:
                 charge_month = charge_date.strftime('%B')
                 with connect() as db:
                     print('in new purchase')
@@ -105,8 +105,10 @@ class CreateExpenses(Resource):
                         "amount_due": data["amount_due"],
                         "amount_paid": data["amount_due"],
                         "purchase_notes": charge_month,
-                        "purchase_date": data["purchase_date"],
-                        "purchase_frequency": data["purchase_frequency"]
+                        "purchase_date": charge_date,
+                        "purchase_frequency": data["purchase_frequency"],
+                        "payment_frequency": data["payment_frequency"],
+                        "next_payment": data["next_payment"]
                     }
                     newPurchaseID = db.call('new_purchase_id')[
                         'result'][0]['new_id']
@@ -114,28 +116,14 @@ class CreateExpenses(Resource):
                     newPurchase['purchase_uid'] = newPurchaseID
                     newPurchase['purchase_status'] = 'PAID'
                     response = db.insert('purchases', newPurchase)
-                # purchaseResponse = newPurchase(
-                #     linked_purchase_id=None,
-                #     pur_property_id=data['pur_property_id'],
-                #     payer=json.dumps([data.get('payer')]),
-                #     receiver=data['receiver'],
-                #     purchase_type=data['purchase_type'],
-                #     description=data['description'],
-                #     amount_due=data['amount_due'],
-                #     purchase_notes=charge_month,
-                #     purchase_date=data['purchase_date'],
-                #     purchase_frequency=data['purchase_frequency']
-                # )
-                # newPurchase['purchase_status'] = 'UNPAID'
 
-                # print(purchaseResponse)
                     charge_date += relativedelta(months=1)
-                # return purchaseResponse
+
         elif data['purchase_frequency'] == 'Annually':
             print('here annually')
             charge_date = date.today()
-            lease_end = date.fromisoformat(data['purchase_date'])
-            while charge_date < lease_end:
+            next_payment = date.fromisoformat(data['purchase_date'])
+            while charge_date < next_payment:
                 charge_month = charge_date.strftime('%B')
 
                 with connect() as db:
@@ -150,8 +138,10 @@ class CreateExpenses(Resource):
                         "amount_due": data["amount_due"],
                         "amount_paid": data["amount_due"],
                         "purchase_notes": charge_month,
-                        "purchase_date": data["purchase_date"],
-                        "purchase_frequency": data["purchase_frequency"]
+                        "purchase_date": charge_date,
+                        "purchase_frequency": data["purchase_frequency"],
+                        "payment_frequency": data["payment_frequency"],
+                        "next_payment": data["next_payment"]
                     }
                     newPurchaseID = db.call('new_purchase_id')[
                         'result'][0]['new_id']
@@ -164,7 +154,7 @@ class CreateExpenses(Resource):
                 # return purchaseResponse
         else:
             print('here one-time')
-
+            charge_date = date.today()
             with connect() as db:
                 print('in new purchase')
                 newPurchase = {
@@ -177,8 +167,10 @@ class CreateExpenses(Resource):
                     "amount_due": data["amount_due"],
                     "amount_paid": data["amount_due"],
                     "purchase_notes": '',
-                    "purchase_date": data["purchase_date"],
-                    "purchase_frequency": data["purchase_frequency"]
+                    "purchase_date": charge_date,
+                    "purchase_frequency": data["purchase_frequency"],
+                    "payment_frequency": data["payment_frequency"],
+                    "next_payment": data["next_payment"]
                 }
                 newPurchaseID = db.call('new_purchase_id')[
                     'result'][0]['new_id']

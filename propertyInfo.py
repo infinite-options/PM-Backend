@@ -29,7 +29,15 @@ class PropertyInfo(Resource):
                     """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND manager_id = \'"""
                     + filterVal
                     + """\' """)
-                print(response)
+                for i in range(len(response['result'])):
+                    property_id = response['result'][i]['property_uid']
+                    maintenance_res = db.execute("""SELECT *
+                                                        FROM pm.maintenanceRequests mr
+                                                        WHERE mr.property_uid = \'""" + property_id + """\'
+                                                        """)
+                    response['result'][i]['maintenanceRequests'] = list(
+                        maintenance_res['result'])
+                # print(response)
             elif filterType == 'owner_id':
                 print('here if')
                 response = db.execute(
@@ -75,11 +83,7 @@ class PropertiesOwner(Resource):
                 filterValue = request.args.get(filter)
                 if filterValue is not None:
                     where[filter] = filterValue
-                    # print(where, filter)
-                    # response = db.execute(
-                    #     """SELECT * FROM pm.properties p JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid WHERE p.owner_id = \'"""
-                    #     + filterValue
-                    #     + """\'""")
+
                     response = db.execute(
                         """SELECT * FROM pm.properties p WHERE p.owner_id = \'"""
                         + filterValue
@@ -135,22 +139,29 @@ class PropertiesOwner(Resource):
                             response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
                         else:
                             response['result'][i]['rental_status'] = ""
-                        owner_revenue = db.execute("""SELECT p.*
+                        owner_revenue = db.execute("""SELECT *
                                                         FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
                                                         AND p.purchase_status ="PAID" 
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
-                        owner_expense = db.execute("""SELECT p.*
+                        owner_expense = db.execute("""SELECT *
                                                         FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND p.purchase_status ="PAID" 
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
 
-                    print(response)
+                    # print(response)
 
         return response
 
@@ -165,11 +176,7 @@ class PropertiesOwnerDetail(Resource):
                 filterValue = request.args.get(filter)
                 if filterValue is not None:
                     where[filter] = filterValue
-                    # print(where, filter)
-                    # response = db.execute(
-                    #     """SELECT * FROM pm.properties p JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid WHERE p.owner_id = \'"""
-                    #     + filterValue
-                    #     + """\'""")
+
                     response = db.execute(
                         """SELECT * FROM pm.properties p WHERE p.property_uid = \'"""
                         + filterValue
@@ -227,19 +234,26 @@ class PropertiesOwnerDetail(Resource):
                             response['result'][i]['rental_status'] = ""
                         owner_revenue = db.execute("""SELECT p.*
                                                         FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
                                                         AND p.purchase_status ="PAID" 
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
                         owner_expense = db.execute("""SELECT p.*
                                                         FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND p.purchase_status ="PAID" 
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
 
-                    print(response)
+                    # print(response)
 
         return response
