@@ -144,7 +144,7 @@ class MaintenanceRequestsandQuotes(Resource):
     def get(self):
         response = {}
         filters = ['property_uid', 'manager_id']
-        where = {}
+        where = {} 
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
@@ -166,10 +166,11 @@ class MaintenanceRequestsandQuotes(Resource):
                 print(response)
                 for i in range(len(response['result'])):
                     req_id = response['result'][i]['maintenance_request_uid']
-                    rid = {'linked_request_uid': req_id}
+                    rid = {'linked_request_uid': req_id} #rid
                     quotes_res = db.select(
                         ''' maintenanceQuotes quote ''', rid)
                     # print(quotes_res)
+                    # change the response variable here, don't know why 
                     response['result'][i]['quotes'] = list(
                         quotes_res['result'])
                     response['result'][i]['total_quotes'] = len(
