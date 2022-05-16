@@ -156,6 +156,7 @@ class PropertiesOwner(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND p.purchase_status ="PAID" 
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
@@ -249,6 +250,7 @@ class PropertiesOwnerDetail(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND p.purchase_status ="PAID" 
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
