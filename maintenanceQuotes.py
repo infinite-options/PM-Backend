@@ -52,7 +52,7 @@ class MaintenanceQuotes(Resource):
                 ON p.property_uid = mr.property_uid
             ''', where)
             for i in range(len(response['result'])):
-                pid = response['result'][i]['property_uid']
+                pid = response['result'][i]['property_uid'] # from properties table, maintenanceRequests table
                 property_res = db.execute("""SELECT 
                                                     pm.*, 
                                                     b.business_uid AS manager_id, 
@@ -90,6 +90,8 @@ class MaintenanceQuotes(Resource):
                     response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
                 else:
                     response['result'][i]['rental_status'] = ""
+
+
         return response
 
     def post(self):
@@ -124,6 +126,7 @@ class MaintenanceQuotes(Resource):
                 newQuote['maintenance_quote_uid'] = newQuoteID
                 newQuote['quote_status'] = 'REQUESTED'
                 response = db.insert('maintenanceQuotes', newQuote)
+
         return response
 
     def put(self):
@@ -131,7 +134,7 @@ class MaintenanceQuotes(Resource):
         with connect() as db:
             data = request.json
             fields = ['services_expenses', 'earliest_availability',
-                      'event_type', 'notes', 'quote_status']
+                      'event_type', 'notes', 'quote_status','total_estimate']
             jsonFields = ['services_expenses']
             newQuote = {}
             for field in fields:
