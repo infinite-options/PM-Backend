@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_mail import Mail, Message
 
 from properties import Properties, Property
-from users import Users, Login
+from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointments
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo
 from tenantProfileInfo import TenantProfileInfo
@@ -27,7 +27,6 @@ from contracts import Contracts
 from propertyInfo import PropertiesOwnerDetail, PropertyInfo, AvailableProperties, PropertiesOwner
 from applications import Applications
 from socialLogin import UserSocialLogin, UserSocialSignup
-from skedul_api import UserDetails
 from leaseTenants import LeaseTenants
 
 app = Flask(__name__)
@@ -99,6 +98,12 @@ api.add_resource(Applications, '/applications')
 api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
 api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
+api.add_resource(UserToken, "/UserToken/<string:user_email_id>")
+api.add_resource(UpdateAccessToken, "/UpdateAccessToken/<string:user_id>")
+api.add_resource(
+    AvailableAppointments,
+    "/AvailableAppointments/<string:date_value>/<string:duration>/<string:user_id>/<string:start_time>,<string:end_time>"
+)
 api.add_resource(LeaseTenants, "/leaseTenants")
 if __name__ == '__main__':
     app.run(debug=True)

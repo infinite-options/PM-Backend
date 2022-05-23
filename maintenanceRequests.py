@@ -2,7 +2,7 @@
 from flask import request
 from flask_restful import Resource
 
-from data import connect, uploadImage
+from data import connect, uploadImage, s3
 import json
 from datetime import datetime
 import boto3
@@ -37,7 +37,7 @@ class MaintenanceRequests(Resource):
     def get(self):
         response = {}
         filters = ['maintenance_request_uid', 'property_uid', 'priority',
-                   'assigned_business', 'assigned_worker', 'request_status', 'request_created_by', 'request_type']
+                   'assigned_business', 'assigned_worker', 'request_status', 'request_created_by', 'request_type', 'scheduled_time']
 
         where = {}
         res = {"message": '', "code": "", 'result': []}
@@ -111,7 +111,7 @@ class MaintenanceRequests(Resource):
             data = request.form
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                      'assigned_business', 'assigned_worker', 'scheduled_date', 'request_status', 'request_created_by', 'request_type', "notes"]
+                      'assigned_business', 'assigned_worker', 'scheduled_date', 'scheduled_time', 'request_status', 'request_created_by', 'request_type', "notes"]
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -147,7 +147,7 @@ class MaintenanceRequestsandQuotes(Resource):
     def get(self):
         response = {}
         filters = ['property_uid', 'manager_id']
-        where = {} 
+        where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
@@ -169,11 +169,11 @@ class MaintenanceRequestsandQuotes(Resource):
                 print(response)
                 for i in range(len(response['result'])):
                     req_id = response['result'][i]['maintenance_request_uid']
-                    rid = {'linked_request_uid': req_id} #rid
+                    rid = {'linked_request_uid': req_id}  # rid
                     quotes_res = db.select(
                         ''' maintenanceQuotes quote ''', rid)
                     # print(quotes_res)
-                    # change the response variable here, don't know why 
+                    # change the response variable here, don't know why
                     response['result'][i]['quotes'] = list(
                         quotes_res['result'])
                     response['result'][i]['total_quotes'] = len(

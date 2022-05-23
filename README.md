@@ -1849,10 +1849,12 @@
         "assigned_business": "600-000016",
         "assigned_worker": null,
         "scheduled_date": null,
+        "scheduled_time": null,
         "frequency": "One time",
         "notes": null,
         "request_status": "PROCESSING",
         "request_created_date": "2022-02-25 16:58:49"
+        "request_created_by":"100-000001",
     }]
 }
 ```
@@ -1903,6 +1905,7 @@
     "assigned_business": "600-000001",
     "assigned_worker": "700-000005",
     "scheduled_date": "2022-03-06",
+    "scheduled_time": null,
     "request_status": "SCHEDULED",
     "notes": "",
     "img_0": "",
@@ -1946,6 +1949,7 @@
             "services_expenses": null,
             "earliest_availability": null,
             "event_type": null,
+            'event_duration':null,
             "notes": null,
             "quote_status": "REQUESTED",
             "quote_created_date": "2022-05-02 16:35:27",
@@ -1961,10 +1965,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "mr.notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-05-02 16:20:41",
+            "request_created_by":"100-000001",
             "business_uid": "600-000005",
             "business_type": "MAINTENANCE",
             "business_name": "Property Services 0422",
@@ -2028,6 +2034,7 @@
             "services_expenses": null,
             "earliest_availability": null,
             "event_type": null,
+            'event_duration':null,
             "notes": null,
             "quote_status": "REQUESTED",
             "quote_created_date": "2022-05-05 04:04:22",
@@ -2043,10 +2050,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "mr.notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-05-05 04:04:04",
+            "request_created_by":"100-000001",
             "business_uid": "600-000005",
             "business_type": "MAINTENANCE",
             "business_name": "Property Services 0422",
@@ -2152,6 +2161,7 @@
     }],
     "earliest_availability": "2022-01-03",
     "event_type": "2 hour job",
+    'event_duration':"1:59:59",
     "quote_status": "SENT"
 }
 ```
@@ -2632,10 +2642,12 @@
             "assigned_business": "600-000016",
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-02-25 16:58:49",
+            "request_created_by":"100-000001",
             "quotes": [
                 {
                     "maintenance_quote_uid": "900-000001",
@@ -2644,6 +2656,7 @@
                     "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"50\", \"service_name\": \"Paint\"}]",
                     "earliest_availability": "2022-02-25 00:00:00",
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "ACCEPTED",
                     "quote_created_date": "2022-02-25 17:01:19"
@@ -2655,6 +2668,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REQUESTED",
                     "quote_created_date": "2022-03-04 08:22:03"
@@ -2666,6 +2680,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REQUESTED",
                     "quote_created_date": "2022-03-04 08:22:03"
@@ -2684,10 +2699,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "NEW",
             "request_created_date": "2022-02-25 18:13:15",
+            "request_created_by":"100-000001",
             "quotes": [],
             "total_quotes": 0
         },
@@ -2702,10 +2719,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "NEW",
             "request_created_date": "2022-04-01 09:36:52",
+            "request_created_by":"100-000001",
             "quotes": [],
             "total_quotes": 0
         },
@@ -2720,10 +2739,12 @@
             "assigned_business": "600-000021",
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-04-01 16:19:59",
+            "request_created_by":"100-000001",
             "quotes": [
                 {
                     "maintenance_quote_uid": "900-000004",
@@ -2732,6 +2753,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "WITHDRAWN",
                     "quote_created_date": "2022-04-01 16:41:14"
@@ -2743,6 +2765,7 @@
                     "services_expenses": null,
                     "earliest_availability": "2022-04-02 00:00:00",
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "ACCEPTED",
                     "quote_created_date": "2022-04-01 16:41:14"
@@ -2761,10 +2784,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "NEW",
             "request_created_date": "2022-04-03 23:14:56",
+            "request_created_by":"100-000001",
             "quotes": [],
             "total_quotes": 0
         },
@@ -2779,10 +2804,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "NEW",
             "request_created_date": "2022-04-04 07:28:41",
+            "request_created_by":"100-000001",
             "quotes": [],
             "total_quotes": 0
         },
@@ -2797,10 +2824,12 @@
             "assigned_business": "600-000021",
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-04-07 03:12:55",
+            "request_created_by":"100-000001",
             "quotes": [
                 {
                     "maintenance_quote_uid": "900-000006",
@@ -2809,6 +2838,7 @@
                     "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"50\", \"service_name\": \"Tiling Fee\"}]",
                     "earliest_availability": "2022-04-09 00:00:00",
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "ACCEPTED",
                     "quote_created_date": "2022-04-08 07:32:43"
@@ -2827,10 +2857,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-04-08 07:38:35",
+            "request_created_by":"100-000001",
             "quotes": [
                 {
                     "maintenance_quote_uid": "900-000007",
@@ -2839,6 +2871,7 @@
                     "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"100\", \"service_name\": \"Carpentry Fee\"}]",
                     "earliest_availability": "2022-04-16 00:00:00",
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REJECTED",
                     "quote_created_date": "2022-04-08 07:38:56"
@@ -2850,6 +2883,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REJECTED",
                     "quote_created_date": "2022-04-08 07:41:34"
@@ -2868,10 +2902,12 @@
             "assigned_business": "600-000021",
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-04-08 16:16:49",
+            "request_created_by":"100-000001",
             "quotes": [
                 {
                     "maintenance_quote_uid": "900-000009",
@@ -2880,6 +2916,7 @@
                     "services_expenses": "[{\"per\": \"Hour\", \"charge\": \"50\", \"service_name\": \"Mowing feee\"}]",
                     "earliest_availability": "2022-04-09 00:00:00",
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "ACCEPTED",
                     "quote_created_date": "2022-04-08 16:17:23"
@@ -2898,10 +2935,12 @@
             "assigned_business": null,
             "assigned_worker": null,
             "scheduled_date": null,
+            "scheduled_time": null,
             "frequency": "One time",
             "notes": null,
             "request_status": "PROCESSING",
             "request_created_date": "2022-04-08 16:23:59",
+            "request_created_by":"100-000001",
             "quotes": [
                 {
                     "maintenance_quote_uid": "900-000010",
@@ -2910,6 +2949,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REQUESTED",
                     "quote_created_date": "2022-04-08 16:24:16"
@@ -2921,6 +2961,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REQUESTED",
                     "quote_created_date": "2022-04-08 16:24:16"
@@ -2932,6 +2973,7 @@
                     "services_expenses": null,
                     "earliest_availability": null,
                     "event_type": null,
+                    'event_duration':null,
                     "notes": null,
                     "quote_status": "REQUESTED",
                     "quote_created_date": "2022-04-08 16:24:16"
