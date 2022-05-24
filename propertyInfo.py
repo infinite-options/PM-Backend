@@ -105,6 +105,15 @@ class PropertiesOwner(Resource):
                         # print('property_res', property_res)
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
+                        if len(property_res['result']) > 0:
+                            print(property_res['result'])
+                            for pr in range(len(property_res['result'])):
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED':
+                                    response['result'][i]['management_status'] = "ACCEPTED"
+                                else:
+                                    response['result'][i]['management_status'] = ""
+                        else:
+                            response['result'][i]['management_status'] = ""
                         owner_id = response['result'][i]['owner_id']
                         owner_res = db.execute("""SELECT 
                                                         o.owner_first_name AS owner_first_name, 
@@ -199,6 +208,15 @@ class PropertiesOwnerDetail(Resource):
                         # print('property_res', property_res)
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
+                        if len(property_res['result']) > 0:
+                            print(property_res['result'])
+                            for pr in range(len(property_res['result'])):
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED':
+                                    response['result'][i]['management_status'] = "ACCEPTED"
+                                else:
+                                    response['result'][i]['management_status'] = ""
+                        else:
+                            response['result'][i]['management_status'] = ""
                         owner_id = response['result'][i]['owner_id']
                         owner_res = db.execute("""SELECT 
                                                         o.owner_first_name AS owner_first_name, 

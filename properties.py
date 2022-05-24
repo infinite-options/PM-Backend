@@ -91,14 +91,16 @@ class Properties(Resource):
         response = {}
         with connect() as db:
             data = request.form
+            print(data)
             property_uid = data.get('property_uid')
             fields = ['owner_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages']
             newProperty = {}
             for field in fields:
-                print('field', field)
+
                 fieldValue = data.get(field)
+                print('field', field, fieldValue)
                 if fieldValue:
                     newProperty[field] = data.get(field)
             images = []
@@ -159,7 +161,12 @@ class Properties(Resource):
                 # else:
                 #     db.insert('propertyManager', propertyManager)
                 db.insert('propertyManager', propertyManager)
-            response = db.update('properties', primaryKey, newProperty)
+            print(newProperty)
+            if newProperty == {}:
+                response['message'] = 'Successfully committed SQL query'
+                response['code'] = 200
+            else:
+                response = db.update('properties', primaryKey, newProperty)
         return response
 
 
