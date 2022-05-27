@@ -78,27 +78,27 @@ class DatabaseConnection:
         response = {}
         try:
             with self.conn.cursor() as cur:
-                print('IN EXECUTE')
+                # print('IN EXECUTE')
                 if len(args) == 0:
                     cur.execute(sql)
                 else:
                     cur.execute(sql, args)
 
                 if 'get' in cmd:
-                    print('IN GET')
+                    # print('IN GET')
                     result = cur.fetchall()
                     result = serializeJSON(result)
-                    print('RESULT GET')
+                    # print('RESULT GET')
                     response['message'] = 'Successfully executed SQL query'
                     response['code'] = 200
                     response['result'] = result
-                    print('RESPONSE GET')
+                    # print('RESPONSE GET')
                 elif 'post' in cmd:
-                    print('IN POST')
+                    # print('IN POST')
                     self.conn.commit()
                     response['message'] = 'Successfully committed SQL query'
                     response['code'] = 200
-                    print('RESPONSE POST')
+                    # print('RESPONSE POST')
         except Exception as e:
             print('ERROR', e)
             response['message'] = 'Error occurred while executing SQL query'
