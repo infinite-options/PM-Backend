@@ -137,13 +137,17 @@ class Properties(Resource):
                 'linked_property_id': property_uid,
                 'linked_business_id': manager_id
             }
-            # res = db.select('propertyManager', pk)
-            # print('res', res)
+            res = db.execute(
+                """SELECT * FROM pm.propertyManager WHERE linked_property_id = \'""" + property_uid + """\' AND linked_business_id= \'""" + manager_id + """\'""")
+            print('res', res)
+
             propertyManager = {
                 'linked_property_id': property_uid,
                 'linked_business_id': manager_id,
                 'management_status': management_status
             }
+            if len(res['result']) > 0:
+                db.update('propertyManager', pk, propertyManager)
             propertyManagerReject = {
                 'linked_property_id': property_uid,
                 'linked_business_id': '',
