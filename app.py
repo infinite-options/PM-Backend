@@ -14,7 +14,7 @@ from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals
 from purchases import Purchases, CreateExpenses
 from payments import Payments, UserPayments
-from ownerProperties import OwnerProperties
+from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner
 from managerProperties import ManagerProperties
 from tenantProperties import TenantProperties
 from refresh import Refresh
@@ -24,7 +24,7 @@ from maintenanceRequests import MaintenanceRequests
 from maintenanceRequests import MaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
-from propertyInfo import PropertiesOwnerDetail, PropertyInfo, AvailableProperties, PropertiesOwner
+from propertyInfo import PropertyInfo, AvailableProperties
 from applications import Applications
 from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
