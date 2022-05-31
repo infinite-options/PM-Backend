@@ -95,7 +95,7 @@ class Properties(Resource):
             property_uid = data.get('property_uid')
             fields = ['owner_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'insurance']
             newProperty = {}
             for field in fields:
 
