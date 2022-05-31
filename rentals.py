@@ -90,77 +90,77 @@ class Rentals(Resource):
                 db.insert('leaseTenants', leaseTenant)
             # creating purchases
             rentPayments = json.loads(newRental['rent_payments'])
-            for payment in rentPayments:
-                if payment['frequency'] == 'Monthly':
-                    charge_date = date.fromisoformat(newRental['lease_start'])
-                    lease_end = date.fromisoformat(newRental['lease_end'])
-                    print('charge_date', type(charge_date),
-                          charge_date.isoformat())
-                    while charge_date < lease_end:
-                        charge_month = charge_date.strftime('%B')
-                        if(payment['fee_name'] == 'Rent'):
-                            purchaseResponse = newPurchase(
-                                linked_purchase_id=None,
-                                pur_property_id=newRental['rental_property_id'],
-                                payer=json.dumps(tenants),
-                                receiver=newRental['rental_property_id'],
-                                purchase_type='RENT',
-                                description=payment['fee_name'],
-                                amount_due=payment['charge'],
-                                purchase_notes=charge_month,
-                                purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment['frequency'],
-                                next_payment=charge_date.replace(day=1)
-                            )
-                        else:
-                            purchaseResponse = newPurchase(
-                                linked_purchase_id=None,
-                                pur_property_id=newRental['rental_property_id'],
-                                payer=json.dumps(tenants),
-                                receiver=newRental['rental_property_id'],
-                                purchase_type='EXTRA CHARGES',
-                                description=payment['fee_name'],
-                                amount_due=payment['charge'],
-                                purchase_notes=charge_month,
-                                purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment['frequency'],
-                                next_payment=charge_date.replace(day=1)
-                            )
-                        charge_date += relativedelta(months=1)
-                else:
-                    print('lease_start', type(newRental['lease_start']))
-                    if(payment['fee_name'] == 'Rent'):
-                        purchaseResponse = newPurchase(
-                            linked_purchase_id=None,
-                            pur_property_id=newRental['rental_property_id'],
-                            payer=json.dumps(tenants),
-                            receiver=newRental['rental_property_id'],
-                            purchase_type='RENT',
-                            description=payment['fee_name'],
-                            amount_due=payment['charge'],
-                            purchase_notes='',
-                            purchase_date=newRental['lease_start'],
-                            purchase_frequency=payment['frequency'],
-                            next_payment=date.fromisoformat(
-                                newRental['lease_start']).replace(day=1)
-                        )
+            # for payment in rentPayments:
+            #     if payment['frequency'] == 'Monthly':
+            #         charge_date = date.fromisoformat(newRental['lease_start'])
+            #         lease_end = date.fromisoformat(newRental['lease_end'])
+            #         print('charge_date', type(charge_date),
+            #               charge_date.isoformat())
+            #         while charge_date < lease_end:
+            #             charge_month = charge_date.strftime('%B')
+            #             if(payment['fee_name'] == 'Rent'):
+            #                 purchaseResponse = newPurchase(
+            #                     linked_purchase_id=None,
+            #                     pur_property_id=newRental['rental_property_id'],
+            #                     payer=json.dumps(tenants),
+            #                     receiver=newRental['rental_property_id'],
+            #                     purchase_type='RENT',
+            #                     description=payment['fee_name'],
+            #                     amount_due=payment['charge'],
+            #                     purchase_notes=charge_month,
+            #                     purchase_date=charge_date.isoformat(),
+            #                     purchase_frequency=payment['frequency'],
+            #                     next_payment=charge_date.replace(day=1)
+            #                 )
+            #             else:
+            #                 purchaseResponse = newPurchase(
+            #                     linked_purchase_id=None,
+            #                     pur_property_id=newRental['rental_property_id'],
+            #                     payer=json.dumps(tenants),
+            #                     receiver=newRental['rental_property_id'],
+            #                     purchase_type='EXTRA CHARGES',
+            #                     description=payment['fee_name'],
+            #                     amount_due=payment['charge'],
+            #                     purchase_notes=charge_month,
+            #                     purchase_date=charge_date.isoformat(),
+            #                     purchase_frequency=payment['frequency'],
+            #                     next_payment=charge_date.replace(day=1)
+            #                 )
+            #             charge_date += relativedelta(months=1)
+            #     else:
+            #         print('lease_start', type(newRental['lease_start']))
+            #         if(payment['fee_name'] == 'Rent'):
+            #             purchaseResponse = newPurchase(
+            #                 linked_purchase_id=None,
+            #                 pur_property_id=newRental['rental_property_id'],
+            #                 payer=json.dumps(tenants),
+            #                 receiver=newRental['rental_property_id'],
+            #                 purchase_type='RENT',
+            #                 description=payment['fee_name'],
+            #                 amount_due=payment['charge'],
+            #                 purchase_notes='',
+            #                 purchase_date=newRental['lease_start'],
+            #                 purchase_frequency=payment['frequency'],
+            #                 next_payment=date.fromisoformat(
+            #                     newRental['lease_start']).replace(day=1)
+            #             )
 
-                    else:
+            #         else:
 
-                        purchaseResponse = newPurchase(
-                            linked_purchase_id=None,
-                            pur_property_id=newRental['rental_property_id'],
-                            payer=json.dumps(tenants),
-                            receiver=newRental['rental_property_id'],
-                            purchase_type='EXTRA CHARGES',
-                            description=payment['fee_name'],
-                            amount_due=payment['charge'],
-                            purchase_notes='',
-                            purchase_date=newRental['lease_start'],
-                            purchase_frequency=payment['frequency'],
-                            next_payment=date.fromisoformat(
-                                newRental['lease_start']).replace(day=1)
-                        )
+            #             purchaseResponse = newPurchase(
+            #                 linked_purchase_id=None,
+            #                 pur_property_id=newRental['rental_property_id'],
+            #                 payer=json.dumps(tenants),
+            #                 receiver=newRental['rental_property_id'],
+            #                 purchase_type='EXTRA CHARGES',
+            #                 description=payment['fee_name'],
+            #                 amount_due=payment['charge'],
+            #                 purchase_notes='',
+            #                 purchase_date=newRental['lease_start'],
+            #                 purchase_frequency=payment['frequency'],
+            #                 next_payment=date.fromisoformat(
+            #                     newRental['lease_start']).replace(day=1)
+            #             )
         return response
 
     def put(self):
@@ -191,19 +191,6 @@ class Rentals(Resource):
                     documents = updateDocuments(documents, rental_uid)
                     newRental['documents'] = json.dumps(documents)
 
-            # documents = json.loads(data.get('documents'))
-            # for i, doc in enumerate(documents):
-            #     filename = f'doc_{i}'
-            #     file = request.files.get(filename)
-            #     s3Link = doc.get('link')
-            #     if file:
-            #         doc['file'] = file
-            #     elif s3Link:
-            #         doc['link'] = s3Link
-            #     else:
-            #         break
-            # documents = updateDocuments(documents, rental_uid)
-            # newRental['documents'] = json.dumps(documents)
             primaryKey = {'rental_uid': rental_uid}
             print('newRental', newRental)
             response = db.update('rentals', primaryKey, newRental)
