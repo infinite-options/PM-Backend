@@ -35,7 +35,7 @@ def updateImages(imageFiles, property_uid):
 class Properties(Resource):
     def get(self):
         response = {}
-        filters = ['property_uid', 'setup_date', 'owner_id', 'manager_id', 'address', 'city',
+        filters = ['property_uid', 'active_date', 'owner_id', 'manager_id', 'address', 'city',
                    'state', 'zip', 'type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                    'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
         where = {}
@@ -55,7 +55,7 @@ class Properties(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['owner_id', 'setup_date', 'manager_id', 'address', 'unit', 'city', 'state',
+            fields = ['owner_id', 'active_date', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             boolFields = ['pets_allowed', 'deposit_for_rent']
@@ -93,7 +93,7 @@ class Properties(Resource):
             data = request.form
             print(data)
             property_uid = data.get('property_uid')
-            fields = ['owner_id', 'setup_date', 'address', 'unit', 'city', 'state',
+            fields = ['owner_id', 'active_date', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'insurance']
             newProperty = {}

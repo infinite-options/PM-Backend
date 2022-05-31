@@ -74,6 +74,15 @@ class Applications(Resource):
                         + """\' """)
                     print('response', response['result'][0])
                     tenants = response['result'][0]['tenant_id']
+                    print('tenants1', tenants)
+                    if '[' in tenants:
+                        print('tenants2', tenants)
+                        tenants = json.loads(tenants)
+                        print('tenants3', tenants)
+                    print('tenants4', tenants)
+                    if type(tenants) == str:
+                        tenants = [tenants]
+                        print('tenants5', tenants)
                     print('tenant_id', tenants)
                     if len(response['result']) > 0:
                         newApplication['application_status'] = 'RENTED'
@@ -138,6 +147,15 @@ class Applications(Resource):
                                 else:
                                     print('lease_start', type(
                                         res['lease_start']))
+                                    charge_date = date.fromisoformat(
+                                        res['lease_start'])
+                                    lease_end = date.fromisoformat(
+                                        res['lease_end'])
+                                    print('charge_date', type(charge_date),
+                                          charge_date.isoformat())
+
+                                    charge_month = charge_date.strftime(
+                                        '%B')
                                     if(payment['fee_name'] == 'Rent'):
                                         purchaseResponse = newPurchase(
                                             linked_purchase_id=None,

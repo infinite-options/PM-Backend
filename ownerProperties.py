@@ -178,16 +178,12 @@ class PropertiesOwner(Resource):
                                 if owner_expense['result'][ore]['purchase_type'] == 'MANAGEMENT':
                                     management_expenses = management_expenses + \
                                         owner_expense['result'][ore]['amount_paid']
-                                if owner_expense['result'][ore]['purchase_type'] == 'INSURANCE':
-                                    insurance_expenses = insurance_expenses + \
-                                        owner_expense['result'][ore]['amount_paid']
                                 if owner_expense['result'][ore]['purchase_type'] == 'REPAIRS':
                                     repairs_expenses = repairs_expenses + \
                                         owner_expense['result'][ore]['amount_paid']
 
                         response['result'][i]['maintenance_expenses'] = maintenance_expenses
                         response['result'][i]['management_expenses'] = management_expenses
-                        response['result'][i]['insurance_expenses'] = insurance_expenses
                         response['result'][i]['repairs_expenses'] = repairs_expenses
 
                         # annual expense for the property
@@ -226,7 +222,17 @@ class PropertiesOwner(Resource):
                                         int(eval(response['result'][i]['taxes'])[
                                             te]['amount'])
 
-                        response['result'][i]['taxes_expenses'] = taxes_expenses
+                        response['result'][i]['insurance_expenses'] = insurance_expenses
+                        if response['result'][i]['insurance'] is not None:
+                            if len(eval(response['result'][i]['insurance'])) > 0:
+                                for te in range(len(eval(response['result'][i]['insurance']))):
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month * int(eval(response['result'][i]
+                                                                                                                                            ['insurance'])[te]['amount']))
+                                    insurance_expenses = insurance_expenses + \
+                                        int(eval(response['result'][i]['insurance'])[
+                                            te]['amount'])
+
+                        response['result'][i]['insurance_expenses'] = insurance_expenses
                         # print('after mortgage and taxes',
                         #       response['result'][i]['year_expense'])
                     # print(response)
@@ -380,16 +386,13 @@ class PropertiesOwnerDetail(Resource):
                                 if owner_expense['result'][ore]['purchase_type'] == 'MANAGEMENT':
                                     management_expenses = management_expenses + \
                                         owner_expense['result'][ore]['amount_paid']
-                                if owner_expense['result'][ore]['purchase_type'] == 'INSURANCE':
-                                    insurance_expenses = insurance_expenses + \
-                                        owner_expense['result'][ore]['amount_paid']
+
                                 if owner_expense['result'][ore]['purchase_type'] == 'REPAIRS':
                                     repairs_expenses = repairs_expenses + \
                                         owner_expense['result'][ore]['amount_paid']
 
                         response['result'][i]['maintenance_expenses'] = maintenance_expenses
                         response['result'][i]['management_expenses'] = management_expenses
-                        response['result'][i]['insurance_expenses'] = insurance_expenses
                         response['result'][i]['repairs_expenses'] = repairs_expenses
 
                         # annual expense for the property
@@ -429,6 +432,17 @@ class PropertiesOwnerDetail(Resource):
                                             te]['amount'])
 
                         response['result'][i]['taxes_expenses'] = taxes_expenses
+                        response['result'][i]['insurance_expenses'] = insurance_expenses
+                        if response['result'][i]['insurance'] is not None:
+                            if len(eval(response['result'][i]['insurance'])) > 0:
+                                for te in range(len(eval(response['result'][i]['insurance']))):
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month * int(eval(response['result'][i]
+                                                                                                                                            ['insurance'])[te]['amount']))
+                                    insurance_expenses = insurance_expenses + \
+                                        int(eval(response['result'][i]['insurance'])[
+                                            te]['amount'])
+
+                        response['result'][i]['insurance_expenses'] = insurance_expenses
 
                     # print(response)
 
