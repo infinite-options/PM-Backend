@@ -35,7 +35,7 @@ def updateImages(imageFiles, property_uid):
 class Properties(Resource):
     def get(self):
         response = {}
-        filters = ['property_uid', 'owner_id', 'manager_id', 'address', 'city',
+        filters = ['property_uid', 'setup_date', 'owner_id', 'manager_id', 'address', 'city',
                    'state', 'zip', 'type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                    'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
         where = {}
@@ -55,7 +55,7 @@ class Properties(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
+            fields = ['owner_id', 'setup_date', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
             boolFields = ['pets_allowed', 'deposit_for_rent']
@@ -93,7 +93,7 @@ class Properties(Resource):
             data = request.form
             print(data)
             property_uid = data.get('property_uid')
-            fields = ['owner_id', 'address', 'unit', 'city', 'state',
+            fields = ['owner_id', 'setup_date', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'insurance']
             newProperty = {}
@@ -130,42 +130,44 @@ class Properties(Resource):
             primaryKey = {
                 'property_uid': property_uid
             }
+            print('manager_id', data.get('manager_id'),
+                  data.get('management_status'))
+            if data.get('manager_id') != None and data.get('management_status') != None:
+                manager_id = data.get('manager_id')
+                management_status = data.get('management_status')
+                pk = {
+                    'linked_property_id': property_uid,
+                    'linked_business_id': manager_id
+                }
+                res = db.execute(
+                    """SELECT * FROM pm.propertyManager WHERE linked_property_id = \'""" + property_uid + """\' AND linked_business_id= \'""" + manager_id + """\'""")
+                print('res', res)
 
-            manager_id = data.get('manager_id')
-            management_status = data.get('management_status')
-            pk = {
-                'linked_property_id': property_uid,
-                'linked_business_id': manager_id
-            }
-            res = db.execute(
-                """SELECT * FROM pm.propertyManager WHERE linked_property_id = \'""" + property_uid + """\' AND linked_business_id= \'""" + manager_id + """\'""")
-            print('res', res)
-
-            propertyManager = {
-                'linked_property_id': property_uid,
-                'linked_business_id': manager_id,
-                'management_status': management_status
-            }
-            if len(res['result']) > 0:
-                db.update('propertyManager', pk, propertyManager)
-            propertyManagerReject = {
-                'linked_property_id': property_uid,
-                'linked_business_id': '',
-                'management_status': management_status
-            }
-            # if management_status == 'REJECT':
-            #     print('in reject')
-            #     db.update('propertyManager', pk, propertyManagerReject)
-            if management_status != 'FORWARDED':
-                print('in not forward')
-                db.update('propertyManager', pk, propertyManager)
-            else:
-                # if len(res['result']) > 0:
-                #     db.update('propertyManager', pk, propertyManager)
-                # else:
-                #     db.insert('propertyManager', propertyManager)
-                db.insert('propertyManager', propertyManager)
-            print(newProperty)
+                propertyManager = {
+                    'linked_property_id': property_uid,
+                    'linked_business_id': manager_id,
+                    'management_status': management_status
+                }
+                if len(res['result']) > 0:
+                    db.update('propertyManager', pk, propertyManager)
+                propertyManagerReject = {
+                    'linked_property_id': property_uid,
+                    'linked_business_id': '',
+                    'management_status': management_status
+                }
+                # if management_status == 'REJECT':
+                #     print('in reject')
+                #     db.update('propertyManager', pk, propertyManagerReject)
+                if management_status != 'FORWARDED':
+                    print('in not forward')
+                    db.update('propertyManager', pk, propertyManager)
+                else:
+                    # if len(res['result']) > 0:
+                    #     db.update('propertyManager', pk, propertyManager)
+                    # else:
+                    #     db.insert('propertyManager', propertyManager)
+                    db.insert('propertyManager', propertyManager)
+                print(newProperty)
             if newProperty == {}:
                 response['message'] = 'Successfully committed SQL query'
                 response['code'] = 200
