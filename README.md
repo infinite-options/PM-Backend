@@ -16,15 +16,22 @@
 - [/ownerProperties](#ownerproperties)
 - [/managerProperties](#managerproperties)
 - [/tenantProperties](#tenantproperties)
+- [/propertiesOwner](#propertiesOwner)
+- [/propertiesOwnerDetails](#propertiesOwnerDetails)
 - [/propertyInfo](#propertyinfo)
 - [/users](#users)
+- [/UpdateAccessToken](#UpdateAccessToken/{user_id})
+- [/UserDetails](#UserDetails/{user_id})
+- [/UserToken](#UserToken/{user_email_id})
 - [/login](#login)
 - [/ownerProfileInfo](#ownerprofileinfo)
 - [/managerProfileInfo](#managerprofileinfo)
 - [/tenantProfileInfo](#tenantprofileinfo)
 - [/businessProfileInfo](#businessprofileinfo)
 - [/rentals](#rentals)
+- [/endLease](#endLease)
 - [/purchases](#purchases)
+- [/createExpenses](#createExpenses)
 - [/payments](#payments)
 - [/businesses](#businesses)
 - [/employees](#employees)
@@ -34,6 +41,7 @@
 - [/leaseTenants](#leaseTenants)
 - [/availableProperties/{tenant_id}](#availableProperties/{tenant_id})
 - [/maintenanceRequestsandQuotes](#maintenanceRequestsandQuotes)
+- [/AvailableAppointments](#AvailableAppointments/{date_value}/{duration}/{user_id}/{start_time},{end_time})
 
 ---
 
@@ -1328,6 +1336,35 @@
 
 ---
 
+### /endLease
+
+##### PUT
+
+- pm/tenant ends the lease
+- updating rental_status in rentals to 'EXPIRED' and deleting future rents from PURCHASES
+- send as multipart/form-data
+
+- request JSON:
+
+```
+{
+    "rental_uid": "300-000020",
+    "rental_status": "EXPIRED",
+    "rental_property_id":"200-000023"
+}
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
 ### /contracts
 
 ##### GET
@@ -1510,6 +1547,38 @@
     "purchase_notes": "First month's rent",
     "purchase_date": "2022-03-04 00:00:00",
     "purchase_frequency": "Monthly"
+}
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+---
+
+### /createExpenses
+
+##### POST
+
+- create new expense from owner profile
+- request JSON:
+
+```
+{
+    "pur_property_id": "200-000023",
+    "payer": "100-000006",
+    "receiver": "200-000023",
+    "purchase_type": "Maintenance",
+    "description": "mortgage insurance",
+    "amount_due": "180",
+    "purchase_frequency": "Monthly",
+    "payment_frequency": "Once a month",
+    "next_payment": "2022-06-03"
 }
 ```
 

@@ -195,3 +195,31 @@ class Rentals(Resource):
             print('newRental', newRental)
             response = db.update('rentals', primaryKey, newRental)
         return response
+
+
+class EndLease(Resource):
+    def put(self):
+        data = request.json
+        fields = ['rental_uid', 'rental_status', 'rental_property_id']
+        with connect() as db:
+            rentalUpdate = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    rentalUpdate[field] = fieldValue
+            rental_pk = {
+                'rental_uid': rentalUpdate['rental_uid']
+            }
+            response = db.update('rentals', rental_pk, rentalUpdate)
+            print(rentalUpdate['rental_property_id'])
+            pur_pk = {
+                'pur_property_id': rentalUpdate['rental_property_id']
+            }
+            pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + rentalUpdate['rental_property_id'] + """\'
+                                            AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now())) 
+                                            AND purchase_status ="UNPAID"
+                                            AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+            # pur_response = db.delete('purchases', pur_pk,  )
+            print(pur_response)
+
+        return response
