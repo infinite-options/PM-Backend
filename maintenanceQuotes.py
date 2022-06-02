@@ -144,6 +144,28 @@ class MaintenanceQuotes(Resource):
                         newQuote[field] = json.dumps(fieldValue)
                     else:
                         newQuote[field] = fieldValue
+
+                if field == 'event_type':
+                    print(field, fieldValue)
+                    if fieldValue == '1 Hour Job':
+                        print('here')
+                        newQuote['event_duration'] = '0:59:59'
+                    elif fieldValue == '2 Hour Job':
+                        print(field)
+                        newQuote['event_duration'] = '1:59:59'
+                    elif fieldValue == '3 Hour Job':
+                        print(field)
+                        newQuote['event_duration'] = '2:59:59'
+                    elif fieldValue == '4 Hour Job':
+                        print(field)
+                        newQuote['event_duration'] = '3:59:59'
+                    elif fieldValue == '6 Hour Job':
+                        print(field)
+                        newQuote['event_duration'] = '5:59:59'
+                    elif fieldValue == '8 Hour Job':
+                        print(field)
+                        newQuote['event_duration'] = '8:59:59'
+            print(newQuote)
             if newQuote.get('quote_status') == 'ACCEPTED':
                 acceptQuote(data.get('maintenance_quote_uid'))
             primaryKey = {

@@ -64,7 +64,7 @@ class Applications(Resource):
                     """SELECT * FROM pm.applications WHERE application_status='FORWARDED' AND property_uid = \'"""
                     + newApplication['property_uid']
                     + """\' """)
-                # print('response', response, len(response['result']))
+                print('response', response, len(response['result']))
                 if len(response['result']) > 1:
                     newApplication['application_status'] = 'ACCEPTED'
                 else:
@@ -72,8 +72,33 @@ class Applications(Resource):
                         """SELECT * FROM pm.applications WHERE application_status='ACCEPTED' AND property_uid = \'"""
                         + newApplication['property_uid']
                         + """\' """)
-                    print('response', response['result'][0])
-                    tenants = response['result'][0]['tenant_id']
+                    print('response', response['result'])
+
+                    if len(response['result']) > 0:
+                        # tenants = response['result'][0]['tenant_id']
+                        # print('tenants1', tenants)
+                        # if '[' in tenants:
+                        #     print('tenants2', tenants)
+                        #     tenants = json.loads(tenants)
+                        #     print('tenants3', tenants)
+                        # print('tenants4', tenants)
+                        # if type(tenants) == str:
+                        #     tenants = [tenants]
+                        #     print('tenants5', tenants)
+                        # print('tenant_id', tenants)
+                        newApplication['application_status'] = 'RENTED'
+                        for response in response['result']:
+                            pk = {
+                                'application_uid': response['application_uid']
+                            }
+                            response = db.update(
+                                'applications', pk, newApplication)
+                    res = db.execute(
+                        """SELECT * FROM pm.rentals r LEFT JOIN leaseTenants lt ON lt.linked_rental_uid = r.rental_uid   WHERE r.rental_status='PROCESSING' AND r.rental_property_id = \'"""
+                        + newApplication['property_uid']
+                        + """\' """)
+                    print('res', res, len(res['result']))
+                    tenants = res['result'][0]['linked_tenant_id']
                     print('tenants1', tenants)
                     if '[' in tenants:
                         print('tenants2', tenants)
@@ -84,19 +109,6 @@ class Applications(Resource):
                         tenants = [tenants]
                         print('tenants5', tenants)
                     print('tenant_id', tenants)
-                    if len(response['result']) > 0:
-                        newApplication['application_status'] = 'RENTED'
-                        for response in response['result']:
-                            pk = {
-                                'application_uid': response['application_uid']
-                            }
-                            response = db.update(
-                                'applications', pk, newApplication)
-                    res = db.execute(
-                        """SELECT * FROM pm.rentals WHERE rental_status='PROCESSING' AND rental_property_id = \'"""
-                        + newApplication['property_uid']
-                        + """\' """)
-                    # print('res', res, len(res['result']))
                     if len(res['result']) > 0:
                         for res in res['result']:
                             print('res', res)
