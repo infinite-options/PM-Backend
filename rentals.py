@@ -223,3 +223,64 @@ class EndLease(Resource):
             print(pur_response)
 
         return response
+
+
+class LeasetoMonth(Resource):
+    def get(self):
+
+        with connect() as db:
+            response = db.execute("""SELECT * 
+                                    FROM pm.rentals r 
+                                    LEFT JOIN
+                                    pm.leaseTenants lt 
+                                    ON lt.linked_rental_uid = r.rental_uid
+                                    WHERE r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d") 
+                                    OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d") 
+                                    AND r.rental_status='ACTIVE'; """)
+
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    print(i)
+                    res = db.execute("""UPDATE pm.rentals
+                                            SET
+                                            lease_end = DATE_ADD(lease_end, INTERVAL 1 MONTH)
+                                            WHERE rental_uid = \'""" + response['result'][i]['rental_uid'] + """\'""")
+
+                    tenants = response['result'][0]['linked_tenant_id']
+                    # print('tenants1', tenants)
+                    if '[' in tenants:
+                        # print('tenants2', tenants)
+                        tenants = json.loads(tenants)
+                        # print('tenants3', tenants)
+                    # print('tenants4', tenants)
+                    if type(tenants) == str:
+                        tenants = [tenants]
+                        # print('tenants5', tenants)
+                    print('tenant_id', tenants)
+                    payment = json.loads(
+                        response['result'][i]['rent_payments'])
+                    print(payment, len(payment))
+
+                    for r in range(len(payment)):
+                        if payment[r]['fee_name'] == 'Rent':
+                            print('RENT', payment[r]['fee_name'])
+                            charge_date = date.today()
+                            charge_month = charge_date.strftime(
+                                '%B')
+                            print(charge_date, charge_month)
+                            purchaseResponse = newPurchase(
+                                linked_purchase_id=None,
+                                pur_property_id=response['result'][i]['rental_property_id'],
+                                payer=json.dumps(tenants),
+                                receiver=response['result'][i]['rental_property_id'],
+                                purchase_type='RENT',
+                                description=payment[r]['fee_name'],
+                                amount_due=payment[r]['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=charge_date.isoformat(),
+                                purchase_frequency=payment[r]['frequency'],
+                                next_payment=charge_date.replace(
+                                    day=1)
+                            )
+
+        return purchaseResponse
