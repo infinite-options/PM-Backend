@@ -58,17 +58,18 @@ class PropertiesOwner(Resource):
 
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
+                        response['result'][i]['management_status'] = ""
+                        response['result'][i]['managerInfo'] = {}
                         # management status for property
                         if len(property_res['result']) > 0:
                             for pr in range(len(property_res['result'])):
-
                                 if property_res['result'][pr]['management_status'] == 'ACCEPTED':
-
                                     response['result'][i]['management_status'] = "ACCEPTED"
-                                else:
-                                    print('')
+                                    response['result'][i]['managerInfo'] = property_res['result'][pr]
+
                         else:
                             response['result'][i]['management_status'] = ""
+                            response['result'][i]['managerInfo'] = {}
                         owner_id = response['result'][i]['owner_id']
                         # owner info for the property
                         owner_res = db.execute("""SELECT 
@@ -272,15 +273,19 @@ class PropertiesOwnerDetail(Resource):
 
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
+                        response['result'][i]['management_status'] = ""
+                        response['result'][i]['managerInfo'] = {}
                         if len(property_res['result']) > 0:
 
                             for pr in range(len(property_res['result'])):
                                 if property_res['result'][pr]['management_status'] == 'ACCEPTED':
                                     response['result'][i]['management_status'] = "ACCEPTED"
+                                    response['result'][i]['managerInfo'] = property_res['result'][pr]
                                 else:
                                     print('in else')
                         else:
                             response['result'][i]['management_status'] = ""
+                            response['result'][i]['managerInfo'] = {}
                         owner_id = response['result'][i]['owner_id']
                         owner_res = db.execute("""SELECT 
                                                         o.owner_first_name AS owner_first_name, 

@@ -53,7 +53,8 @@ class Applications(Resource):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['message', 'application_status', 'property_uid']
+            fields = ['message', 'application_status',
+                      'property_uid', 'adult_occupants', 'children_occupants']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)

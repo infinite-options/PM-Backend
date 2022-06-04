@@ -42,6 +42,7 @@
 - [/availableProperties/{tenant_id}](#availableProperties/{tenant_id})
 - [/maintenanceRequestsandQuotes](#maintenanceRequestsandQuotes)
 - [/AvailableAppointments](#AvailableAppointments/{date_value}/{duration}/{user_id}/{start_time},{end_time})
+- [/bills](#bills)
 
 ---
 
@@ -3053,4 +3054,68 @@
     ]
 }
 
+```
+
+### /bills
+
+##### GET
+
+- with no args, return all bills, along with their quotes
+- add args to endpoint to filter results (ex: /bill_property_id=200-000012, bill_created_by=600-000001)
+
+```
+
+{
+    "message": "Successfully executed SQL query",
+    "code": 200,
+    "result": [
+        {
+            "bill_uid": "040-000001",
+            "bill_description": "water bill",
+            "bill_created_by": "600-000001",
+            "bill_utility_type": "water",
+            "bill_distribution_type": "2 ways",
+            "bill_property_id": "200-000001",
+            "purchase_uid": null,
+            "linked_purchase_id": null,
+            "pur_property_id": null,
+            "payer": null,
+            "receiver": null,
+            "purchase_type": null,
+            "description": null,
+            "amount_due": null,
+            "amount_paid": null,
+            "purchase_notes": null,
+            "purchase_date": null,
+            "purchase_frequency": null,
+            "purchase_status": null,
+            "payment_frequency": null,
+            "next_payment": null
+        }
+    ]
+}
+
+```
+
+##### POST
+
+- create new bill
+- send as multipart/form-data
+- request JSON:
+
+```
+bill_property_id:200-000001
+bill_created_by:600-000001
+bill_description:water bill
+bill_utility_type:
+bill_distribution_type:
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
 ```

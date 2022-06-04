@@ -28,7 +28,7 @@ from propertyInfo import PropertyInfo, AvailableProperties
 from applications import Applications
 from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
-
+from bills import Bills
 app = Flask(__name__)
 
 # cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
@@ -108,5 +108,6 @@ api.add_resource(
     "/AvailableAppointments/<string:date_value>/<string:duration>/<string:user_id>/<string:start_time>,<string:end_time>"
 )
 api.add_resource(LeaseTenants, "/leaseTenants")
+api.add_resource(Bills, "/bills")
 if __name__ == '__main__':
     app.run(debug=True)

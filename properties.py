@@ -155,9 +155,9 @@ class Properties(Resource):
                     'linked_business_id': '',
                     'management_status': management_status
                 }
-                # if management_status == 'REJECT':
-                #     print('in reject')
-                #     db.update('propertyManager', pk, propertyManagerReject)
+                if management_status == 'REJECT':
+                    print('in reject')
+                    db.update('propertyManager', pk, propertyManagerReject)
                 if management_status != 'FORWARDED':
                     print('in not forward')
                     db.update('propertyManager', pk, propertyManager)
