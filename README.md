@@ -41,7 +41,8 @@
 - [/leaseTenants](#leaseTenants)
 - [/availableProperties/{tenant_id}](#availableProperties/{tenant_id})
 - [/maintenanceRequestsandQuotes](#maintenanceRequestsandQuotes)
-- [/AvailableAppointments](#AvailableAppointments/{date_value}/{duration}/{user_id}/{start_time},{end_time})
+- [/AvailableAppointmentsTenant](#AvailableAppointmentsTenant/{date_value}/{duration}/{user_id}/{start_time},{end_time})
+- [/AvailableAppointmentsMaintenance](#AvailableAppointmentsMaintenance/{date_value}/{duration}/{user_id}/{start_time},{end_time})
 - [/bills](#bills)
 
 ---

@@ -185,7 +185,7 @@ class UserToken(Resource):
             return response, 200
 
 
-class AvailableAppointments(Resource):
+class AvailableAppointmentsTenant(Resource):
     def get(self, date_value, duration, user_id, start_time, end_time):
         print("\nInside Available Appointments")
         with connect() as db:
@@ -401,28 +401,246 @@ class UserDetails(Resource):
         print("In userDetails")
         response = {}
         items = {}
+        print(user_id[0])
 
         with connect() as db:
+            if user_id[0] == '1':
+                query = (
+                    """SELECT user_uid
+                                    , email, first_name
+                                    , last_name
+                                    , google_auth_token
+                                    , google_refresh_token FROM users WHERE user_uid = \'"""
+                    + user_id
+                    + """\' """
+                )
+                print(query)
+                response = db.execute("""SELECT user_uid
+                                    , email
+                                    , first_name
+                                    , last_name
+                                    , google_auth_token
+                                    , google_refresh_token FROM users WHERE user_uid = \'"""
+                                      + user_id
+                                      + """\' """)
+            else:
+                business_email = db.execute("""SELECT business_uid
+                                    , business_email
+                                    , business_name FROM businesses WHERE business_uid = \'"""
+                                            + user_id
+                                            + """\' """)
+                print(business_email['result'][0])
+                response = db.execute("""SELECT user_uid
+                                    , email
+                                    , first_name
+                                    , last_name
+                                    , google_auth_token
+                                    , google_refresh_token FROM users WHERE email = \'"""
+                                      + business_email['result'][0]['business_email']
+                                      + """\' """)
+            return response
 
-            query = (
-                """SELECT user_unique_id
-                                , user_email_id
-                                , user_first_name
-                                , user_last_name
-                                , google_auth_token
-                                , google_refresh_token
-                        FROM
-                        users WHERE user_unique_id = \'"""
-                + user_id
-                + """\';"""
-            )
 
-            response = db.execute("""SELECT user_uid
-                                , email, first_name
-                                , last_name
-                                , google_auth_token
-                                , google_refresh_token FROM users WHERE user_uid = \'"""
-                                  + user_id
-                                  + """\' """)
+class AvailableAppointmentsMaintenance(Resource):
+    def get(self, date_value, duration, user_id, start_time, end_time):
+        print("\nInside Available Appointments")
+        with connect() as db:
 
-            return response, 200
+            print("Inside try block", date_value,
+                  duration,  user_id, start_time, end_time)
+            h, m, s = duration.split(':')
+            interval = math.ceil(
+                ((int(h) * 3600 + int(m) * 60 + int(s))/60)/30)
+            print(type(interval), interval)
+
+            atimes = {'message': 'Successfully executed SQL query.',
+                      'code': 280, 'result': []}
+            for k in range(0, interval):
+                print(k)
+                query = ("""
+                    -- AVAILABLE TIME SLOTS QUERY - WORKS
+                    WITH ats AS (
+                    -- CALCULATE AVAILABLE TIME SLOTS
+                    SELECT
+                        row_num,
+                        cast(begin_datetime as time) AS begin_time,
+                        cast(end_datetime as time) AS end_time
+                    FROM(
+                        -- GET TIME SLOTS
+                        SELECT ts.*,
+                            ROW_NUMBER() OVER() AS row_num,
+                            TIME(ts.begin_datetime) AS ts_begin,
+                            TIME(ts.end_datetime) AS ts_end,
+                            meet_dur.*
+                        FROM pm.time_slots ts
+                        -- GET CURRENT APPOINTMENTS
+                        LEFT JOIN (
+                        SELECT -- *,
+                            maintenance_request_uid,
+                            scheduled_date,
+                            scheduled_time AS start_time,
+                            event_duation,
+                            assigned_business AS business_id,
+                            linked_tenant_id AS tenant_id,
+                            ADDTIME(scheduled_time, event_duation) AS end_time,
+                            cast(concat(scheduled_date, ' ', scheduled_time) as datetime) as start,
+                            cast(concat(scheduled_date, ' ', ADDTIME(scheduled_time, event_duation)) as datetime) as end
+                        FROM pm.maintenanceRequests
+                        LEFT JOIN pm.maintenanceQuotes
+                        ON linked_request_uid = maintenance_request_uid
+                        LEFT JOIN pm.rentals
+                        ON rental_property_id = property_uid
+                        LEFT JOIN pm.leaseTenants
+                        ON linked_rental_uid = rental_uid
+                        WHERE scheduled_date = '"""
+                         + date_value
+                         + """' AND linked_tenant_id = '"""
+                         + user_id
+                         + """' ) AS meet_dur
+                        ON TIME(ts.begin_datetime) = meet_dur.start_time
+                            OR (TIME(ts.begin_datetime) > meet_dur.start_time AND TIME(end_datetime) <= ADDTIME(meet_dur.end_time,"0:29"))
+                        )AS taadpa
+                     WHERE ISNULL(taadpa.maintenance_request_uid) AND (taadpa.ts_begin BETWEEN '"""
+                         + start_time
+                         + """' AND '"""
+                         + end_time
+                         + """')
+                    )
+
+                    SELECT *
+                    FROM (
+                        SELECT  -- *,
+                              row_num,
+                              -- row_num_hr,
+                              DATE_FORMAT(begin_time, '%T') AS "begin_time",
+                              CASE
+                                WHEN ISNULL(row_num_hr) THEN "0:29:59"
+                                ELSE '""" + duration + """'
+                              END AS available_duration
+                        FROM (
+                            SELECT *
+                            FROM ats
+                            LEFT JOIN (
+                                SELECT
+                                    row_num as row_num_hr,
+                                    begin_time AS begin_time_hr,
+                                    end_time AS end_time_hr
+                                FROM ats) AS ats1
+                            ON ats.row_num + """ + str(k) + """ = ats1.row_num_hr
+                          ) AS atss) AS atsss
+                    WHERE '""" + duration + """' <= available_duration; """)
+                print(query)
+                available_times = db.execute("""
+                            WITH ats AS (
+                            SELECT
+                                row_num,
+                                cast(begin_datetime as time) AS begin_time,
+                                cast(end_datetime as time) AS end_time
+                            FROM(SELECT ts.*,
+                                    ROW_NUMBER() OVER() AS row_num,
+                                    TIME(ts.begin_datetime) AS ts_begin,
+                                    TIME(ts.end_datetime) AS ts_end,
+                                    meet_dur.*
+                                FROM pm.time_slots ts
+                                LEFT JOIN (
+                                    SELECT -- *,
+                                        maintenance_request_uid,
+                                        scheduled_date,
+                                        scheduled_time AS start_time,
+                                        event_duration,
+                                        assigned_business AS business_id,
+                                        ADDTIME(scheduled_time, event_duration) AS end_time,
+                                        cast(concat(scheduled_date, ' ', scheduled_time) as datetime) as start,
+                                        cast(concat(scheduled_date, ' ', ADDTIME(scheduled_time, event_duration)) as datetime) as end
+                                    FROM pm.maintenanceRequests
+                                    LEFT JOIN pm.maintenanceQuotes
+                                    ON linked_request_uid = maintenance_request_uid
+                                    WHERE scheduled_date = '"""
+                                             + date_value
+                                             + """' AND assigned_business = '"""
+                                             + user_id
+                                             + """') AS meet_dur
+                                ON TIME(ts.begin_datetime) = meet_dur.start_time
+                                    OR (TIME(ts.begin_datetime) > meet_dur.start_time AND TIME(end_datetime) <= ADDTIME(meet_dur.end_time,"0:29"))
+                                )AS taadpa
+                            WHERE ISNULL(taadpa.maintenance_request_uid) AND (taadpa.ts_begin BETWEEN '"""
+                                             + start_time
+                                             + """' AND '"""
+                                             + end_time
+                                             + """')
+                            )
+                            SELECT *
+                            FROM (
+                                SELECT row_num,
+                                    DATE_FORMAT(begin_time, '%T') AS "begin_time",
+                                    CASE
+                                        WHEN ISNULL(row_num_hr) THEN "0:29:59"
+                                        ELSE '"""
+                                             + duration
+                                             + """'
+                                    END AS available_duration
+                                FROM (
+                                    SELECT *
+                                    FROM ats
+                                    LEFT JOIN (
+                                        SELECT
+                                            row_num as row_num_hr,
+                                            begin_time AS begin_time_hr,
+                                            end_time AS end_time_hr
+                                        FROM ats) AS ats1
+                                    ON ats.row_num + """ + str(k) + """ = ats1.row_num_hr
+                                ) AS atss) AS atsss
+                            WHERE '"""
+                                             + duration
+                                             + """' <= available_duration""")
+                print(available_times)
+                atimes['result'] = atimes['result'] + \
+                    (available_times['result'])
+
+            blocked = ["row_num_hr", "begin_time", "available_duration"]
+
+            total = []
+            for i in atimes['result']:
+                for key, value in i.items():
+                    if key not in blocked:
+                        total.append(value)
+
+            counts = {}
+            for i in total:
+                if i in counts.keys():
+                    counts[i] += 1
+                else:
+                    counts[i] = 1
+            finalResult = {'message': 'Successfully executed SQL query.',
+                           'code': 280, 'result': []}
+
+            for key, value in counts.items():
+                if int(value) == interval:
+                    selectKey = key
+                    # print(selectKey)
+                    for i in atimes['result']:
+                        # print(i)
+                        for key, value in i.items():
+                            # print(key, value)
+                            if value == selectKey and key not in blocked:
+                                # print('here')
+                                finalResult['result'].append(i)
+                                # print('finalResult', finalResult)
+
+            # print("Available Times: ", (available_times))
+            # print("Number of time slots: ", len(available_times["result"]))
+            # print("Available Times: ", str(available_times['result'][0]["appt_start"]))
+            seen = set()
+            result = {'message': 'Successfully executed SQL query.',
+                      'code': 280, 'result': []}
+
+            for dic in finalResult['result']:
+                key = (dic['row_num'], dic['begin_time'])
+                if key in seen:
+                    continue
+
+                result['result'].append(dic)
+                seen.add(key)
+
+            print(result['result'])
+            return result

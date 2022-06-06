@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_mail import Mail, Message
 
 from properties import Properties, Property
-from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointments
+from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo
 from tenantProfileInfo import TenantProfileInfo
@@ -104,9 +104,14 @@ api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
 api.add_resource(UserToken, "/UserToken/<string:user_email_id>")
 api.add_resource(UpdateAccessToken, "/UpdateAccessToken/<string:user_id>")
 api.add_resource(
-    AvailableAppointments,
-    "/AvailableAppointments/<string:date_value>/<string:duration>/<string:user_id>/<string:start_time>,<string:end_time>"
+    AvailableAppointmentsTenant,
+    "/AvailableAppointmentsTenant/<string:date_value>/<string:duration>/<string:user_id>/<string:start_time>,<string:end_time>"
 )
+api.add_resource(
+    AvailableAppointmentsMaintenance,
+    "/AvailableAppointmentsMaintenance/<string:date_value>/<string:duration>/<string:user_id>/<string:start_time>,<string:end_time>"
+)
+
 api.add_resource(LeaseTenants, "/leaseTenants")
 api.add_resource(Bills, "/bills")
 if __name__ == '__main__':
