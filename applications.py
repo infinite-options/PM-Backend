@@ -139,9 +139,7 @@ class Applications(Resource):
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date.replace(
-                                                    day=1),
-                                                due_date=payment['due_date'],
-                                                late_date=payment['late_date'],
+                                                    day=1)
                                             )
                                         else:
                                             purchaseResponse = newPurchase(
@@ -156,9 +154,7 @@ class Applications(Resource):
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date.replace(
-                                                    day=1),
-                                                due_date=payment['due_date'],
-                                                late_date=payment['late_date'],
+                                                    day=1)
                                             )
                                         charge_date += relativedelta(months=1)
                                 else:
@@ -186,9 +182,7 @@ class Applications(Resource):
                                             purchase_date=res['lease_start'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=date.fromisoformat(
-                                                res['lease_start']).replace(day=1),
-                                            due_date=payment['due_date'],
-                                            late_date=payment['late_date'],
+                                                res['lease_start']).replace(day=1)
                                         )
 
                                     else:
@@ -205,9 +199,7 @@ class Applications(Resource):
                                             purchase_date=res['lease_start'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=date.fromisoformat(
-                                                res['lease_start']).replace(day=1),
-                                            due_date=payment['due_date'],
-                                            late_date=payment['late_date'],
+                                                res['lease_start']).replace(day=1)
                                         )
                             pk1 = {
                                 'rental_uid': res['rental_uid']}

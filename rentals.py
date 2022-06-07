@@ -287,9 +287,7 @@ class LeasetoMonth_CLASS(Resource):
                                 purchase_date=charge_date.isoformat(),
                                 purchase_frequency=payment[r]['frequency'],
                                 next_payment=charge_date.replace(
-                                    day=1),
-                                due_date=payment[r]['due_date'],
-                                late_date=payment[r]['late_date'],
+                                    day=1)
                             )
 
         return purchaseResponse
@@ -358,9 +356,7 @@ def LeasetoMonth():
                             purchase_date=charge_date.isoformat(),
                             purchase_frequency=payment[r]['frequency'],
                             next_payment=charge_date.replace(
-                                day=1),
-                            due_date=payment[r]['due_date'],
-                            late_date=payment[r]['late_date'],
+                                day=1)
                         )
 
     return purchaseResponse

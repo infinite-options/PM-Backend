@@ -9,7 +9,7 @@ import json
 
 
 def newPurchase(linked_bill_id, pur_property_id, payer, receiver, purchase_type,
-                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment, due_date, late_date):
+                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment):
     response = {}
     print('in new purchase')
     with connect() as db:
@@ -25,14 +25,14 @@ def newPurchase(linked_bill_id, pur_property_id, payer, receiver, purchase_type,
             "purchase_notes": purchase_notes,
             "purchase_date": purchase_date,
             "purchase_frequency": purchase_frequency,
-            "next_payment": next_payment,
-            "due_date": due_date,
-            "late_date": late_date
+            "next_payment": next_payment
         }
+        print(newPurchase)
         newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
         newPurchase['amount_paid'] = 0
         newPurchase['purchase_uid'] = newPurchaseID
         newPurchase['purchase_status'] = 'UNPAID'
+        print(newPurchase)
         response = db.insert('purchases', newPurchase)
     return response
 
@@ -80,8 +80,7 @@ class Purchases(Resource):
             data.get('purchase_notes'),
             data.get('purchase_date'),
             data.get('purchase_frequency'),
-            data.get('due_date'),
-            data.get('late_date')
+            data.get('next_payment')
         )
 
 
