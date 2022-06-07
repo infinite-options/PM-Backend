@@ -128,7 +128,7 @@ class Applications(Resource):
                                             '%B')
                                         if(payment['fee_name'] == 'Rent'):
                                             purchaseResponse = newPurchase(
-                                                linked_purchase_id=None,
+                                                linked_bill_id=None,
                                                 pur_property_id=res['rental_property_id'],
                                                 payer=json.dumps(tenants),
                                                 receiver=res['rental_property_id'],
@@ -139,11 +139,13 @@ class Applications(Resource):
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date.replace(
-                                                    day=1)
+                                                    day=1),
+                                                due_date=payment['due_date'],
+                                                late_date=payment['late_date'],
                                             )
                                         else:
                                             purchaseResponse = newPurchase(
-                                                linked_purchase_id=None,
+                                                linked_bill_id=None,
                                                 pur_property_id=res['rental_property_id'],
                                                 payer=json.dumps(tenants),
                                                 receiver=res['rental_property_id'],
@@ -154,7 +156,9 @@ class Applications(Resource):
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date.replace(
-                                                    day=1)
+                                                    day=1),
+                                                due_date=payment['due_date'],
+                                                late_date=payment['late_date'],
                                             )
                                         charge_date += relativedelta(months=1)
                                 else:
@@ -171,7 +175,7 @@ class Applications(Resource):
                                         '%B')
                                     if(payment['fee_name'] == 'Rent'):
                                         purchaseResponse = newPurchase(
-                                            linked_purchase_id=None,
+                                            linked_bill_id=None,
                                             pur_property_id=res['rental_property_id'],
                                             payer=json.dumps(tenants),
                                             receiver=res['rental_property_id'],
@@ -182,13 +186,15 @@ class Applications(Resource):
                                             purchase_date=res['lease_start'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=date.fromisoformat(
-                                                res['lease_start']).replace(day=1)
+                                                res['lease_start']).replace(day=1),
+                                            due_date=payment['due_date'],
+                                            late_date=payment['late_date'],
                                         )
 
                                     else:
 
                                         purchaseResponse = newPurchase(
-                                            linked_purchase_id=None,
+                                            linked_bill_id=None,
                                             pur_property_id=res['rental_property_id'],
                                             payer=json.dumps(tenants),
                                             receiver=res['rental_property_id'],
@@ -199,7 +205,9 @@ class Applications(Resource):
                                             purchase_date=res['lease_start'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=date.fromisoformat(
-                                                res['lease_start']).replace(day=1)
+                                                res['lease_start']).replace(day=1),
+                                            due_date=payment['due_date'],
+                                            late_date=payment['late_date'],
                                         )
                             pk1 = {
                                 'rental_uid': res['rental_uid']}

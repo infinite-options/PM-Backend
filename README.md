@@ -327,7 +327,7 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
@@ -387,7 +387,7 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
@@ -446,7 +446,7 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
@@ -510,7 +510,7 @@
             "rental_uid": "300-000001",
             "rental_property_id": "200-000001",
             "tenant_id": "100-000003",
-            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
@@ -1222,7 +1222,7 @@
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
-            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"1800\", \"fee_name\": \"Monthly Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"1800\", \"fee_name\": \"Monthly Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "assigned_contacts": "[{\"email\": \"pm@gmail.com\", \"last_name\": \"Test\", \"first_name\": \"Manager\", \"company_role\": \"Owner\", \"phone_number\": \"(800)123-1231\"}]",
             "documents": "[]"
         }
@@ -1250,7 +1250,9 @@
     "fee_type": "$",
     "charge": 100,
     "of": "",
-    "frequency": "Monthly"
+    "frequency": "Monthly",
+    "due_date": "2022-02-01",
+    "late_date": "2022-02-01"
   }],
   "assigned_contacts": [{
     "first_name": "Greg",
@@ -1298,7 +1300,9 @@
     "fee_type": "$",
     "charge": 100,
     "of": "",
-    "frequency": "Monthly"
+    "frequency": "Monthly",
+    "due_date": "2022-02-01",
+    "late_date": "2022-02-01"
   }],
   "assigned_contacts": [{
     "first_name": "Greg",
@@ -1504,7 +1508,7 @@
 - add args to endpoint to filter results (ex: /purchases?linked_property_id=200-000001)
 - available filters
   - purchase_uid
-  - linked_purchase_id
+  - linked_bill_id
   - pur_property_id
   - payer
   - receiver
@@ -1516,7 +1520,7 @@
     "code": 200,
     "result": [{
         "purchase_uid": "400-000001",
-        "linked_purchase_id": null,
+        "linked_bill_id": null,
         "pur_property_id": "200-000001",
         "payer": "100-000001",
         "receiver": "200-000001",
@@ -1539,7 +1543,7 @@
 
 ```
 {
-    "linked_purchase_id": null,
+    "linked_bill_id": null,
     "pur_property_id": "200-000001",
     "payer": "100-000003",
     "receiver": "100-000001",
@@ -2085,7 +2089,7 @@
                 {
                     "rental_uid": "300-000010",
                     "rental_property_id": "200-000012",
-                    "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Deposit\", \"fee_type\": \"$\", \"frequency\": \"One-time\"}, {\"of\": \"Gross Rent\", \"charge\": \"3000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+                    "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Deposit\", \"fee_type\": \"$\", \"frequency\": \"One-time\"}, {\"of\": \"Gross Rent\", \"charge\": \"3000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
                     "lease_start": "2022-05-02",
                     "lease_end": "2022-05-28",
                     "rental_status": "ACTIVE",
@@ -2170,7 +2174,7 @@
                 {
                     "rental_uid": "300-000007",
                     "rental_property_id": "200-000008",
-                    "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Deposit\", \"fee_type\": \"$\", \"frequency\": \"One-time\"}, {\"of\": \"Gross Rent\", \"charge\": \"2700\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+                    "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Deposit\", \"fee_type\": \"$\", \"frequency\": \"One-time\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}, {\"of\": \"Gross Rent\", \"charge\": \"2700\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
                     "lease_start": "2022-04-14",
                     "lease_end": "2022-04-30",
                     "rental_status": "ACTIVE",
@@ -2473,7 +2477,7 @@
             "lease_start": "2022-03-04",
             "lease_end": "2022-11-21",
             "rental_status": "ACTIVE",
-            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"Gross Rent\", \"charge\": \"2000\", \"fee_name\": \"Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "assigned_contacts": "[]",
             "documents": "[]"
         },
@@ -2486,7 +2490,7 @@
             "lease_start": "2022-02-01",
             "lease_end": "2022-03-01",
             "rental_status": "ACTIVE",
-            "rent_payments": "[{\"of\": \"\", \"charge\": 1800, \"fee_name\": \"Monthly Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\"}]",
+            "rent_payments": "[{\"of\": \"\", \"charge\": 1800, \"fee_name\": \"Monthly Rent\", \"fee_type\": \"$\", \"frequency\": \"Monthly\",\"due_date\": \"2022-02-01\", \"late_date\": \"2022-02-01\"}]",
             "assigned_contacts": "[]",
             "documents": "[]"
         }
@@ -3078,7 +3082,7 @@
             "bill_distribution_type": "2 ways",
             "bill_property_id": "200-000001",
             "purchase_uid": null,
-            "linked_purchase_id": null,
+            "linked_bill_id": null,
             "pur_property_id": null,
             "payer": null,
             "receiver": null,

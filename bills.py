@@ -40,9 +40,9 @@ class Bills(Resource):
             if filterValue is not None:
                 where[f'a.{filter}'] = filterValue
         with connect() as db:
-            sql = 'SELECT  FROM bills b LEFT JOIN purchases p ON b.bill_uid = p.linked_purchase_id'
+            sql = 'SELECT  FROM bills b LEFT JOIN purchases p ON b.bill_uid = p.linked_bill_id'
             cols = 'b.*, p.*'
-            tables = 'bills b LEFT JOIN purchases p ON b.bill_uid = p.linked_purchase_id'
+            tables = 'bills b LEFT JOIN purchases p ON b.bill_uid = p.linked_bill_id'
             response = db.select(cols=cols, tables=tables, where=where)
         return response
 

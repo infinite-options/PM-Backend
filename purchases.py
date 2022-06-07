@@ -8,14 +8,14 @@ from dateutil.relativedelta import relativedelta
 import json
 
 
-def newPurchase(linked_purchase_id, pur_property_id, payer, receiver, purchase_type,
-                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment):
+def newPurchase(linked_bill_id, pur_property_id, payer, receiver, purchase_type,
+                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment, due_date, late_date):
     response = {}
     print('in new purchase')
     with connect() as db:
         print('in new purchase')
         newPurchase = {
-            "linked_purchase_id": linked_purchase_id,
+            "linked_bill_id": linked_bill_id,
             "pur_property_id": pur_property_id,
             "payer": payer,
             "receiver": receiver,
@@ -25,7 +25,9 @@ def newPurchase(linked_purchase_id, pur_property_id, payer, receiver, purchase_t
             "purchase_notes": purchase_notes,
             "purchase_date": purchase_date,
             "purchase_frequency": purchase_frequency,
-            "next_payment": next_payment
+            "next_payment": next_payment,
+            "due_date": due_date,
+            "late_date": late_date
         }
         newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
         newPurchase['amount_paid'] = 0
@@ -50,7 +52,7 @@ class Purchases(Resource):
         response = {}
         filters = [
             'purchase_uid',
-            'linked_purchase_id',
+            'linked_bill_id',
             'pur_property_id',
             'payer',
             'receiver'
@@ -68,7 +70,7 @@ class Purchases(Resource):
         data = request.get_json()
         print(data)
         return newPurchase(
-            data.get('linked_purchase_id'),
+            data.get('linked_bill_id'),
             data.get('pur_property_id'),
             json.dumps([data.get('payer')]),
             data.get('receiver'),
@@ -77,7 +79,9 @@ class Purchases(Resource):
             data.get('amount_due'),
             data.get('purchase_notes'),
             data.get('purchase_date'),
-            data.get('purchase_frequency')
+            data.get('purchase_frequency'),
+            data.get('due_date'),
+            data.get('late_date')
         )
 
 
@@ -96,7 +100,7 @@ class CreateExpenses(Resource):
                 with connect() as db:
                     print('in new purchase')
                     newPurchase = {
-                        "linked_purchase_id": None,
+                        "linked_bill_id": None,
                         "pur_property_id": data['pur_property_id'],
                         "payer": json.dumps([data.get('payer')]),
                         "receiver": data['receiver'],
@@ -129,7 +133,7 @@ class CreateExpenses(Resource):
                 with connect() as db:
                     print('in new purchase')
                     newPurchase = {
-                        "linked_purchase_id": None,
+                        "linked_bill_id": None,
                         "pur_property_id": data['pur_property_id'],
                         "payer": json.dumps([data.get('payer')]),
                         "receiver": data['receiver'],
@@ -158,7 +162,7 @@ class CreateExpenses(Resource):
             with connect() as db:
                 print('in new purchase')
                 newPurchase = {
-                    "linked_purchase_id": None,
+                    "linked_bill_id": None,
                     "pur_property_id": data['pur_property_id'],
                     "payer": json.dumps([data.get('payer')]),
                     "receiver": data['receiver'],

@@ -100,7 +100,7 @@ class Rentals(Resource):
             #             charge_month = charge_date.strftime('%B')
             #             if(payment['fee_name'] == 'Rent'):
             #                 purchaseResponse = newPurchase(
-            #                     linked_purchase_id=None,
+            #                     linked_bill_id=None,
             #                     pur_property_id=newRental['rental_property_id'],
             #                     payer=json.dumps(tenants),
             #                     receiver=newRental['rental_property_id'],
@@ -114,7 +114,7 @@ class Rentals(Resource):
             #                 )
             #             else:
             #                 purchaseResponse = newPurchase(
-            #                     linked_purchase_id=None,
+            #                     linked_bill_id=None,
             #                     pur_property_id=newRental['rental_property_id'],
             #                     payer=json.dumps(tenants),
             #                     receiver=newRental['rental_property_id'],
@@ -131,7 +131,7 @@ class Rentals(Resource):
             #         print('lease_start', type(newRental['lease_start']))
             #         if(payment['fee_name'] == 'Rent'):
             #             purchaseResponse = newPurchase(
-            #                 linked_purchase_id=None,
+            #                 linked_bill_id=None,
             #                 pur_property_id=newRental['rental_property_id'],
             #                 payer=json.dumps(tenants),
             #                 receiver=newRental['rental_property_id'],
@@ -148,7 +148,7 @@ class Rentals(Resource):
             #         else:
 
             #             purchaseResponse = newPurchase(
-            #                 linked_purchase_id=None,
+            #                 linked_bill_id=None,
             #                 pur_property_id=newRental['rental_property_id'],
             #                 payer=json.dumps(tenants),
             #                 receiver=newRental['rental_property_id'],
@@ -276,7 +276,7 @@ class LeasetoMonth_CLASS(Resource):
                                 '%B')
                             print(charge_date, charge_month)
                             purchaseResponse = newPurchase(
-                                linked_purchase_id=None,
+                                linked_bill_id=None,
                                 pur_property_id=response['result'][i]['rental_property_id'],
                                 payer=json.dumps(tenants),
                                 receiver=response['result'][i]['rental_property_id'],
@@ -287,7 +287,9 @@ class LeasetoMonth_CLASS(Resource):
                                 purchase_date=charge_date.isoformat(),
                                 purchase_frequency=payment[r]['frequency'],
                                 next_payment=charge_date.replace(
-                                    day=1)
+                                    day=1),
+                                due_date=payment[r]['due_date'],
+                                late_date=payment[r]['late_date'],
                             )
 
         return purchaseResponse
@@ -345,7 +347,7 @@ def LeasetoMonth():
                             '%B')
                         print(charge_date, charge_month)
                         purchaseResponse = newPurchase(
-                            linked_purchase_id=None,
+                            linked_bill_id=None,
                             pur_property_id=response['result'][i]['rental_property_id'],
                             payer=json.dumps(tenants),
                             receiver=response['result'][i]['rental_property_id'],
@@ -356,7 +358,9 @@ def LeasetoMonth():
                             purchase_date=charge_date.isoformat(),
                             purchase_frequency=payment[r]['frequency'],
                             next_payment=charge_date.replace(
-                                day=1)
+                                day=1),
+                            due_date=payment[r]['due_date'],
+                            late_date=payment[r]['late_date'],
                         )
 
     return purchaseResponse
