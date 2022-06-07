@@ -78,4 +78,5 @@ class Bills(Resource):
             newBill['bill_docs'] = json.dumps(documents)
             print('newBill', newBill)
             response = db.insert('bills', newBill)
-        return response, newBillID
+            response['bill_uid'] = newBillID
+        return response

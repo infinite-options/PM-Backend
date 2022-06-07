@@ -3102,14 +3102,18 @@
 
 - create new bill
 - send as multipart/form-data
+- include document files as doc_0, doc_1...
+- include documents array to supply name, description for files
 - request JSON:
 
 ```
-bill_property_id:200-000001
-bill_created_by:600-000001
-bill_description:water bill
-bill_utility_type:
-bill_distribution_type:
+bill created_by:600-000006
+bill_description:EC
+bill_utility_type:EC
+bill algorithm:even
+bill_docs:[{"name": "Pic-4-Floors-and-floor-covers.jpg", "description": "DFv"}]
+file_0: (upload doc)
+
 ```
 
 - response JSON:
