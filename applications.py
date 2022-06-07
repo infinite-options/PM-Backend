@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from data import connect
 import json
 
+from text_to_num import alpha2digit
 from purchases import newPurchase
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -65,7 +66,7 @@ class Applications(Resource):
                     """SELECT * FROM pm.applications WHERE application_status='FORWARDED' AND property_uid = \'"""
                     + newApplication['property_uid']
                     + """\' """)
-                print('response', response, len(response['result']))
+                # print('response', response, len(response['result']))
                 if len(response['result']) > 1:
                     newApplication['application_status'] = 'ACCEPTED'
                 else:
@@ -73,7 +74,7 @@ class Applications(Resource):
                         """SELECT * FROM pm.applications WHERE application_status='ACCEPTED' AND property_uid = \'"""
                         + newApplication['property_uid']
                         + """\' """)
-                    print('response', response['result'])
+                    # print('response', response['result'])
 
                     if len(response['result']) > 0:
                         # tenants = response['result'][0]['tenant_id']
@@ -98,18 +99,18 @@ class Applications(Resource):
                         """SELECT * FROM pm.rentals r LEFT JOIN leaseTenants lt ON lt.linked_rental_uid = r.rental_uid   WHERE r.rental_status='PROCESSING' AND r.rental_property_id = \'"""
                         + newApplication['property_uid']
                         + """\' """)
-                    print('res', res, len(res['result']))
+                    # print('res', res, len(res['result']))
                     tenants = res['result'][0]['linked_tenant_id']
-                    print('tenants1', tenants)
+                    # print('tenants1', tenants)
                     if '[' in tenants:
-                        print('tenants2', tenants)
+                        # print('tenants2', tenants)
                         tenants = json.loads(tenants)
-                        print('tenants3', tenants)
-                    print('tenants4', tenants)
+                        # print('tenants3', tenants)
+                    # print('tenants4', tenants)
                     if type(tenants) == str:
                         tenants = [tenants]
-                        print('tenants5', tenants)
-                    print('tenant_id', tenants)
+                        # print('tenants5', tenants)
+                    # print('tenant_id', tenants)
                     if len(res['result']) > 0:
                         for res in res['result']:
                             print('res', res)
@@ -117,12 +118,16 @@ class Applications(Resource):
                             rentPayments = json.loads(res['rent_payments'])
                             for payment in rentPayments:
                                 if payment['frequency'] == 'Monthly':
+                                    print('res alphadigit', alpha2digit(
+                                        res['due_by'], 'en')[:-2])
+                                    payment_date = alpha2digit(
+                                        res['due_by'], 'en')[:-2]
                                     charge_date = date.fromisoformat(
                                         res['lease_start'])
                                     lease_end = date.fromisoformat(
                                         res['lease_end'])
-                                    print('charge_date', type(charge_date),
-                                          charge_date.isoformat())
+                                    # print('charge_date', type(charge_date),
+                                    #       charge_date.isoformat())
                                     while charge_date < lease_end:
                                         charge_month = charge_date.strftime(
                                             '%B')
@@ -139,7 +144,7 @@ class Applications(Resource):
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date.replace(
-                                                    day=1)
+                                                    day=int(payment_date))
                                             )
                                         else:
                                             purchaseResponse = newPurchase(
@@ -154,18 +159,20 @@ class Applications(Resource):
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date.replace(
-                                                    day=1)
+                                                    day=int(payment_date))
                                             )
                                         charge_date += relativedelta(months=1)
                                 else:
-                                    print('lease_start', type(
-                                        res['lease_start']))
+                                    # print('lease_start', type(
+                                    #     res['lease_start']))
+                                    payment_date = alpha2digit(
+                                        res['due_by'], 'en')[:-2]
                                     charge_date = date.fromisoformat(
                                         res['lease_start'])
                                     lease_end = date.fromisoformat(
                                         res['lease_end'])
-                                    print('charge_date', type(charge_date),
-                                          charge_date.isoformat())
+                                    # print('charge_date', type(charge_date),
+                                    #       charge_date.isoformat())
 
                                     charge_month = charge_date.strftime(
                                         '%B')
@@ -182,7 +189,7 @@ class Applications(Resource):
                                             purchase_date=res['lease_start'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=date.fromisoformat(
-                                                res['lease_start']).replace(day=1)
+                                                res['lease_start']).replace(day=int(payment_date))
                                         )
 
                                     else:
@@ -199,7 +206,7 @@ class Applications(Resource):
                                             purchase_date=res['lease_start'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=date.fromisoformat(
-                                                res['lease_start']).replace(day=1)
+                                                res['lease_start']).replace(day=int(payment_date))
                                         )
                             pk1 = {
                                 'rental_uid': res['rental_uid']}
@@ -244,10 +251,10 @@ class Applications(Resource):
                         """SELECT * FROM pm.rentals WHERE rental_status='PROCESSING' AND rental_property_id = \'"""
                         + newApplication['property_uid']
                         + """\' """)
-                    print('res', res, len(res['result']))
+                    # print('res', res, len(res['result']))
                     if len(res['result']) > 0:
                         for res in res['result']:
-                            print('res', res['rental_uid'])
+                            # print('res', res['rental_uid'])
                             pk1 = {
                                 'rental_uid': res['rental_uid']}
                             newRental = {

@@ -8,6 +8,7 @@ import json
 from purchases import newPurchase
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from text_to_num import alpha2digit
 
 
 def updateDocuments(documents, rental_uid):
@@ -54,6 +55,8 @@ class Rentals(Resource):
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
+                if field == 'due_by':
+                    print(alpha2digit(data.get(field), 'en'))
             newRentalID = db.call('new_rental_id')['result'][0]['new_id']
             newRental['rental_uid'] = newRentalID
             # newRental['rental_status'] = 'ACTIVE'
