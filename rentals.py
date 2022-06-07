@@ -50,7 +50,7 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
@@ -169,7 +169,7 @@ class Rentals(Resource):
             data = request.form
             rental_uid = data.get('rental_uid')
             fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee']
             newRental = {}
             for field in fields:
                 fieldValue = data.get(field)

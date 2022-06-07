@@ -1260,6 +1260,10 @@
     "email": "greg@beverlyman.com"
   }],
   "rental_status":"PENDING",
+  "due_by":"Fifth",
+  "late_by":5,
+  "late_fee":  100,
+  "perDay_late_fee":0,
   "doc_0": "",
   "documents": [
     {
@@ -1309,6 +1313,10 @@
   }],
   "doc_0": "",
   "rental_status":"PENDING",
+  "due_by":"Fifth",
+  "late_by":5,
+  "late_fee":  100,
+  "perDay_late_fee":0,
   "documents": [
     {
       "name": "Resume",
