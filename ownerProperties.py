@@ -4,7 +4,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect
-from datetime import date
+from datetime import date, datetime
 import json
 
 
@@ -157,7 +157,7 @@ class PropertiesOwner(Resource):
                                     yearly_owner_revenue['result'][pr]['amount_paid'])
                         else:
                             response['result'][i]['year_revenue'] = 0
-                        # # monthly expense for the property
+                        # monthly expense for the property
                         owner_expense = db.execute("""SELECT *
                                                         FROM pm.purchases p
                                                         LEFT JOIN
@@ -199,6 +199,8 @@ class PropertiesOwner(Resource):
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
                         response['result'][i]['year_expense'] = 0
+                        response['result'][i]['mortgage_year_expense'] = 0
+                        response['result'][i]['tax_year_expense'] = 0
                         if len(yearly_owner_expense['result']) > 0:
                             for pr in range(len(yearly_owner_expense['result'])):
 
@@ -206,29 +208,114 @@ class PropertiesOwner(Resource):
                                     yearly_owner_expense['result'][pr]['amount_paid'])
                         else:
                             print('')
+                        yearCal = today.month - \
+                            (datetime.strptime(
+                                response['result'][i]['active_date'], '%Y-%m-%d')).month
+
                         # monthly expense for the property to include mortgage
                         if response['result'][i]['mortgages'] is not None:
-                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month*(int(json.loads(response['result'][i]['mortgages'])[
-                                'amount'])))
-                            mortgage_expenses = + int(json.loads(response['result'][i]['mortgages'])[
-                                'amount'])
+                            # if mortgage monthly
+                            if json.loads(response['result'][i]['mortgages'])['frequency'] == 'Monthly':
+                             # if mortgage monthly and once a month
+                                if json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Once a month':
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + \
+                                        int(json.loads(
+                                            response['result'][i]['mortgages'])['amount'])
+                            # if mortgage monthly and twice a month
+                                elif json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Twice a month':
+                                    print('in here elif')
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = 2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + 2 * \
+                                        (int(json.loads(
+                                            response['result'][i]['mortgages'])['amount']))
+                        # if mortgage weekly
+                            elif json.loads(response['result'][i]['mortgages'])['frequency'] == 'Weekly':
+                                # if mortgage weekly and once a week
+                                if json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Once a week':
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (4*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = 4*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + \
+                                        4*(int(json.loads(
+                                            response['result'][i]['mortgages'])['amount']))
+                             # if mortgage weekly and every other week
+                                elif json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Every other week':
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = 2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + 2 * \
+                                        (int(json.loads(
+                                            response['result'][i]['mortgages'])['amount']))
+                        print(mortgage_expenses)
                         response['result'][i]['mortgage_expenses'] = mortgage_expenses
+
                         # monthly expense for the property to include taxes
                         if response['result'][i]['taxes'] is not None:
                             if len(eval(response['result'][i]['taxes'])) > 0:
                                 for te in range(len(eval(response['result'][i]['taxes']))):
-                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month * int(eval(response['result'][i]
-                                                                                                                                            ['taxes'])[te]['amount']))
-                                    taxes_expenses = taxes_expenses + \
-                                        int(eval(response['result'][i]['taxes'])[
-                                            te]['amount'])
+                                    print('here for', eval(
+                                        response['result'][i]['taxes'])[te]['frequency'])
+                                    # if tax monthly
+                                    if eval(response['result'][i]['taxes'])[te]['frequency'] == 'Monthly':
+                                        print('here monthly')
+                                     # if taxes monthly and once a month
+                                        if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
+                                                                                                                                                ['taxes'])[te]['amount']))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                yearCal * int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount'])
+                                    # if taxes monthly and once a month
+                                        elif eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Twice a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal * int(eval(response['result'][i]
+                                                                                                                                                  ['taxes'])[te]['amount']))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                2*yearCal * int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                2*(int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount']))
+                                     # if tax Annually
+                                    elif eval(response['result'][i]['taxes'])[te]['frequency'] == 'Annually':
+                                        print('here annually')
+                                     # if taxes annually and once a year
+                                        if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
+                                            print('here once a year')
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
+                                                                                                                                      ['taxes'])[te]['amount']))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount'])
+                                     # if taxes annually and twice a year
+                                        elif eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*(int(eval(response['result'][i]
+                                                                                                                                         ['taxes'])[te]['amount'])))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                2 * int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                (int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount']))
+                                    response['result'][i]['tax_expenses'] = taxes_expenses
 
+                        # monthly expense for the property to include insurance
                         response['result'][i]['insurance_expenses'] = insurance_expenses
                         if response['result'][i]['insurance'] is not None:
                             if len(eval(response['result'][i]['insurance'])) > 0:
                                 for te in range(len(eval(response['result'][i]['insurance']))):
-                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month * int(eval(response['result'][i]
-                                                                                                                                            ['insurance'])[te]['amount']))
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
+                                                                                                                                        ['insurance'])[te]['amount']))
                                     insurance_expenses = insurance_expenses + \
                                         int(eval(response['result'][i]['insurance'])[
                                             te]['amount'])
@@ -412,6 +499,11 @@ class PropertiesOwnerDetail(Resource):
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
                         response['result'][i]['year_expense'] = 0
+                        response['result'][i]['mortgage_year_expense'] = 0
+                        response['result'][i]['tax_year_expense'] = 0
+                        yearCal = today.month - \
+                            (datetime.strptime(
+                                response['result'][i]['active_date'], '%Y-%m-%d')).month
                         if len(yearly_owner_expense['result']) > 0:
                             for pr in range(len(yearly_owner_expense['result'])):
 
@@ -421,22 +513,100 @@ class PropertiesOwnerDetail(Resource):
                             print('')
                         # monthly expense for the property to include mortgage
                         if response['result'][i]['mortgages'] is not None:
-                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month*(int(json.loads(response['result'][i]['mortgages'])[
-                                'amount'])))
-                            mortgage_expenses = + int(json.loads(response['result'][i]['mortgages'])[
-                                'amount'])
+                            # if mortgage monthly
+                            if json.loads(response['result'][i]['mortgages'])['frequency'] == 'Monthly':
+                             # if mortgage monthly and once a month
+                                if json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Once a month':
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + \
+                                        int(json.loads(
+                                            response['result'][i]['mortgages'])['amount'])
+                            # if mortgage monthly and twice a month
+                                elif json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Twice a month':
+                                    print('in here elif')
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = 2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + 2 * \
+                                        (int(json.loads(
+                                            response['result'][i]['mortgages'])['amount']))
+                        # if mortgage weekly
+                            elif json.loads(response['result'][i]['mortgages'])['frequency'] == 'Weekly':
+                                # if mortgage weekly and once a week
+                                if json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Once a week':
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (4*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = 4*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + \
+                                        4*(int(json.loads(
+                                            response['result'][i]['mortgages'])['amount']))
+                             # if mortgage weekly and every other week
+                                elif json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Every other week':
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount'])))
+                                    response['result'][i]['mortgage_year_expense'] = 2*yearCal*(int(json.loads(response['result'][i]['mortgages'])[
+                                        'amount']))
+                                    mortgage_expenses = mortgage_expenses + 2 * \
+                                        (int(json.loads(
+                                            response['result'][i]['mortgages'])['amount']))
+                        print(mortgage_expenses)
                         response['result'][i]['mortgage_expenses'] = mortgage_expenses
+
                         # monthly expense for the property to include taxes
                         if response['result'][i]['taxes'] is not None:
                             if len(eval(response['result'][i]['taxes'])) > 0:
                                 for te in range(len(eval(response['result'][i]['taxes']))):
-                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month * int(eval(response['result'][i]
-                                                                                                                                            ['taxes'])[te]['amount']))
-                                    taxes_expenses = taxes_expenses + \
-                                        int(eval(response['result'][i]['taxes'])[
-                                            te]['amount'])
-
-                        response['result'][i]['taxes_expenses'] = taxes_expenses
+                                    print('here for', eval(
+                                        response['result'][i]['taxes'])[te]['frequency'])
+                                    # if tax monthly
+                                    if eval(response['result'][i]['taxes'])[te]['frequency'] == 'Monthly':
+                                        print('here monthly')
+                                     # if taxes monthly and once a month
+                                        if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
+                                                                                                                                                ['taxes'])[te]['amount']))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                yearCal * int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount'])
+                                    # if taxes monthly and once a month
+                                        elif eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Twice a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal * int(eval(response['result'][i]
+                                                                                                                                                  ['taxes'])[te]['amount']))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                2*yearCal * int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                2*(int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount']))
+                                     # if tax Annually
+                                    elif eval(response['result'][i]['taxes'])[te]['frequency'] == 'Annually':
+                                        print('here annually')
+                                     # if taxes annually and once a year
+                                        if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
+                                            print('here once a year')
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
+                                                                                                                                      ['taxes'])[te]['amount']))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount'])
+                                     # if taxes annually and twice a year
+                                        elif eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*(int(eval(response['result'][i]
+                                                                                                                                         ['taxes'])[te]['amount'])))
+                                            response['result'][i]['tax_year_expense'] = (
+                                                2 * int(eval(response['result'][i]['taxes'])[te]['amount']))
+                                            taxes_expenses = taxes_expenses + \
+                                                (int(eval(response['result'][i]['taxes'])[
+                                                    te]['amount']))
+                                    response['result'][i]['tax_expenses'] = taxes_expenses
                         response['result'][i]['insurance_expenses'] = insurance_expenses
                         if response['result'][i]['insurance'] is not None:
                             if len(eval(response['result'][i]['insurance'])) > 0:
