@@ -208,9 +208,18 @@ class LeasetoMonth_CLASS(Resource):
                     for r in range(len(payment)):
                         if payment[r]['fee_name'] == 'Rent':
                             print('RENT', payment[r]['fee_name'])
-                            payment_date = alpha2digit(
-                                response['result'][i]['due_by'], 'en')[:-2]
+                            if response['result'][i]['due_by'] == 'FIRST':
+                                payment_date = '1st'
+                            elif response['result'][i]['due_by'] == 'SECOND':
+                                payment_date = '2nd'
+                            elif response['result'][i]['due_by'] == 'THIRD':
+                                payment_date = '3rd'
+                            else:
+                                payment_date = alpha2digit(
+                                    response['result'][i]['due_by'], 'en')
                             charge_date = date.today()
+                            due_date = charge_date.replace(
+                                day=int(payment_date[:-2]))
                             charge_month = charge_date.strftime(
                                 '%B')
                             print(charge_date, charge_month)
@@ -225,8 +234,7 @@ class LeasetoMonth_CLASS(Resource):
                                 purchase_notes=charge_month,
                                 purchase_date=charge_date.isoformat(),
                                 purchase_frequency=payment[r]['frequency'],
-                                next_payment=charge_date.replace(
-                                    day=int(payment_date))
+                                next_payment=due_date
                             )
 
         return purchaseResponse
@@ -283,9 +291,19 @@ def LeasetoMonth():
                 for r in range(len(payment)):
                     if payment[r]['fee_name'] == 'Rent':
                         print('RENT', payment[r]['fee_name'])
-                        payment_date = alpha2digit(
-                            response['result'][i]['due_by'], 'en')[:-2]
+                        if response['result'][i]['due_by'] == 'FIRST':
+                            payment_date = '1st'
+                        elif response['result'][i]['due_by'] == 'SECOND':
+                            payment_date = '2nd'
+                        elif response['result'][i]['due_by'] == 'THIRD':
+                            payment_date = '3rd'
+                        else:
+                            payment_date = alpha2digit(
+                                response['result'][i]['due_by'], 'en')
+
                         charge_date = date.today()
+                        due_date = charge_date.replace(
+                            day=int(payment_date[:-2]))
                         charge_month = charge_date.strftime(
                             '%B')
                         print(charge_date, charge_month)
@@ -300,8 +318,7 @@ def LeasetoMonth():
                             purchase_notes=charge_month,
                             purchase_date=charge_date.isoformat(),
                             purchase_frequency=payment[r]['frequency'],
-                            next_payment=charge_date.replace(
-                                day=int(payment_date))
+                            next_payment=due_date
                         )
 
     return purchaseResponse
