@@ -201,6 +201,7 @@ class PropertiesOwner(Resource):
                         response['result'][i]['year_expense'] = 0
                         response['result'][i]['mortgage_year_expense'] = 0
                         response['result'][i]['tax_year_expense'] = 0
+                        response['result'][i]['insurance_year_expense'] = 0
                         if len(yearly_owner_expense['result']) > 0:
                             for pr in range(len(yearly_owner_expense['result'])):
 
@@ -314,13 +315,52 @@ class PropertiesOwner(Resource):
                         if response['result'][i]['insurance'] is not None:
                             if len(eval(response['result'][i]['insurance'])) > 0:
                                 for te in range(len(eval(response['result'][i]['insurance']))):
-                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
-                                                                                                                                        ['insurance'])[te]['amount']))
-                                    insurance_expenses = insurance_expenses + \
-                                        int(eval(response['result'][i]['insurance'])[
-                                            te]['amount'])
-
-                        response['result'][i]['insurance_expenses'] = insurance_expenses
+                                    print('here for', eval(
+                                        response['result'][i]['insurance'])[te]['frequency'])
+                                    # if insurance monthly
+                                    if eval(response['result'][i]['insurance'])[te]['frequency'] == 'Monthly':
+                                        print('here monthly')
+                                     # if insurance monthly and once a month
+                                        if eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Once a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
+                                                                                                                                                ['insurance'])[te]['amount']))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                yearCal * int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount'])
+                                    # if insurance monthly and once a month
+                                        elif eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Twice a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal * int(eval(response['result'][i]
+                                                                                                                                                  ['insurance'])[te]['amount']))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                2*yearCal * int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                2*(int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount']))
+                                     # if insurance Annually
+                                    elif eval(response['result'][i]['insurance'])[te]['frequency'] == 'Annually':
+                                        print('here annually')
+                                     # if insurance annually and once a year
+                                        if eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
+                                            print('here once a year')
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
+                                                                                                                                      ['insurance'])[te]['amount']))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount'])
+                                     # if insurance annually and twice a year
+                                        elif eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Twice a year':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*(int(eval(response['result'][i]
+                                                                                                                                         ['insurance'])[te]['amount'])))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                2 * int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                (int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount']))
+                                    response['result'][i]['insurance_expenses'] = insurance_expenses
                         # print('after mortgage and taxes',
                         #       response['result'][i]['year_expense'])
                     # print(response)
