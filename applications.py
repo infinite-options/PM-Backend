@@ -85,9 +85,9 @@ class Applications(Resource):
                             response = db.update(
                                 'applications', pk, newApplication)
                     res = db.execute(
-                        """SELECT * FROM pm.rentals r 
-                        LEFT JOIN leaseTenants lt 
-                        ON lt.linked_rental_uid = r.rental_uid   
+                        """SELECT * FROM pm.rentals r
+                        LEFT JOIN leaseTenants lt
+                        ON lt.linked_rental_uid = r.rental_uid
                         LEFT JOIN propertyManager p
                         ON p.linked_property_id= r.rental_property_id
                         WHERE r.rental_status='PROCESSING'
@@ -95,39 +95,31 @@ class Applications(Resource):
                          AND r.rental_property_id = \'"""
                         + newApplication['property_uid']
                         + """\' """)
-                    # print('res', res, len(res['result']))
+                    print('res', res, len(res['result']))
 
                     # print('tenants5', tenants)
                     # print('tenant_id', tenants)
+
+                    tenants = []
+                    if len(res['result']) > 0:
+                        for r in res['result']:
+                            print('res', r['linked_tenant_id'])
+                            tenants.append(r['linked_tenant_id'])
+                            print('tenants1', tenants)
+                    else:
+                        print('do nothing')
+                    print(res)
                     if len(res['result']) > 0:
                         for res in res['result']:
-                            print('res', res)
-                            tenants = res['linked_tenant_id']
-                            # print('tenants1', tenants)
-                            if '[' in tenants:
-                                # print('tenants2', tenants)
-                                tenants = json.loads(tenants)
-                                # print('tenants3', tenants)
-                            # print('tenants4', tenants)
-                            if type(tenants) == str:
-                                tenants = [tenants]
                             # creating purchases
                             rentPayments = json.loads(res['rent_payments'])
                             for payment in rentPayments:
                                 if payment['frequency'] == 'Monthly':
-                                    if res['due_by'] == 'FIRST':
-                                        payment_date = '1st'
-                                    elif res['due_by'] == 'SECOND':
-                                        payment_date = '2nd'
-                                    elif res['due_by'] == 'THIRD':
-                                        payment_date = '3rd'
-                                    else:
-                                        payment_date = alpha2digit(
-                                            res['due_by'], 'en')
+
                                     charge_date = date.fromisoformat(
                                         res['lease_start'])
                                     due_date = charge_date.replace(
-                                        day=int(payment_date[:-2]))
+                                        day=int(res['due_by']))
                                     lease_end = date.fromisoformat(
                                         res['lease_end'])
                                     # print('charge_date', type(charge_date),
@@ -161,27 +153,18 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=charge_date.isoformat(),
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date.replace(
-                                                    day=int(payment_date))
+                                                next_payment=due_date
                                             )
                                         charge_date += relativedelta(months=1)
                                 else:
                                     # print('lease_start', type(
                                     #     res['lease_start']))
-                                    if res['due_by'] == 'FIRST':
-                                        payment_date = '1st'
-                                    elif res['due_by'] == 'SECOND':
-                                        payment_date = '2nd'
-                                    elif res['due_by'] == 'THIRD':
-                                        payment_date = '3rd'
-                                    else:
-                                        payment_date = alpha2digit(
-                                            res['due_by'], 'en')
+
                                     charge_date = date.fromisoformat(
                                         res['lease_start'])
                                     due_date = date.fromisoformat(
                                         res['lease_start']).replace(
-                                        day=int(payment_date[:-2]))
+                                        day=int(res['due_by']))
                                     lease_end = date.fromisoformat(
                                         res['lease_end'])
                                     # print('charge_date', type(charge_date),
@@ -251,11 +234,11 @@ class Applications(Resource):
                 if len(response['result']) > 1:
                     newApplication['application_status'] = 'REFUSED'
                     response = db.execute(
-                        """UPDATE pm.applications 
-                            SET  
-                            application_status=\'""" + newApplication['application_status'] + """\' 
-                            WHERE 
-                            application_status='FORWARDED' 
+                        """UPDATE pm.applications
+                            SET
+                            application_status=\'""" + newApplication['application_status'] + """\'
+                            WHERE
+                            application_status='FORWARDED'
                             AND property_uid = \'""" + newApplication['property_uid'] + """\' """)
 
                     res = db.execute(

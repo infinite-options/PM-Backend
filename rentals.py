@@ -55,8 +55,7 @@ class Rentals(Resource):
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
-                if field == 'due_by':
-                    print(alpha2digit(data.get(field), 'en'))
+
             newRentalID = db.call('new_rental_id')['result'][0]['new_id']
             newRental['rental_uid'] = newRentalID
             # newRental['rental_status'] = 'ACTIVE'
@@ -208,18 +207,10 @@ class LeasetoMonth_CLASS(Resource):
                     for r in range(len(payment)):
                         if payment[r]['fee_name'] == 'Rent':
                             print('RENT', payment[r]['fee_name'])
-                            if response['result'][i]['due_by'] == 'FIRST':
-                                payment_date = '1st'
-                            elif response['result'][i]['due_by'] == 'SECOND':
-                                payment_date = '2nd'
-                            elif response['result'][i]['due_by'] == 'THIRD':
-                                payment_date = '3rd'
-                            else:
-                                payment_date = alpha2digit(
-                                    response['result'][i]['due_by'], 'en')
+
                             charge_date = date.today()
                             due_date = charge_date.replace(
-                                day=int(payment_date[:-2]))
+                                day=int(response['result'][i]['due_by']))
                             charge_month = charge_date.strftime(
                                 '%B')
                             print(charge_date, charge_month)
@@ -291,19 +282,10 @@ def LeasetoMonth():
                 for r in range(len(payment)):
                     if payment[r]['fee_name'] == 'Rent':
                         print('RENT', payment[r]['fee_name'])
-                        if response['result'][i]['due_by'] == 'FIRST':
-                            payment_date = '1st'
-                        elif response['result'][i]['due_by'] == 'SECOND':
-                            payment_date = '2nd'
-                        elif response['result'][i]['due_by'] == 'THIRD':
-                            payment_date = '3rd'
-                        else:
-                            payment_date = alpha2digit(
-                                response['result'][i]['due_by'], 'en')
 
                         charge_date = date.today()
                         due_date = charge_date.replace(
-                            day=int(payment_date[:-2]))
+                            day=int(response['result'][i]['due_by']))
                         charge_month = charge_date.strftime(
                             '%B')
                         print(charge_date, charge_month)
@@ -347,21 +329,10 @@ class LateFee_CLASS(Resource):
                     today_date = date.today()
                     # convert due_by to due_date
                     print(response['result'][i])
-                    if response['result'][i]['due_by'] == 'FIRST':
-                        payment_date = '1st'
-                    elif response['result'][i]['due_by'] == 'SECOND':
-                        payment_date = '2nd'
-                    elif response['result'][i]['due_by'] == 'THIRD':
-                        payment_date = '3rd'
-                    else:
-                        payment_date = alpha2digit(
-                            response['result'][i]['due_by'], 'en')
-
-                    print(response['result'][i]['rental_uid'], payment_date)
                     # calculate rent due date
                     due_date = today_date.replace(
-                        day=int(payment_date[:-2]))
-                    print('due_date', payment_date, due_date)
+                        day=int(response['result'][i]['due_by']))
+                    print('due_date', due_date)
                     # calculate the date rent will be late
                     late_date = due_date + \
                         relativedelta(
@@ -425,21 +396,11 @@ def LateFee():
                 today_date = date.today()
                 # convert due_by to due_date
                 print(response['result'][i])
-                if response['result'][i]['due_by'] == 'FIRST':
-                    payment_date = '1st'
-                elif response['result'][i]['due_by'] == 'SECOND':
-                    payment_date = '2nd'
-                elif response['result'][i]['due_by'] == 'THIRD':
-                    payment_date = '3rd'
-                else:
-                    payment_date = alpha2digit(
-                        response['result'][i]['due_by'], 'en')
 
-                print(response['result'][i]['rental_uid'], payment_date)
                 # calculate rent due date
                 due_date = today_date.replace(
-                    day=int(payment_date[:-2]))
-                print('due_date', payment_date, due_date)
+                    day=int(response['result'][i]['due_by']))
+                print('due_date', due_date)
                 # calculate the date rent will be late
                 late_date = due_date + \
                     relativedelta(
@@ -500,20 +461,10 @@ class PerDay_LateFee_CLASS(Resource):
                     today_date = date.today()
                     # convert due_by to due_date
                     print(response['result'][i])
-                    if response['result'][i]['due_by'] == 'FIRST':
-                        payment_date = '1st'
-                    elif response['result'][i]['due_by'] == 'SECOND':
-                        payment_date = '2nd'
-                    elif response['result'][i]['due_by'] == 'THIRD':
-                        payment_date = '3rd'
-                    else:
-                        payment_date = alpha2digit(
-                            response['result'][i]['due_by'], 'en')
 
-                    print(response['result'][i]['rental_uid'], payment_date)
                     # calculate rent due date
                     due_date = today_date.replace(
-                        day=int(payment_date[:-2]))
+                        day=int(response['result'][i]['due_by']))
                     # print('due_date', payment_date, due_date)
                     # calculate the date rent will be late
                     late_date = due_date + \
@@ -585,20 +536,10 @@ def PerDay_LateFee():
                 today_date = date.today()
                 # convert due_by to due_date
                 print(response['result'][i])
-                if response['result'][i]['due_by'] == 'FIRST':
-                    payment_date = '1st'
-                elif response['result'][i]['due_by'] == 'SECOND':
-                    payment_date = '2nd'
-                elif response['result'][i]['due_by'] == 'THIRD':
-                    payment_date = '3rd'
-                else:
-                    payment_date = alpha2digit(
-                        response['result'][i]['due_by'], 'en')
 
-                print(response['result'][i]['rental_uid'], payment_date)
                 # calculate rent due date
                 due_date = today_date.replace(
-                    day=int(payment_date[:-2]))
+                    day=int(response['result'][i]['due_by']))
                 # print('due_date', payment_date, due_date)
                 # calculate the date rent will be late
                 late_date = due_date + \
