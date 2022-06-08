@@ -11,7 +11,7 @@ from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo
 from tenantProfileInfo import TenantProfileInfo
 from businessProfileInfo import BusinessProfileInfo
-from rentals import Rentals, EndLease, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS
+from rentals import Rentals, EndLease, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee
 from purchases import Purchases, CreateExpenses
 from payments import Payments, UserPayments
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner
@@ -74,6 +74,7 @@ api.add_resource(Rentals, '/rentals')
 api.add_resource(EndLease, '/endLease')
 api.add_resource(LeasetoMonth_CLASS, '/LeasetoMonth_CLASS')
 api.add_resource(LateFee_CLASS, '/LateFee_CLASS')
+api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
 api.add_resource(Payments, '/payments')
