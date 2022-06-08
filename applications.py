@@ -77,17 +77,6 @@ class Applications(Resource):
                     # print('response', response['result'])
 
                     if len(response['result']) > 0:
-                        # tenants = response['result'][0]['tenant_id']
-                        # print('tenants1', tenants)
-                        # if '[' in tenants:
-                        #     print('tenants2', tenants)
-                        #     tenants = json.loads(tenants)
-                        #     print('tenants3', tenants)
-                        # print('tenants4', tenants)
-                        # if type(tenants) == str:
-                        #     tenants = [tenants]
-                        #     print('tenants5', tenants)
-                        # print('tenant_id', tenants)
                         newApplication['application_status'] = 'RENTED'
                         for response in response['result']:
                             pk = {
@@ -100,20 +89,21 @@ class Applications(Resource):
                         + newApplication['property_uid']
                         + """\' """)
                     # print('res', res, len(res['result']))
-                    tenants = res['result'][0]['linked_tenant_id']
-                    # print('tenants1', tenants)
-                    if '[' in tenants:
-                        # print('tenants2', tenants)
-                        tenants = json.loads(tenants)
-                        # print('tenants3', tenants)
-                    # print('tenants4', tenants)
-                    if type(tenants) == str:
-                        tenants = [tenants]
-                        # print('tenants5', tenants)
+
+                    # print('tenants5', tenants)
                     # print('tenant_id', tenants)
                     if len(res['result']) > 0:
                         for res in res['result']:
                             print('res', res)
+                            tenants = res['linked_tenant_id']
+                            # print('tenants1', tenants)
+                            if '[' in tenants:
+                                # print('tenants2', tenants)
+                                tenants = json.loads(tenants)
+                                # print('tenants3', tenants)
+                            # print('tenants4', tenants)
+                            if type(tenants) == str:
+                                tenants = [tenants]
                             # creating purchases
                             rentPayments = json.loads(res['rent_payments'])
                             for payment in rentPayments:
