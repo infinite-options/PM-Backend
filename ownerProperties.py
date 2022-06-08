@@ -311,7 +311,7 @@ class PropertiesOwner(Resource):
                                     response['result'][i]['tax_expenses'] = taxes_expenses
 
                         # monthly expense for the property to include insurance
-                        response['result'][i]['insurance_expenses'] = insurance_expenses
+                        # response['result'][i]['insurance_expenses'] = insurance_expenses
                         if response['result'][i]['insurance'] is not None:
                             if len(eval(response['result'][i]['insurance'])) > 0:
                                 for te in range(len(eval(response['result'][i]['insurance']))):
