@@ -124,11 +124,10 @@ class PropertiesOwner(Resource):
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
-                        print(len(owner_revenue['result']))
 
                         if len(owner_revenue['result']) > 0:
                             for ore in range(len(owner_revenue['result'])):
-                                print('ore', owner_revenue['result'][ore])
+
                                 if owner_revenue['result'][ore]['purchase_type'] == 'RENT':
                                     rental_revenue = rental_revenue + \
                                         owner_revenue['result'][ore]['amount_paid']
@@ -170,22 +169,168 @@ class PropertiesOwner(Resource):
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
 
+                        maintenance_year_expenses = 0
+                        management_year_expenses = 0
+                        repairs_year_expenses = 0
+
+                        yearCal = today.month - \
+                            (datetime.strptime(
+                                response['result'][i]['active_date'], '%Y-%m-%d')).month
+
                         if len(owner_expense['result']) > 0:
                             for ore in range(len(owner_expense['result'])):
-                                # print('ore', owner_expense['result'][ore])
+                                print('ore', owner_expense['result'][ore])
+                                # if maintenance
                                 if owner_expense['result'][ore]['purchase_type'] == 'MAINTENANCE':
-                                    maintenance_expenses = maintenance_expenses + \
-                                        owner_expense['result'][ore]['amount_paid']
+                                    print('in maintenance')
+                                    # if maintenance monthly
+                                    if owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+                                        print('in maintenance monthly')
+                                        # if maintenance monthly once a month
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
+                                            print('in maintenance once a month')
+                                            maintenance_year_expenses = maintenance_year_expenses + yearCal * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            maintenance_expenses = maintenance_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                         # if maintenance monthly twice a month
+                                        elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
+                                            print(
+                                                'in maintenance twice a month')
+                                            maintenance_year_expenses = maintenance_year_expenses + 2*yearCal * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            maintenance_expenses = maintenance_expenses + \
+                                                2 * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                        else:
+                                            print('do nothing')
+                                     # if maintenance annually
+                                    elif owner_expense['result'][ore]['purchase_frequency'] == 'Annually':
+                                        print('in maintenance annually')
+                                        # if maintenance annually once a year
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
+                                            maintenance_year_expenses = maintenance_year_expenses + \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            maintenance_expenses = maintenance_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                        # if maintenance annually twice a year
+                                        elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
+                                            maintenance_year_expenses = maintenance_year_expenses + 2 * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            maintenance_expenses = maintenance_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                        else:
+                                            print('do nothing')
+                                    # if maintenance one-time
+                                    else:
+                                        maintenance_year_expenses = maintenance_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+                                        maintenance_expenses = maintenance_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+                                # if management
                                 if owner_expense['result'][ore]['purchase_type'] == 'MANAGEMENT':
-                                    management_expenses = management_expenses + \
-                                        owner_expense['result'][ore]['amount_paid']
-                                if owner_expense['result'][ore]['purchase_type'] == 'REPAIRS':
-                                    repairs_expenses = repairs_expenses + \
-                                        owner_expense['result'][ore]['amount_paid']
+                                    # if management monthly
+                                    if owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+                                        # if management monthly once a month
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
+                                            management_year_expenses = yearCal * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            management_expenses = management_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                         # if management monthly twice a month
+                                        elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
+                                            management_year_expenses = 2*yearCal * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            management_expenses = management_expenses + \
+                                                2 * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                        else:
+                                            print('do nothing')
+                                     # if management annually
+                                    elif owner_expense['result'][ore]['purchase_frequency'] == 'Annually':
+                                        # if management annually once a year
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
+                                            management_year_expenses =  \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            management_expenses = management_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                        # if management annually twice a year
+                                        elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
+                                            management_year_expenses = 2 * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            management_expenses = management_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                        else:
+                                            print('do nothing')
+                                    # if management one-time
+                                    else:
+                                        management_year_expenses = management_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+                                        management_expenses = management_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
 
-                        response['result'][i]['maintenance_expenses'] = maintenance_expenses
-                        response['result'][i]['management_expenses'] = management_expenses
-                        response['result'][i]['repairs_expenses'] = repairs_expenses
+                                if owner_expense['result'][ore]['purchase_type'] == 'REPAIRS':
+                                    # if repairs monthly
+                                    if owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+                                        # if repairs monthly once a month
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
+                                            repairs_year_expenses = yearCal * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            repairs_expenses = repairs_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                         # if repairs monthly twice a month
+                                        elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
+                                            repairs_year_expenses = 2*yearCal * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            repairs_expenses = repairs_expenses + \
+                                                2 * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                        else:
+                                            print('do nothing')
+                                     # if repairs annually
+                                    elif owner_expense['result'][ore]['purchase_frequency'] == 'Annually':
+                                        # if repairs annually once a year
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
+                                            repairs_year_expenses =  \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            repairs_expenses = repairs_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                        # if repairs annually twice a year
+                                        elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
+                                            repairs_year_expenses = 2 * \
+                                                (owner_expense['result']
+                                                    [ore]['amount_paid'])
+                                            repairs_expenses = repairs_expenses + \
+                                                owner_expense['result'][ore]['amount_paid']
+                                        else:
+                                            print('do nothing')
+                                    # if repairs one-time
+                                    else:
+                                        repairs_year_expenses = repairs_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+                                        repairs_expenses = repairs_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+
+                            response['result'][i]['maintenance_expenses'] = maintenance_expenses
+                            response['result'][i]['management_expenses'] = management_expenses
+                            response['result'][i]['repairs_expenses'] = repairs_expenses
+                            response['result'][i]['maintenance_year_expense'] = maintenance_year_expenses
+                            response['result'][i]['management_year_expense'] = management_year_expenses
+                            response['result'][i]['repairs_year_expense'] = repairs_year_expenses
 
                         # annual expense for the property
                         yearly_owner_expense = db.execute("""SELECT *
@@ -209,9 +354,6 @@ class PropertiesOwner(Resource):
                                     yearly_owner_expense['result'][pr]['amount_paid'])
                         else:
                             print('')
-                        yearCal = today.month - \
-                            (datetime.strptime(
-                                response['result'][i]['active_date'], '%Y-%m-%d')).month
 
                         # monthly expense for the property to include mortgage
                         if response['result'][i]['mortgages'] is not None:
@@ -256,18 +398,17 @@ class PropertiesOwner(Resource):
                                     mortgage_expenses = mortgage_expenses + 2 * \
                                         (int(json.loads(
                                             response['result'][i]['mortgages'])['amount']))
-                        print(mortgage_expenses)
+                        # print(mortgage_expenses)
                         response['result'][i]['mortgage_expenses'] = mortgage_expenses
 
                         # monthly expense for the property to include taxes
                         if response['result'][i]['taxes'] is not None:
                             if len(eval(response['result'][i]['taxes'])) > 0:
                                 for te in range(len(eval(response['result'][i]['taxes']))):
-                                    print('here for', eval(
-                                        response['result'][i]['taxes'])[te]['frequency'])
+
                                     # if tax monthly
                                     if eval(response['result'][i]['taxes'])[te]['frequency'] == 'Monthly':
-                                        print('here monthly')
+
                                      # if taxes monthly and once a month
                                         if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a month':
                                             response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
@@ -288,10 +429,10 @@ class PropertiesOwner(Resource):
                                                     te]['amount']))
                                      # if tax Annually
                                     elif eval(response['result'][i]['taxes'])[te]['frequency'] == 'Annually':
-                                        print('here annually')
+
                                      # if taxes annually and once a year
                                         if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
-                                            print('here once a year')
+
                                             response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
                                                                                                                                       ['taxes'])[te]['amount']))
                                             response['result'][i]['tax_year_expense'] = (
@@ -315,11 +456,10 @@ class PropertiesOwner(Resource):
                         if response['result'][i]['insurance'] is not None:
                             if len(eval(response['result'][i]['insurance'])) > 0:
                                 for te in range(len(eval(response['result'][i]['insurance']))):
-                                    print('here for', eval(
-                                        response['result'][i]['insurance'])[te]['frequency'])
+
                                     # if insurance monthly
                                     if eval(response['result'][i]['insurance'])[te]['frequency'] == 'Monthly':
-                                        print('here monthly')
+
                                      # if insurance monthly and once a month
                                         if eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Once a month':
                                             response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
@@ -340,10 +480,10 @@ class PropertiesOwner(Resource):
                                                     te]['amount']))
                                      # if insurance Annually
                                     elif eval(response['result'][i]['insurance'])[te]['frequency'] == 'Annually':
-                                        print('here annually')
+
                                      # if insurance annually and once a year
                                         if eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
-                                            print('here once a year')
+
                                             response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
                                                                                                                                       ['insurance'])[te]['amount']))
                                             response['result'][i]['insurance_year_expense'] = (
@@ -508,6 +648,9 @@ class PropertiesOwnerDetail(Resource):
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
+                        response['result'][i]['maintenance_year_expense'] = 0
+                        response['result'][i]['management_year_expense'] = 0
+                        response['result'][i]['repairs_year_expense'] = 0
 
                         if len(owner_expense['result']) > 0:
                             for ore in range(len(owner_expense['result'])):
@@ -605,7 +748,7 @@ class PropertiesOwnerDetail(Resource):
                                         response['result'][i]['taxes'])[te]['frequency'])
                                     # if tax monthly
                                     if eval(response['result'][i]['taxes'])[te]['frequency'] == 'Monthly':
-                                        print('here monthly')
+
                                      # if taxes monthly and once a month
                                         if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a month':
                                             response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
@@ -626,10 +769,10 @@ class PropertiesOwnerDetail(Resource):
                                                     te]['amount']))
                                      # if tax Annually
                                     elif eval(response['result'][i]['taxes'])[te]['frequency'] == 'Annually':
-                                        print('here annually')
+
                                      # if taxes annually and once a year
                                         if eval(response['result'][i]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
-                                            print('here once a year')
+
                                             response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
                                                                                                                                       ['taxes'])[te]['amount']))
                                             response['result'][i]['tax_year_expense'] = (
@@ -647,17 +790,57 @@ class PropertiesOwnerDetail(Resource):
                                                 (int(eval(response['result'][i]['taxes'])[
                                                     te]['amount']))
                                     response['result'][i]['tax_expenses'] = taxes_expenses
-                        response['result'][i]['insurance_expenses'] = insurance_expenses
+                        # monthly expense for the property to include insurance
+                        # response['result'][i]['insurance_expenses'] = insurance_expenses
                         if response['result'][i]['insurance'] is not None:
                             if len(eval(response['result'][i]['insurance'])) > 0:
                                 for te in range(len(eval(response['result'][i]['insurance']))):
-                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (today.month * int(eval(response['result'][i]
-                                                                                                                                            ['insurance'])[te]['amount']))
-                                    insurance_expenses = insurance_expenses + \
-                                        int(eval(response['result'][i]['insurance'])[
-                                            te]['amount'])
+                                    print('here for', eval(
+                                        response['result'][i]['insurance'])[te]['frequency'])
+                                    # if insurance monthly
+                                    if eval(response['result'][i]['insurance'])[te]['frequency'] == 'Monthly':
 
-                        response['result'][i]['insurance_expenses'] = insurance_expenses
+                                     # if insurance monthly and once a month
+                                        if eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Once a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (yearCal * int(eval(response['result'][i]
+                                                                                                                                                ['insurance'])[te]['amount']))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                yearCal * int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount'])
+                                    # if insurance monthly and once a month
+                                        elif eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Twice a month':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*yearCal * int(eval(response['result'][i]
+                                                                                                                                                  ['insurance'])[te]['amount']))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                2*yearCal * int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                2*(int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount']))
+                                     # if insurance Annually
+                                    elif eval(response['result'][i]['insurance'])[te]['frequency'] == 'Annually':
+
+                                     # if insurance annually and once a year
+                                        if eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
+
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (int(eval(response['result'][i]
+                                                                                                                                      ['insurance'])[te]['amount']))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount'])
+                                     # if insurance annually and twice a year
+                                        elif eval(response['result'][i]['insurance'])[te]['frequency_of_payment'] == 'Twice a year':
+                                            response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (2*(int(eval(response['result'][i]
+                                                                                                                                         ['insurance'])[te]['amount'])))
+                                            response['result'][i]['insurance_year_expense'] = (
+                                                2 * int(eval(response['result'][i]['insurance'])[te]['amount']))
+                                            insurance_expenses = insurance_expenses + \
+                                                (int(eval(response['result'][i]['insurance'])[
+                                                    te]['amount']))
+                                    response['result'][i]['insurance_expenses'] = insurance_expenses
 
                     # print(response)
 

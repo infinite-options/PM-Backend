@@ -87,8 +87,9 @@ class Purchases(Resource):
 class CreateExpenses(Resource):
 
     def post(self):
-        data = request.get_json()
 
+        data = request.get_json()
+        print('data', data)
         if data['purchase_frequency'] == 'Monthly':
             print('here monthly')
             charge_date = date.today()
@@ -125,7 +126,7 @@ class CreateExpenses(Resource):
         elif data['purchase_frequency'] == 'Annually':
             print('here annually')
             charge_date = date.today()
-            next_payment = date.fromisoformat(data['purchase_date'])
+            next_payment = date.fromisoformat(data['next_payment'])
             while charge_date < next_payment:
                 charge_month = charge_date.strftime('%B')
 
