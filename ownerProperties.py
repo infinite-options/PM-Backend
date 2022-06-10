@@ -7,6 +7,7 @@ from data import connect
 from datetime import date, datetime, timedelta
 import json
 import calendar
+import math
 
 
 class OwnerProperties(Resource):
@@ -122,9 +123,8 @@ class PropertiesOwner(Resource):
                         weeks_current_month = len(
                             calendar.monthcalendar(2022, int(today.strftime("%m"))))
 
-                        weeks_active = (abs(today - datetime.strptime(
-                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7
-                        print('number of weeks', weeks_active)
+                        weeks_active = round((abs(today - datetime.strptime(
+                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
                         # monthly revenue for the property
                         owner_revenue = db.execute("""SELECT *
                                                         FROM pm.purchases p
@@ -464,15 +464,15 @@ class PropertiesOwner(Resource):
                                     response['result'][i]['mortgage_year_expense'] = weeks_active*(int(json.loads(response['result'][i]['mortgages'])[
                                         'amount']))
                                     mortgage_expenses = mortgage_expenses + \
-                                        4*(int(json.loads(
+                                        weeks_current_month*(int(json.loads(
                                             response['result'][i]['mortgages'])['amount']))
                              # if mortgage weekly and every other week
                                 elif json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Every other week':
-                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + (weeks_active/2*(int(json.loads(response['result'][i]['mortgages'])[
+                                    response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + ((weeks_active/2)*(int(json.loads(response['result'][i]['mortgages'])[
                                         'amount'])))
-                                    response['result'][i]['mortgage_year_expense'] = weeks_active/2*(int(json.loads(response['result'][i]['mortgages'])[
+                                    response['result'][i]['mortgage_year_expense'] = (weeks_active/2)*(int(json.loads(response['result'][i]['mortgages'])[
                                         'amount']))
-                                    mortgage_expenses = mortgage_expenses + 2 * \
+                                    mortgage_expenses = mortgage_expenses + (weeks_current_month/2) * \
                                         (int(json.loads(
                                             response['result'][i]['mortgages'])['amount']))
                         # print(mortgage_expenses)
@@ -677,8 +677,8 @@ class PropertiesOwnerDetail(Resource):
                         weeks_current_month = len(
                             calendar.monthcalendar(2022, int(today.strftime("%m"))))
 
-                        weeks_active = (abs(today - datetime.strptime(
-                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7
+                        weeks_active = round((abs(today - datetime.strptime(
+                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
 
                         # monthly revenue for the property
                         owner_revenue = db.execute("""SELECT *
@@ -1020,7 +1020,7 @@ class PropertiesOwnerDetail(Resource):
                                     response['result'][i]['mortgage_year_expense'] = weeks_active*(int(json.loads(response['result'][i]['mortgages'])[
                                         'amount']))
                                     mortgage_expenses = mortgage_expenses + \
-                                        4*(int(json.loads(
+                                        weeks_current_month*(int(json.loads(
                                             response['result'][i]['mortgages'])['amount']))
                              # if mortgage weekly and every other week
                                 elif json.loads(response['result'][i]['mortgages'])['frequency_of_payment'] == 'Every other week':
@@ -1028,7 +1028,7 @@ class PropertiesOwnerDetail(Resource):
                                         'amount'])))
                                     response['result'][i]['mortgage_year_expense'] = weeks_active / 2*(int(json.loads(response['result'][i]['mortgages'])[
                                         'amount']))
-                                    mortgage_expenses = mortgage_expenses + 2 * \
+                                    mortgage_expenses = mortgage_expenses + (weeks_current_month/2) * \
                                         (int(json.loads(
                                             response['result'][i]['mortgages'])['amount']))
                         print(mortgage_expenses)
