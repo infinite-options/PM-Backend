@@ -43,7 +43,8 @@ class TenantProperties(Resource):
                                             FROM pm.propertyManager pm
                                             LEFT JOIN businesses b
                                             ON b.business_uid = pm.linked_business_id
-                                            WHERE pm.linked_property_id = \'""" + property_id + """\'""")
+                                            WHERE pm.linked_property_id = \'""" + property_id + """\'
+                                            AND pm.management_status = 'ACCEPTED' """)
 
                 response['result'][i]['property_manager'] = list(
                     property_res['result'])
