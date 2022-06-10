@@ -36,7 +36,8 @@ class Applications(Resource):
             user = get_jwt_identity()
             if not user:
                 return 401, response
-            fields = ['property_uid', 'message']
+            fields = ['property_uid', 'message',
+                      'adult_occupants', 'children_occupants']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
