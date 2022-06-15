@@ -4,8 +4,10 @@ from flask_restful import Resource
 
 import boto3
 from data import connect, uploadImage, s3
+from datetime import date
 import json
-from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from purchases import newPurchase
 
 
 def updateImages(imageFiles, property_uid):
@@ -167,6 +169,90 @@ class Properties(Resource):
                     # else:
                     #     db.insert('propertyManager', propertyManager)
                     db.insert('propertyManager', propertyManager)
+                if management_status == 'ACCEPTED':
+                    contractRes = db.execute(
+                        """SELECT * FROM
+                            pm.contracts c
+                            LEFT JOIN 
+                            pm.properties p
+                            ON p.property_uid = c.property_uid  WHERE c.property_uid = \'""" + property_uid + """\' AND c.business_uid= \'""" + manager_id + """\'""")
+                    print(contractRes)
+                    if len(contractRes['result']) > 0:
+
+                        # creating purchases
+                        rentPayments = json.loads(
+                            contractRes['result'][0]['contract_fees'])
+                        for payment in rentPayments:
+                            if payment['frequency'] == 'Monthly':
+                                print(payment)
+                                charge_date = date.fromisoformat(
+                                    contractRes['result'][0]['start_date'])
+                                end_date = date.fromisoformat(
+                                    contractRes['result'][0]['end_date'])
+                                # print('charge_date', type(charge_date),
+                                #       charge_date.isoformat())
+                                while charge_date < end_date:
+                                    charge_month = charge_date.strftime(
+                                        '%B')
+
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=contractRes['result'][0]['property_uid'],
+                                        payer=contractRes['result'][0]['owner_id'],
+                                        receiver=contractRes['result'][0]['business_uid'],
+                                        purchase_type='MANAGEMENT',
+                                        description=payment['fee_name'],
+                                        amount_due=payment['charge'],
+                                        purchase_notes=charge_month,
+                                        purchase_date=charge_date.isoformat(),
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=charge_date.replace(day=1)
+                                    )
+                                    charge_date += relativedelta(months=1)
+                            else:
+                                # print('start_date', type(
+                                #     contractRes['result'][0]['start_date']))
+
+                                charge_date = date.fromisoformat(
+                                    contractRes['result'][0]['start_date'])
+                                end_date = date.fromisoformat(
+                                    contractRes['result'][0]['end_date'])
+                                # print('charge_date', type(charge_date),
+                                #       charge_date.isoformat())
+                                charge_month = charge_date.strftime(
+                                    '%B')
+                                if(payment['fee_name'] == 'Management'):
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=contractRes['result'][0]['property_uid'],
+                                        payer=contractRes['result'][0]['owner_id'],
+                                        receiver=contractRes['result'][0]['business_uid'],
+                                        purchase_type='MANAGEMENT',
+                                        description=payment['fee_name'],
+                                        amount_due=payment['charge'],
+                                        purchase_notes=charge_month,
+                                        purchase_date=contractRes['result'][0]['start_date'],
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=charge_date.replace(day=1)
+                                    )
+
+                                else:
+
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=contractRes['result'][0]['property_uid'],
+                                        payer=contractRes['result'][0]['owner_id'],
+                                        receiver=contractRes['result'][0]['business_uid'],
+                                        purchase_type='MANAGEMENT',
+                                        description=payment['fee_name'],
+                                        amount_due=payment['charge'],
+                                        purchase_notes=charge_month,
+                                        purchase_date=contractRes['result'][0]['start_date'],
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=charge_date.replace(day=1)
+                                    )
+
+                    print('accepted')
                 print(newProperty)
             if newProperty == {}:
                 response['message'] = 'Successfully committed SQL query'

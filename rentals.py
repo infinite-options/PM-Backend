@@ -410,6 +410,15 @@ def LateFee():
                     relativedelta(
                         days=int(response['result'][i]['late_by']))
                 print(response['result'][i]['late_by'], late_date)
+                tenants = response['result'][0]['linked_tenant_id']
+                # print('tenants1', tenants)
+                if '[' in tenants:
+                    # print('tenants2', tenants)
+                    tenants = json.loads(tenants)
+                    # print('tenants3', tenants)
+                # print('tenants4', tenants)
+                if type(tenants) == str:
+                    tenants = [tenants]
                 # get unpaid rent for the current month from purchases
                 res = db.execute("""SELECT *
                                 FROM pm.purchases p
@@ -427,7 +436,7 @@ def LateFee():
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
                                 pur_property_id=response['result'][i]['rental_property_id'],
-                                payer=response['result'][i]['linked_tenant_id'],
+                                payer=json.dumps(tenants),
                                 receiver=response['result'][i]['linked_business_id'],
                                 purchase_type='EXTRA CHARGES',
                                 description='Late Fee',

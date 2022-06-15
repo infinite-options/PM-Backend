@@ -153,6 +153,7 @@ class Applications(Resource):
                                             next_payment=due_date
                                         )
                                     charge_date += relativedelta(months=1)
+                                    due_date += relativedelta(months=1)
                             else:
                                 # print('lease_start', type(
                                 #     res['result'][0]['lease_start']))
