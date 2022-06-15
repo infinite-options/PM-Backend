@@ -186,6 +186,12 @@ class Properties(Resource):
                         # creating purchases
                         rentPayments = json.loads(
                             contractRes['result'][0]['contract_fees'])
+                        payer = contractRes['result'][0]['owner_id']
+                        if '[' in payer:
+                            payer = json.loads(payer)
+                        if type(payer) == str:
+                            payer = [payer]
+                        payer = json.dumps(payer)
                         for payment in rentPayments:
                             if payment['fee_type'] == '$':
                                 print('$')
@@ -204,7 +210,7 @@ class Properties(Resource):
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=contractRes['result'][0]['property_uid'],
-                                            payer=contractRes['result'][0]['owner_id'],
+                                            payer=payer,
                                             receiver=contractRes['result'][0]['business_uid'],
                                             purchase_type='MANAGEMENT',
                                             description=payment['fee_name'],
@@ -232,7 +238,7 @@ class Properties(Resource):
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=contractRes['result'][0]['property_uid'],
-                                            payer=contractRes['result'][0]['owner_id'],
+                                            payer=payer,
                                             receiver=contractRes['result'][0]['business_uid'],
                                             purchase_type='MANAGEMENT',
                                             description=payment['fee_name'],
@@ -249,7 +255,7 @@ class Properties(Resource):
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=contractRes['result'][0]['property_uid'],
-                                            payer=contractRes['result'][0]['owner_id'],
+                                            payer=payer,
                                             receiver=contractRes['result'][0]['business_uid'],
                                             purchase_type='MANAGEMENT',
                                             description=payment['fee_name'],
@@ -269,7 +275,7 @@ class Properties(Resource):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=contractRes['result'][0]['property_uid'],
-                                    payer=contractRes['result'][0]['owner_id'],
+                                    payer=payer,
                                     receiver=contractRes['result'][0]['business_uid'],
                                     purchase_type='MANAGEMENT',
                                     description=payment['fee_name'],
