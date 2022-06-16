@@ -1,3 +1,4 @@
+import resource
 from flask import request, current_app
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -265,4 +266,168 @@ class Applications(Resource):
             }
             # print('newAppl', newApplication)
             response = db.update('applications', primaryKey, newApplication)
+        return response
+
+
+class EndEarly(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            fields = ['message', 'application_status',
+                      'property_uid', 'application_uid']
+            updateApp = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    updateApp[field] = fieldValue
+            # pm wants to end the lease early, in case of multiple tenants both will get set to PM END EARLY
+            if updateApp['application_status'] == 'PM END EARLY':
+                print('end early pm')
+                appRes = db.execute(
+                    """SELECT * FROM pm.applications WHERE application_status='RENTED' AND property_uid = \'"""
+                    + updateApp['property_uid']
+                    + """\' """)
+                if len(appRes['result']) > 0:
+                    for application in appRes['result']:
+                        print(application)
+                        updateApp = {
+                            'application_status': 'PM END EARLY',
+                        }
+                        pk = {
+                            'application_uid': application['application_uid']}
+                        response = db.update('applications', pk, updateApp)
+             # tenant wants to end the lease early, in case of multiple tenants only given application_uid will get set to TENANT END EARLY
+            elif updateApp['application_status'] == 'TENANT END EARLY':
+                print('end early tenant')
+                updateApp['application_status'] = 'TENANT END EARLY'
+                pk = {
+                    'application_uid': updateApp['application_uid']}
+                response = db.update('applications', pk, updateApp)
+
+            # tenant approves to end the lease early
+            elif updateApp['application_status'] == 'TENANT ENDED':
+                response = db.execute(
+                    """SELECT * FROM pm.applications WHERE application_status='PM END EARLY' AND property_uid = \'"""
+                    + updateApp['property_uid']
+                    + """\' """)
+                print('response', response, len(response['result']))
+                # in case of multiple tenants, set the one to END ACCEPTED and wait for the other to respond
+                if len(response['result']) > 1:
+                    updateApp['application_status'] = 'END ACCEPTED'
+                    pk = {
+                        'application_uid': updateApp['application_uid']}
+                    response = db.update('applications', pk, updateApp)
+                # in case of no multiple tenants, this will set as ENDED, or n case of multiple tenants, both will get set as ENDED
+                else:
+                    multiEndRes = db.execute(
+                        """SELECT * FROM pm.applications WHERE application_status='END ACCEPTED' AND property_uid = \'"""
+                        + updateApp['property_uid']
+                        + """\' """)
+                    print('multiEndRes', multiEndRes['result'])
+                    # multiple tenants set ENDED from END ACCEPTED
+                    if len(multiEndRes['result']) > 0:
+                        updateApp['application_status'] = 'ENDED'
+                        for multiEndRes in multiEndRes['result']:
+                            pk = {
+                                'application_uid': multiEndRes['application_uid']
+                            }
+                            multiEnd = db.update('applications', pk, updateApp)
+                    # set the other to ENDED
+                    pmEndRes = db.execute(
+                        """SELECT * FROM pm.applications WHERE application_status ='PM END EARLY' AND property_uid = \'"""
+                        + updateApp['property_uid']
+                        + """\' """)
+                    print(pmEndRes)
+                    if len(pmEndRes['result']) > 0:
+                        updateApp['application_status'] = 'ENDED'
+                        pk = {
+                            'application_uid': pmEndRes['result'][0]['application_uid']
+                        }
+                        response = db.update('applications', pk, updateApp)
+                    res = db.execute("""SELECT 
+                                            r.*,
+                                            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                                            FROM pm.rentals r
+                                            LEFT JOIN pm.leaseTenants lt
+                                            ON lt.linked_rental_uid = r.rental_uid
+                                            WHERE r.rental_status='ACTIVE'
+                                            AND r.rental_property_id = \'""" + updateApp['property_uid'] + """\'
+                                            GROUP BY lt.linked_rental_uid; """)
+                    pk1 = {
+                        'rental_uid': res['result'][0]['rental_uid']}
+                    newRental = {
+                        'rental_status': 'TERMINATED'}
+                    res = db.update(
+                        'rentals', pk1, newRental)
+                    pur_pk = {
+                        'pur_property_id': updateApp['property_uid']
+                    }
+                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                                                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                                                    AND purchase_status ="UNPAID"
+                                                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+            # if PM approves the lease ending
+            else:
+                response = db.execute(
+                    """SELECT * FROM pm.applications WHERE (application_status='TENANT END EARLY' OR application_status='RENTED') AND property_uid = \'"""
+                    + updateApp['property_uid']
+                    + """\' """)
+                print('response', response, len(response['result']))
+                # in case of multiple tenants, set the one to END ACCEPTED and wait for the other to respond
+                if len(response['result']) > 1:
+                    updateApp['application_status'] = 'END ACCEPTED'
+                    pk = {
+                        'application_uid': updateApp['application_uid']}
+                    response = db.update('applications', pk, updateApp)
+                # in case of no multiple tenants, this will set as ENDED, or n case of multiple tenants, both will get set as ENDED
+                else:
+                    multiEndRes = db.execute(
+                        """SELECT * FROM pm.applications WHERE application_status='END ACCEPTED' AND property_uid = \'"""
+                        + updateApp['property_uid']
+                        + """\' """)
+                    print('multiEndRes', multiEndRes['result'])
+                    # multiple tenants set ENDED from END ACCEPTED
+                    if len(multiEndRes['result']) > 0:
+                        updateApp['application_status'] = 'ENDED'
+                        for multiEndRes in multiEndRes['result']:
+                            pk = {
+                                'application_uid': multiEndRes['application_uid']
+                            }
+                            multiEnd = db.update('applications', pk, updateApp)
+                    # set the other to ENDED
+                    pmEndRes = db.execute(
+                        """SELECT * FROM pm.applications WHERE application_status ='TENANT END EARLY' AND property_uid = \'"""
+                        + updateApp['property_uid']
+                        + """\' """)
+                    print(pmEndRes)
+                    if len(pmEndRes['result']) > 0:
+                        updateApp['application_status'] = 'ENDED'
+                        pk = {
+                            'application_uid': pmEndRes['result'][0]['application_uid']
+                        }
+                        response = db.update('applications', pk, updateApp)
+                    res = db.execute("""SELECT 
+                                            r.*,
+                                            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                                            FROM pm.rentals r
+                                            LEFT JOIN pm.leaseTenants lt
+                                            ON lt.linked_rental_uid = r.rental_uid
+                                            WHERE r.rental_status='ACTIVE'
+                                            AND r.rental_property_id = \'""" + updateApp['property_uid'] + """\'
+                                            GROUP BY lt.linked_rental_uid; """)
+                    pk1 = {
+                        'rental_uid': res['result'][0]['rental_uid']}
+                    newRental = {
+                        'rental_status': 'TERMINATED'}
+                    res = db.update(
+                        'rentals', pk1, newRental)
+                    pur_pk = {
+                        'pur_property_id': updateApp['property_uid']
+                    }
+                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                                                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                                                    AND purchase_status ="UNPAID"
+                                                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+
         return response

@@ -25,7 +25,7 @@ from maintenanceRequests import MaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
 from propertyInfo import PropertyInfo, AvailableProperties
-from applications import Applications
+from applications import Applications, EndEarly
 from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
 from bills import Bills
@@ -99,6 +99,7 @@ api.add_resource(PropertiesOwner,
 api.add_resource(PropertiesOwnerDetail,
                  '/propertiesOwnerDetail')
 api.add_resource(Applications, '/applications')
+api.add_resource(EndEarly, '/endEarly')
 api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
 api.add_resource(UserDetails, "/UserDetails/<string:user_id>")

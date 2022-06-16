@@ -38,6 +38,7 @@
 - [/maintenanceRequests](#maintenanceRequests)
 - [/maintenanceQuotes](#maintenanceQuotes)
 - [/applications](#applications)
+- [/endEarly](#endEarly)
 - [/leaseTenants](#leaseTenants)
 - [/availableProperties/{tenant_id}](#availableProperties/{tenant_id})
 - [/maintenanceRequestsandQuotes](#maintenanceRequestsandQuotes)
@@ -2443,6 +2444,54 @@
     "application_uid": "020-000024",
     "application_status": "RENTED",
     "property_uid":"200-000015"
+}
+---
+
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+### /endEarly
+
+##### PUT
+
+- update applications and rentals when tenant or pm end the lease early
+- request JSON:
+
+```
+If TENANT is ending the lease:
+JSON object: {
+    "application_uid": "020-000010",
+    "application_status": "TENANT END EARLY",
+    "property_uid": "200-000008"
+}
+
+When PM approves the lease ending:
+JSON object: {
+    "application_uid": "020-000010",
+    "application_status": "PM ENDED",
+    "property_uid": "200-000008"
+}
+
+If PM is ending the lease:
+JSON object:
+    {
+    "application_status": "PM END EARLY",
+    "property_uid": "200-000008"
+}
+
+When TENANT approves the lease ending:
+JSON object: {
+    "application_uid": "020-000010",
+    "application_status": "TENANT ENDED",
+    "property_uid": "200-000008"
 }
 ---
 
