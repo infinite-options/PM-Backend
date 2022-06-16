@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect
 import json
+from datetime import date, datetime, timedelta
 
 
 class TenantProperties(Resource):
@@ -24,7 +25,7 @@ class TenantProperties(Resource):
             #     "propertyInfo WHERE rental_status= 'ACTIVE'", where)
             print('here', user['user_uid'])
             response = db.execute(""" SELECT * FROM pm.properties
-                                        LEFT JOIN pm.rentals 
+                                        LEFT JOIN pm.rentals
                                         ON rental_property_id = property_uid
                                         LEFT JOIN pm.leaseTenants
                                         ON linked_rental_uid = rental_uid
@@ -51,17 +52,17 @@ class TenantProperties(Resource):
 
                 owner_id = response['result'][i]['owner_id']
                 # owner info for the property
-                owner_res = db.execute("""SELECT 
+                owner_res = db.execute("""SELECT
                                             o.owner_id AS owner_id,
-                                            o.owner_first_name AS owner_first_name, 
-                                            o.owner_last_name AS owner_last_name, 
+                                            o.owner_first_name AS owner_first_name,
+                                            o.owner_last_name AS owner_last_name,
                                             o.owner_email AS owner_email ,
                                             o.owner_phone_number AS owner_phone_number
-                                            FROM pm.ownerProfileInfo o 
+                                            FROM pm.ownerProfileInfo o
                                             WHERE o.owner_id = \'""" + owner_id + """\'""")
                 response['result'][i]['owner'] = list(owner_res['result'])
                 # rental info for the property
-                rental_res = db.execute("""SELECT 
+                rental_res = db.execute("""SELECT
                                             tpi.tenant_id AS tenant_id,
                                             tpi.tenant_first_name AS tenant_first_name,
                                             tpi.tenant_last_name AS tenant_last_name,
@@ -73,6 +74,7 @@ class TenantProperties(Resource):
                                             WHERE tenant_id = \'""" + user['user_uid'] + """\' """)
                 response['result'][i]['tenantInfo'] = list(
                     rental_res['result'])
+
                 tenant_expenses = db.execute("""SELECT *
                                                         FROM pm.purchases p
                                                         LEFT JOIN
@@ -81,6 +83,43 @@ class TenantProperties(Resource):
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND p.payer LIKE '%%\"""" + user['user_uid'] + """\"%%'
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= "UTILITY")""")
-                response['result'][i]['tenantExpenses'] = list(
-                    tenant_expenses['result'])
+                response['result'][i]['tenantExpenses'] = []
+                if len(tenant_expenses['result']) > 0:
+                    num_days = []
+                    date = []
+                    for ore in range(len(tenant_expenses['result'])):
+                        print('here', tenant_expenses['result'][ore])
+                        time_between_insertion = datetime.now() - \
+                            datetime.strptime(
+                                tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S')
+                        print(time_between_insertion)
+                        if time_between_insertion.days > 30:
+                            print('older than 30 days')
+                        elif time_between_insertion.days < 0:
+                            print('in between 30 days')
+
+                            date.append(
+                                datetime.strptime(
+                                    tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
+                        elif 0 < time_between_insertion.days < 30:
+                            print('not older than 30 days not in future',
+                                  time_between_insertion)
+                            num_days.append(time_between_insertion.days)
+                            response['result'][i]['tenantExpenses'].append(
+                                (tenant_expenses['result'][ore]))
+                        else:
+
+                            print('not older than 30 days')
+                print('num_days', num_days)
+                print('max', date, min(
+                    date, key=lambda d: abs(d - datetime.now())))
+                for ore in range(len(tenant_expenses['result'])):
+                    if datetime.strftime(min(
+                            date, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                        print('next payment due',
+                              tenant_expenses['result'][ore])
+                        response['result'][i]['tenantExpenses'].append(
+                            (tenant_expenses['result'][ore]))
+                print('tenantExpenses',
+                      response['result'][i]['tenantExpenses'])
         return response
