@@ -95,12 +95,13 @@ class TenantProperties(Resource):
                         print(time_between_insertion)
                         if time_between_insertion.days > 30:
                             print('older than 30 days')
+                            if tenant_expenses['result'][ore]['purchase_status'] == 'UNPAID':
+                                response['result'][i]['tenantExpenses'].append(
+                                    (tenant_expenses['result'][ore]))
                         elif time_between_insertion.days < 0:
-                            print('in between 30 days')
-
-                            date.append(
-                                datetime.strptime(
-                                    tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
+                            print('in future')
+                            date.append(datetime.strptime(
+                                tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
                         elif 0 < time_between_insertion.days < 30:
                             print('not older than 30 days not in future',
                                   time_between_insertion)
@@ -108,7 +109,6 @@ class TenantProperties(Resource):
                             response['result'][i]['tenantExpenses'].append(
                                 (tenant_expenses['result'][ore]))
                         else:
-
                             print('not older than 30 days')
                 print('num_days', num_days)
                 print('max', date, min(
