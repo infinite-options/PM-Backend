@@ -144,6 +144,19 @@ class EndLease(Resource):
             }
             response = db.update('rentals', rental_pk, rentalUpdate)
             print(rentalUpdate['rental_property_id'])
+            appRes = db.execute(
+                """SELECT * FROM pm.applications WHERE application_status='RENTED' AND property_uid = \'"""
+                + rentalUpdate['rental_property_id']
+                + """\' """)
+            if len(appRes['result']) > 0:
+                for application in appRes['result']:
+                    print(application)
+                    updateApp = {
+                        'application_status': 'ENDED',
+                    }
+                    pk = {
+                        'application_uid': application['application_uid']}
+                    appResponse = db.update('applications', pk, updateApp)
             pur_pk = {
                 'pur_property_id': rentalUpdate['rental_property_id']
             }
@@ -154,6 +167,208 @@ class EndLease(Resource):
             # pur_response = db.delete('purchases', pur_pk,  )
             print(pur_response)
 
+        return response
+
+
+class ExtendLease(Resource):
+    def post(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
+            newRental = {}
+            for field in fields:
+                newRental[field] = data.get(field)
+
+            oldLease = db.execute("""SELECT *
+                                    FROM rentals 
+                                    WHERE rental_property_id = \'""" + newRental['rental_property_id'] + """\'
+                                    AND rental_status = 'ACTIVE'  """)
+            if len(oldLease['result']) > 0:
+                for oldLease in oldLease['result']:
+                    pk = {
+                        'rental_uid': oldLease['rental_uid']
+                    }
+                    oldLeaseUpdate = {
+                        'rental_status': 'EXPIRED'
+                    }
+                    oldLeaseUpdateRes = db.update(
+                        'rentals', pk, oldLeaseUpdate)
+            newRentalID = db.call('new_rental_id')['result'][0]['new_id']
+            newRental['rental_uid'] = newRentalID
+
+            documents = json.loads(data.get('documents'))
+            for i in range(len(documents)):
+                filename = f'doc_{i}'
+                file = request.files.get(filename)
+                if file:
+                    key = f'rentals/{newRentalID}/{filename}'
+                    doc = uploadImage(file, key)
+                    documents[i]['link'] = doc
+                else:
+                    break
+            newRental['documents'] = json.dumps(documents)
+            print('newRental', newRental)
+            response = db.insert('rentals', newRental)
+
+            # adding leaseTenants
+            tenants = data.get('tenant_id')
+            print('tenants1', tenants)
+            if '[' in tenants:
+                print('tenants2', tenants)
+                tenants = json.loads(tenants)
+                print('tenants3', tenants)
+            print('tenants4', tenants)
+            if type(tenants) == str:
+                tenants = [tenants]
+                print('tenants5', tenants)
+            for tenant_id in tenants:
+                print('tenants6', tenant_id)
+                leaseTenant = {
+                    'linked_rental_uid': newRentalID,
+                    'linked_tenant_id': tenant_id
+                }
+                db.insert('leaseTenants', leaseTenant)
+
+            # creating purchases
+            rentPayments = json.loads(newRental['rent_payments'])
+            res = db.execute("""SELECT 
+                                        r.*, 
+                                        p.*, 
+                                        GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                                        FROM pm.rentals r
+                                        LEFT JOIN pm.leaseTenants lt
+                                        ON lt.linked_rental_uid = r.rental_uid
+                                        LEFT JOIN pm.propertyManager p
+                                        ON p.linked_property_id= r.rental_property_id
+                                        WHERE r.rental_status='PROCESSING'
+                                        AND p.management_status = 'ACCEPTED'
+                                        AND r.rental_property_id = \'""" + newRental['rental_property_id'] + """\'
+                                        GROUP BY lt.linked_rental_uid; """)
+            for payment in rentPayments:
+                if payment['frequency'] == 'Monthly':
+
+                    charge_date = date.fromisoformat(
+                        newRental['lease_start'])
+                    due_date = charge_date.replace(
+                        day=int(newRental['due_by']))
+                    lease_end = date.fromisoformat(
+                        newRental['lease_end'])
+                    # print('charge_date', type(charge_date),
+                    #       charge_date.isoformat())
+                    while charge_date < lease_end:
+                        charge_month = charge_date.strftime(
+                            '%B')
+                        if(payment['fee_name'] == 'Rent'):
+                            purchaseResponse = newPurchase(
+                                linked_bill_id=None,
+                                pur_property_id=newRental['rental_property_id'],
+                                payer=json.dumps(tenants),
+                                receiver=res['result'][0]['linked_business_id'],
+                                purchase_type='RENT',
+                                description=payment['fee_name'],
+                                amount_due=payment['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=charge_date.isoformat(),
+                                purchase_frequency=payment['frequency'],
+                                next_payment=due_date
+                            )
+                        else:
+                            purchaseResponse = newPurchase(
+                                linked_bill_id=None,
+                                pur_property_id=newRental['rental_property_id'],
+                                payer=json.dumps(tenants),
+                                receiver=res['result'][0]['linked_business_id'],
+                                purchase_type='EXTRA CHARGES',
+                                description=payment['fee_name'],
+                                amount_due=payment['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=charge_date.isoformat(),
+                                purchase_frequency=payment['frequency'],
+                                next_payment=due_date
+                            )
+                        charge_date += relativedelta(months=1)
+                        due_date += relativedelta(months=1)
+                else:
+                    # print('lease_start', type(
+                    #     res['result'][0]['lease_start']))
+
+                    charge_date = date.fromisoformat(
+                        newRental['lease_start'])
+                    due_date = date.fromisoformat(
+                        newRental['lease_start']).replace(
+                        day=int(newRental['due_by']))
+                    lease_end = date.fromisoformat(
+                        newRental['lease_end'])
+                    # print('charge_date', type(charge_date),
+                    #       charge_date.isoformat())
+
+                    charge_month = charge_date.strftime(
+                        '%B')
+                    if(payment['fee_name'] == 'Rent'):
+                        purchaseResponse = newPurchase(
+                            linked_bill_id=None,
+                            pur_property_id=newRental['rental_property_id'],
+                            payer=json.dumps(tenants),
+                            receiver=res['result'][0]['linked_business_id'],
+                            purchase_type='RENT',
+                            description=payment['fee_name'],
+                            amount_due=payment['charge'],
+                            purchase_notes=charge_month,
+                            purchase_date=newRental['lease_start'],
+                            purchase_frequency=payment['frequency'],
+                            next_payment=due_date
+                        )
+
+                    else:
+
+                        purchaseResponse = newPurchase(
+                            linked_bill_id=None,
+                            pur_property_id=newRental['rental_property_id'],
+                            payer=json.dumps(tenants),
+                            receiver=res['result'][0]['linked_business_id'],
+                            purchase_type='EXTRA CHARGES',
+                            description=payment['fee_name'],
+                            amount_due=payment['charge'],
+                            purchase_notes=charge_month,
+                            purchase_date=newRental['lease_start'],
+                            purchase_frequency=payment['frequency'],
+                            next_payment=due_date
+                        )
+        return response
+
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            rental_uid = data.get('rental_uid')
+            fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee']
+            newRental = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newRental[field] = fieldValue
+                    print('fieldvalue', fieldValue)
+                if field == 'documents':
+                    documents = json.loads(data.get('documents'))
+                    for i, doc in enumerate(documents):
+                        filename = f'doc_{i}'
+                        file = request.files.get(filename)
+                        s3Link = doc.get('link')
+                        if file:
+                            doc['file'] = file
+                        elif s3Link:
+                            doc['link'] = s3Link
+                        else:
+                            break
+                    documents = updateDocuments(documents, rental_uid)
+                    newRental['documents'] = json.dumps(documents)
+
+            primaryKey = {'rental_uid': rental_uid}
+            print('newRental', newRental)
+            response = db.update('rentals', primaryKey, newRental)
         return response
 
 

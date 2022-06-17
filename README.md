@@ -29,6 +29,7 @@
 - [/tenantProfileInfo](#tenantprofileinfo)
 - [/businessProfileInfo](#businessprofileinfo)
 - [/rentals](#rentals)
+- [/extendLease](#extendLease)
 - [/endLease](#endLease)
 - [/purchases](#purchases)
 - [/createExpenses](#createExpenses)
@@ -1371,6 +1372,125 @@
 {
     "message": "Successfully committed SQL query",
     "code": 200
+}
+```
+
+---
+
+### /extendLease
+
+##### POST
+
+- create new rental
+- updates the oldLease to expire
+- send as multipart/form-data
+- include document files as doc_0, doc_1...
+- include documents array to supply name, description for files
+- request JSON:
+
+```
+{
+  "rental_property_id": "200-000001",
+  "tenant_id": "100-000003",
+  "actual_rent": "1800",
+  "lease_start": "2022-02-01",
+  "lease_end": "2022-03-01",
+  "rent_payments": [{
+    "fee_name": "Monthly Rent",
+    "fee_type": "$",
+    "charge": 100,
+    "of": "",
+    "frequency": "Monthly"
+  }],
+  "assigned_contacts": [{
+    "first_name": "Greg",
+    "last_name": "Brewer",
+    "company_role": "Manager",
+    "phone_number": "(789)908-9087",
+    "email": "greg@beverlyman.com"
+  }],
+  "rental_status":"PENDING",
+  "due_by":"Fifth",
+  "late_by":5,
+  "late_fee":  100,
+  "perDay_late_fee":0,
+  "doc_0": "",
+  "documents": [
+    {
+      "name": "Resume",
+      "description": "My resume"
+    }
+  ]
+}
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+##### PUT
+
+- update rental
+- send as multipart/form-data
+- include document files or links as doc_0, doc_1...
+- include documents array to supply name, description for files
+- request JSON:
+
+```
+{
+  "rental_uid": "300-000001",
+  "actual_rent": "1800",
+  "lease_start": "2022-02-01",
+  "lease_end": "2023-02-01",
+  "rent_payments": [{
+    "fee_name": "Monthly Rent",
+    "fee_type": "$",
+    "charge": 100,
+    "of": "",
+    "frequency": "Monthly"
+  }],
+  "assigned_contacts": [{
+    "first_name": "Greg",
+    "last_name": "Brewer",
+    "company_role": "Manager",
+    "phone_number": "(789)908-9087",
+    "email": "greg@beverlyman.com"
+  }],
+  "doc_0": "",
+  "rental_status":"PENDING",
+  "due_by":"Fifth",
+  "late_by":5,
+  "late_fee":  100,
+  "perDay_late_fee":0,
+  "documents": [
+    {
+      "name": "Resume",
+      "description": "My resume"
+    }
+  ]
+}
+```
+
+- response JSON:
+
+```
+{
+    "message": "Successfully committed SQL query",
+    "code": 200
+}
+```
+
+- request JSON(tenants accepts/rejects lease updating rental_status)
+
+```
+{
+    "rental_uid":"300-000018",
+    "rental_status":"PROCESSING"
 }
 ```
 
