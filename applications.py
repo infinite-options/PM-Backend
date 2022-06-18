@@ -86,9 +86,9 @@ class Applications(Resource):
                             }
                             response = db.update(
                                 'applications', pk, newApplication)
-                    res = db.execute("""SELECT 
-                                        r.*, 
-                                        p.*, 
+                    res = db.execute("""SELECT
+                                        r.*,
+                                        p.*,
                                         GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
                                         FROM pm.rentals r
                                         LEFT JOIN pm.leaseTenants lt
@@ -275,36 +275,100 @@ class EndEarly(Resource):
         with connect() as db:
             data = request.json
             fields = ['message', 'application_status',
-                      'property_uid', 'application_uid']
+                      'property_uid', 'application_uid', 'early_end_date']
             updateApp = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     updateApp[field] = fieldValue
             # pm wants to end the lease early, in case of multiple tenants both will get set to PM END EARLY
+            # print(updateApp)
             if updateApp['application_status'] == 'PM END EARLY':
                 print('end early pm')
                 appRes = db.execute(
-                    """SELECT * FROM pm.applications WHERE application_status='RENTED' AND property_uid = \'"""
-                    + updateApp['property_uid']
-                    + """\' """)
+                    """SELECT *
+                        FROM pm.applications a
+                        LEFT JOIN pm.rentals r
+                        ON r.rental_property_id = a.property_uid
+                        WHERE a.application_status='RENTED'
+                        AND a.property_uid = \'""" + updateApp['property_uid'] + """\'
+                        AND r.rental_status = 'ACTIVE'; """)
                 if len(appRes['result']) > 0:
                     for application in appRes['result']:
                         print(application)
-                        updateApp = {
+                        updateA = {
                             'application_status': 'PM END EARLY',
                         }
                         pk = {
                             'application_uid': application['application_uid']}
-                        response = db.update('applications', pk, updateApp)
+                        response = db.update('applications', pk, updateA)
+                        print('updateApp', updateApp)
+                        pkR = {
+                            'rental_uid': application['rental_uid']}
+                        updateRen = {
+                            'early_end_date': updateApp['early_end_date'],
+                        }
+                        print(pkR, updateRen)
+                        response = db.update('rentals', pkR, updateRen)
              # tenant wants to end the lease early, in case of multiple tenants only given application_uid will get set to TENANT END EARLY
             elif updateApp['application_status'] == 'TENANT END EARLY':
                 print('end early tenant')
-                updateApp['application_status'] = 'TENANT END EARLY'
-                pk = {
-                    'application_uid': updateApp['application_uid']}
-                response = db.update('applications', pk, updateApp)
-
+                appRes = db.execute(
+                    """SELECT *
+                        FROM pm.applications a
+                        LEFT JOIN pm.rentals r
+                        ON r.rental_property_id = a.property_uid
+                        WHERE a.application_status='RENTED' 
+                        AND a.property_uid = \'""" + updateApp['property_uid'] + """\'
+                        AND r.rental_status = 'ACTIVE'; """)
+                if len(appRes['result']) > 1:
+                    for application in appRes['result']:
+                        if application['application_uid'] == updateApp['application_uid']:
+                            updateA = {
+                                'application_status': 'TENANT END REQUESTED',
+                            }
+                            pk = {
+                                'application_uid': application['application_uid']}
+                            response = db.update('applications', pk, updateA)
+                            print('updateApp', updateApp)
+                            pkR = {
+                                'rental_uid': application['rental_uid']}
+                            updateRen = {
+                                'early_end_date': updateApp['early_end_date'],
+                            }
+                            print(pkR, updateRen)
+                            response = db.update('rentals', pkR, updateRen)
+                else:
+                    endRes = db.execute(
+                        """SELECT * FROM pm.applications WHERE application_status='TENANT END REQUESTED' AND property_uid = \'"""
+                        + updateApp['property_uid']
+                        + """\' """)
+                    print('response', endRes, len(endRes['result']))
+                    if len(endRes['result']) > 0:
+                        print('here')
+                        for endR in endRes['result']:
+                            updateA = {
+                                'application_status': 'TENANT END EARLY',
+                            }
+                            pk = {
+                                'application_uid': endR['application_uid']}
+                            response = db.update('applications', pk, updateA)
+                    for application in appRes['result']:
+                        print(application)
+                        updateA = {
+                            'application_status': 'TENANT END EARLY',
+                        }
+                        pk = {
+                            'application_uid': application['application_uid']}
+                        response = db.update('applications', pk, updateA)
+                        print('updateApp', updateApp)
+                        pkR = {
+                            'rental_uid': application['rental_uid']}
+                        updateRen = {
+                            'early_end_date': updateApp['early_end_date'],
+                        }
+                        print(pkR, updateRen)
+                        response = db.update('rentals', pkR, updateRen)
             # tenant approves to end the lease early
             elif updateApp['application_status'] == 'TENANT ENDED':
                 response = db.execute(
@@ -345,7 +409,7 @@ class EndEarly(Resource):
                             'application_uid': pmEndRes['result'][0]['application_uid']
                         }
                         response = db.update('applications', pk, updateApp)
-                    res = db.execute("""SELECT 
+                    res = db.execute("""SELECT
                                             r.*,
                                             GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
                                             FROM pm.rentals r
@@ -357,77 +421,84 @@ class EndEarly(Resource):
                     pk1 = {
                         'rental_uid': res['result'][0]['rental_uid']}
                     newRental = {
-                        'rental_status': 'TERMINATED'}
+                        'rental_status': 'TERMINATED',
+                        'lease_end':  res['result'][0]['early_end_date']}
                     res = db.update(
                         'rentals', pk1, newRental)
-                    pur_pk = {
-                        'pur_property_id': updateApp['property_uid']
-                    }
-                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
-                                                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                                                    AND purchase_status ="UNPAID"
-                                                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+                    # pur_pk = {
+                    #     'pur_property_id': updateApp['property_uid']
+                    # }
+                    # pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                    #                                 AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                    #                                 AND purchase_status ="UNPAID"
+                    #                                 AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
             # if PM approves the lease ending
-            else:
-                response = db.execute(
-                    """SELECT * FROM pm.applications WHERE (application_status='TENANT END EARLY' OR application_status='RENTED') AND property_uid = \'"""
+            elif updateApp['application_status'] == 'PM ENDED':
+                # the application_status gets sets to ENDED and rental_status gets set to TERMINATED
+                pmEndRes = db.execute(
+                    """SELECT * FROM pm.applications WHERE application_status ='TENANT END EARLY' AND property_uid = \'"""
                     + updateApp['property_uid']
                     + """\' """)
-                print('response', response, len(response['result']))
-                # in case of multiple tenants, set the one to END ACCEPTED and wait for the other to respond
-                if len(response['result']) > 1:
-                    updateApp['application_status'] = 'END ACCEPTED'
-                    pk = {
-                        'application_uid': updateApp['application_uid']}
-                    response = db.update('applications', pk, updateApp)
-                # in case of no multiple tenants, this will set as ENDED, or n case of multiple tenants, both will get set as ENDED
-                else:
-                    multiEndRes = db.execute(
-                        """SELECT * FROM pm.applications WHERE application_status='END ACCEPTED' AND property_uid = \'"""
-                        + updateApp['property_uid']
-                        + """\' """)
-                    print('multiEndRes', multiEndRes['result'])
-                    # multiple tenants set ENDED from END ACCEPTED
-                    if len(multiEndRes['result']) > 0:
-                        updateApp['application_status'] = 'ENDED'
-                        for multiEndRes in multiEndRes['result']:
-                            pk = {
-                                'application_uid': multiEndRes['application_uid']
-                            }
-                            multiEnd = db.update('applications', pk, updateApp)
-                    # set the other to ENDED
-                    pmEndRes = db.execute(
-                        """SELECT * FROM pm.applications WHERE application_status ='TENANT END EARLY' AND property_uid = \'"""
-                        + updateApp['property_uid']
-                        + """\' """)
-                    print(pmEndRes)
-                    if len(pmEndRes['result']) > 0:
-                        updateApp['application_status'] = 'ENDED'
+                print(pmEndRes)
+                if len(pmEndRes['result']) > 0:
+                    for endRes in pmEndRes['result']:
                         pk = {
-                            'application_uid': pmEndRes['result'][0]['application_uid']
+                            'application_uid': endRes['application_uid']
                         }
+                        updateApp['application_status'] = 'ENDED'
                         response = db.update('applications', pk, updateApp)
-                    res = db.execute("""SELECT 
-                                            r.*,
-                                            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
-                                            FROM pm.rentals r
-                                            LEFT JOIN pm.leaseTenants lt
-                                            ON lt.linked_rental_uid = r.rental_uid
-                                            WHERE r.rental_status='ACTIVE'
-                                            AND r.rental_property_id = \'""" + updateApp['property_uid'] + """\'
-                                            GROUP BY lt.linked_rental_uid; """)
-                    pk1 = {
-                        'rental_uid': res['result'][0]['rental_uid']}
-                    newRental = {
-                        'rental_status': 'TERMINATED'}
-                    res = db.update(
-                        'rentals', pk1, newRental)
-                    pur_pk = {
-                        'pur_property_id': updateApp['property_uid']
-                    }
-                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
-                                                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                                                    AND purchase_status ="UNPAID"
-                                                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+
+                res = db.execute("""SELECT
+                                        r.*,
+                                        GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                                        FROM pm.rentals r
+                                        LEFT JOIN pm.leaseTenants lt
+                                        ON lt.linked_rental_uid = r.rental_uid
+                                        WHERE r.rental_status='ACTIVE'
+                                        AND r.rental_property_id = \'""" + updateApp['property_uid'] + """\'
+                                        GROUP BY lt.linked_rental_uid; """)
+                pk1 = {
+                    'rental_uid': res['result'][0]['rental_uid']}
+                newRental = {
+                    'rental_status': 'TERMINATED',
+                    'lease_end':  res['result'][0]['early_end_date']}
+                res = db.update(
+                    'rentals', pk1, newRental)
+                # pur_pk = {
+                #     'pur_property_id': updateApp['property_uid']
+                # }
+                # pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                #                                 AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                #                                 AND purchase_status ="UNPAID"
+                #                                 AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+            else:
+                print('refused')
+                refResPM = db.execute("""SELECT * 
+                                        FROM pm.applications 
+                                        WHERE (application_status ='TENANT END EARLY' OR application_status ='TENANT END REQUESTED')
+                                        AND property_uid = \'""" + updateApp['property_uid'] + """\' """)
+                if len(refResPM['result']) > 0:
+                    for refRes in refResPM['result']:
+                        pk = {
+                            'application_uid': refRes['application_uid']
+                        }
+                        updateRefRes = {
+                            'application_status': 'RENTED'
+                        }
+                        response = db.update('applications', pk, updateRefRes)
+                refResTenant = db.execute("""SELECT * 
+                                        FROM pm.applications 
+                                        WHERE (application_status ='PM END EARLY' OR application_status ='END ACCEPTED')
+                                        AND property_uid = \'""" + updateApp['property_uid'] + """\' """)
+                print('refrestenant', refResTenant['result'])
+                if len(refResTenant['result']) > 0:
+                    for refRes in refResTenant['result']:
+                        pk = {
+                            'application_uid': refRes['application_uid']
+                        }
+                        updateRefRes = {
+                            'application_status': 'RENTED'
+                        }
+                        response = db.update('applications', pk, updateRefRes)
 
         return response
