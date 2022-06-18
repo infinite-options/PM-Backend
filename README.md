@@ -2584,6 +2584,13 @@
 ##### PUT
 
 - update applications and rentals when tenant or pm end the lease early
+- For when tenant requests to end the lease early, in case of multiple tenants, the intermediate state would be TENANT END REQUESTED.
+  It will stay at this state until the other tenant also requests to end early,
+  then both will change to TENANT END EARLY.
+- For when tenant approves the PM's request to end the lease early, in case of multiple tenants, the intermediate state would be END ACCEPTED.
+  It will stay at this state until the other tenant also approves to end early,
+  then both will change to ENDED.
+- If either tenant or PM refused to end the lease early, both the
 - request JSON:
 
 ```
@@ -2591,27 +2598,34 @@ If TENANT is ending the lease:
 JSON object: {
     "application_uid": "020-000010",
     "application_status": "TENANT END EARLY",
-    "property_uid": "200-000008"
+    "property_uid": "200-000008",
+    "early_end_date":"2022-08-07"
 }
 
 When PM approves the lease ending:
 JSON object: {
-    "application_uid": "020-000010",
     "application_status": "PM ENDED",
-    "property_uid": "200-000008"
+    "property_uid": "200-000004"
 }
 
 If PM is ending the lease:
 JSON object:
     {
     "application_status": "PM END EARLY",
-    "property_uid": "200-000008"
+    "property_uid": "200-000008",
+     "early_end_date":"2022-08-07"
 }
 
 When TENANT approves the lease ending:
 JSON object: {
     "application_uid": "020-000010",
     "application_status": "TENANT ENDED",
+    "property_uid": "200-000008"
+}
+
+When TENANT OR PM REFUSES the lease ending:
+JSON object: {
+    "application_status": "REFUSED",
     "property_uid": "200-000008"
 }
 ---

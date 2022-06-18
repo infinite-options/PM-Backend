@@ -281,7 +281,8 @@ class EndEarly(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     updateApp[field] = fieldValue
-            # pm wants to end the lease early, in case of multiple tenants both will get set to PM END EARLY
+            # pm wants to end the lease early,
+            # in case of multiple or single tenants application_status will get set to PM END EARLY
             # print(updateApp)
             if updateApp['application_status'] == 'PM END EARLY':
                 print('end early pm')
@@ -303,6 +304,7 @@ class EndEarly(Resource):
                             'application_uid': application['application_uid']}
                         response = db.update('applications', pk, updateA)
                         print('updateApp', updateApp)
+                        # updates early_end_date in Rentals
                         pkR = {
                             'rental_uid': application['rental_uid']}
                         updateRen = {
@@ -310,7 +312,7 @@ class EndEarly(Resource):
                         }
                         print(pkR, updateRen)
                         response = db.update('rentals', pkR, updateRen)
-             # tenant wants to end the lease early, in case of multiple tenants only given application_uid will get set to TENANT END EARLY
+             # tenant wants to end the lease early,
             elif updateApp['application_status'] == 'TENANT END EARLY':
                 print('end early tenant')
                 appRes = db.execute(
@@ -321,6 +323,7 @@ class EndEarly(Resource):
                         WHERE a.application_status='RENTED' 
                         AND a.property_uid = \'""" + updateApp['property_uid'] + """\'
                         AND r.rental_status = 'ACTIVE'; """)
+                # in case of multiple tenants only given application_uid's application_status will get set to TENANT END REQUESTED, other stays RENTED
                 if len(appRes['result']) > 1:
                     for application in appRes['result']:
                         if application['application_uid'] == updateApp['application_uid']:
@@ -331,6 +334,7 @@ class EndEarly(Resource):
                                 'application_uid': application['application_uid']}
                             response = db.update('applications', pk, updateA)
                             print('updateApp', updateApp)
+                            # updates early_end_date in Rentals
                             pkR = {
                                 'rental_uid': application['rental_uid']}
                             updateRen = {
@@ -338,6 +342,7 @@ class EndEarly(Resource):
                             }
                             print(pkR, updateRen)
                             response = db.update('rentals', pkR, updateRen)
+                # in case of multiple tenants or single tenant, both application_status will now be set to TENANT END EARLY
                 else:
                     endRes = db.execute(
                         """SELECT * FROM pm.applications WHERE application_status='TENANT END REQUESTED' AND property_uid = \'"""
@@ -362,6 +367,7 @@ class EndEarly(Resource):
                             'application_uid': application['application_uid']}
                         response = db.update('applications', pk, updateA)
                         print('updateApp', updateApp)
+                        # updates early_end_date in Rentals
                         pkR = {
                             'rental_uid': application['rental_uid']}
                         updateRen = {
@@ -409,6 +415,7 @@ class EndEarly(Resource):
                             'application_uid': pmEndRes['result'][0]['application_uid']
                         }
                         response = db.update('applications', pk, updateApp)
+                    # rental_status gets set to TERMINATED and lease_end updated to early_end_date
                     res = db.execute("""SELECT
                                             r.*,
                                             GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
@@ -425,13 +432,14 @@ class EndEarly(Resource):
                         'lease_end':  res['result'][0]['early_end_date']}
                     res = db.update(
                         'rentals', pk1, newRental)
-                    # pur_pk = {
-                    #     'pur_property_id': updateApp['property_uid']
-                    # }
-                    # pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
-                    #                                 AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                    #                                 AND purchase_status ="UNPAID"
-                    #                                 AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+                    # deletes any future rent payments or charges for that property
+                    pur_pk = {
+                        'pur_property_id': updateApp['property_uid']
+                    }
+                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                                                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                                                    AND purchase_status ="UNPAID"
+                                                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
             # if PM approves the lease ending
             elif updateApp['application_status'] == 'PM ENDED':
                 # the application_status gets sets to ENDED and rental_status gets set to TERMINATED
@@ -457,6 +465,7 @@ class EndEarly(Resource):
                                         WHERE r.rental_status='ACTIVE'
                                         AND r.rental_property_id = \'""" + updateApp['property_uid'] + """\'
                                         GROUP BY lt.linked_rental_uid; """)
+                # rental_status gets set to TERMINATED and lease_end updated to early_end_date
                 pk1 = {
                     'rental_uid': res['result'][0]['rental_uid']}
                 newRental = {
@@ -464,15 +473,18 @@ class EndEarly(Resource):
                     'lease_end':  res['result'][0]['early_end_date']}
                 res = db.update(
                     'rentals', pk1, newRental)
-                # pur_pk = {
-                #     'pur_property_id': updateApp['property_uid']
-                # }
-                # pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
-                #                                 AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                #                                 AND purchase_status ="UNPAID"
-                #                                 AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+
+                # deletes any future rent payments or charges for that property
+                pur_pk = {
+                    'pur_property_id': updateApp['property_uid']
+                }
+                pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                                                AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                                                AND purchase_status ="UNPAID"
+                                                AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
             else:
                 print('refused')
+                # if pm refuses to end the lease early, application_status set back to RENTED
                 refResPM = db.execute("""SELECT * 
                                         FROM pm.applications 
                                         WHERE (application_status ='TENANT END EARLY' OR application_status ='TENANT END REQUESTED')
@@ -486,6 +498,7 @@ class EndEarly(Resource):
                             'application_status': 'RENTED'
                         }
                         response = db.update('applications', pk, updateRefRes)
+                # if tenant refuses to end the lease early, application_status set back to RENTED
                 refResTenant = db.execute("""SELECT * 
                                         FROM pm.applications 
                                         WHERE (application_status ='PM END EARLY' OR application_status ='END ACCEPTED')
