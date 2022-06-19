@@ -254,10 +254,10 @@ class ExtendLease(Resource):
 
 class ExtendLeaseCRON_CLASS(Resource):
     def get(self):
-        response = {}
         with connect() as db:
-
-            response = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+            response = {'message': 'Successfully committed SQL query',
+                        'code': 200}
+            leaseResponse = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
                                     FROM pm.rentals r
                                     LEFT JOIN leaseTenants lt
                                     ON lt.linked_rental_uid = r.rental_uid
@@ -273,8 +273,8 @@ class ExtendLeaseCRON_CLASS(Resource):
             today = datetime.strftime(today_datetime, '%Y-%m-%d')
             oldLease = ''
             newLease = ''
-            if len(response['result']) > 0:
-                for res in response['result']:
+            if len(leaseResponse['result']) > 0:
+                for res in leaseResponse['result']:
                     if res['rental_status'] == 'ACTIVE':
                         oldLease = res
                     else:
@@ -429,10 +429,12 @@ def ExtendLeaseCRON():
     print("In ExtendLeaseCRON")
     from purchases import newPurchase
     from datetime import date, datetime
+
     with connect() as db:
         print("In Extend Lease CRON Function")
-        response = {}
-        response = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+        response = {'message': 'Successfully committed SQL query',
+                    'code': 200}
+        leaseResponse = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
                                 FROM pm.rentals r
                                 LEFT JOIN leaseTenants lt
                                 ON lt.linked_rental_uid = r.rental_uid
@@ -448,8 +450,8 @@ def ExtendLeaseCRON():
         today = datetime.strftime(today_datetime, '%Y-%m-%d')
         oldLease = ''
         newLease = ''
-        if len(response['result']) > 0:
-            for res in response['result']:
+        if len(leaseResponse['result']) > 0:
+            for res in leaseResponse['result']:
                 if res['rental_status'] == 'ACTIVE':
                     oldLease = res
                 else:

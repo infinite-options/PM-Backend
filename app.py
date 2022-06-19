@@ -222,7 +222,6 @@ api.add_resource(LeasetoMonth_CLASS, '/LeasetoMonth_CLASS')
 api.add_resource(LateFee_CLASS, '/LateFee_CLASS')
 api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
-
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
 api.add_resource(Payments, '/payments')
