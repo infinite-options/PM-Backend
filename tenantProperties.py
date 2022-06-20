@@ -93,33 +93,48 @@ class TenantProperties(Resource):
                             datetime.strptime(
                                 tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S')
                         print(time_between_insertion)
+                        # if older than 30 days
                         if time_between_insertion.days > 30:
                             print('older than 30 days')
+                            # if unpaid then all
                             if tenant_expenses['result'][ore]['purchase_status'] == 'UNPAID':
                                 response['result'][i]['tenantExpenses'].append(
                                     (tenant_expenses['result'][ore]))
+                        # if in future
                         elif time_between_insertion.days < 0:
                             print('in future')
-                            date.append(datetime.strptime(
-                                tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
-                        elif 0 < time_between_insertion.days < 30:
+                            # if utility or extra charges then all
+                            if tenant_expenses['result'][ore]['purchase_type'] != 'RENT':
+                                print('appended from here')
+                                response['result'][i]['tenantExpenses'].append(
+                                    (tenant_expenses['result'][ore]))
+                            # add time differences in date, if rent get the most recent upcoming
+                            else:
+
+                                date.append(datetime.strptime(
+                                    tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
+                        # if in the last 30 days
+                        elif 0 <= time_between_insertion.days < 30:
                             print('not older than 30 days not in future',
                                   time_between_insertion)
-                            num_days.append(time_between_insertion.days)
+
                             response['result'][i]['tenantExpenses'].append(
                                 (tenant_expenses['result'][ore]))
+                        # nothing if anything else
                         else:
-                            print('not older than 30 days')
-                print('num_days', num_days)
-                print('max', date, min(
-                    date, key=lambda d: abs(d - datetime.now())))
+                            print('not older than 30 days',
+                                  time_between_insertion.days)
+
                 for ore in range(len(tenant_expenses['result'])):
-                    if datetime.strftime(min(
-                            date, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
-                        print('next payment due',
-                              tenant_expenses['result'][ore])
-                        response['result'][i]['tenantExpenses'].append(
-                            (tenant_expenses['result'][ore]))
+                    # upcoming 1 rent in the future
+                    if tenant_expenses['result'][ore]['purchase_type'] == 'RENT':
+                        print('should append from here too')
+                        if datetime.strftime(min(
+                                date, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                            print('next payment due',
+                                  tenant_expenses['result'][ore])
+                            response['result'][i]['tenantExpenses'].append(
+                                (tenant_expenses['result'][ore]))
                 print('tenantExpenses',
                       response['result'][i]['tenantExpenses'])
         return response
