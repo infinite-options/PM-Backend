@@ -133,8 +133,7 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
-                                                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
+                                                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" )""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
 
@@ -415,7 +414,6 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
                         response['result'][i]['year_expense'] = 0
@@ -686,7 +684,6 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
@@ -780,7 +777,6 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type = "RENT" OR p.purchase_type = "EXTRA CHARGES")""")
 
                         response['result'][i]['year_revenue'] = 0
@@ -799,7 +795,6 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
@@ -970,7 +965,6 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
                         response['result'][i]['year_expense'] = 0
