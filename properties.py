@@ -201,8 +201,7 @@ class Properties(Resource):
                                         contractRes['result'][0]['start_date'])
                                     end_date = date.fromisoformat(
                                         contractRes['result'][0]['end_date'])
-                                    # print('charge_date', type(charge_date),
-                                    #       charge_date.isoformat())
+
                                     while charge_date < end_date:
                                         charge_month = charge_date.strftime(
                                             '%B')
@@ -219,19 +218,16 @@ class Properties(Resource):
                                             purchase_date=charge_date.isoformat(),
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date.replace(
-                                                day=1) + timedelta(days_in_month(today))
+                                                day=1)
                                         )
                                         charge_date += relativedelta(months=1)
                                 else:
-                                    # print('start_date', type(
-                                    #     contractRes['result'][0]['start_date']))
 
                                     charge_date = date.fromisoformat(
                                         contractRes['result'][0]['start_date'])
                                     end_date = date.fromisoformat(
                                         contractRes['result'][0]['end_date'])
-                                    # print('charge_date', type(charge_date),
-                                    #       charge_date.isoformat())
+
                                     charge_month = charge_date.strftime(
                                         '%B')
                                     if(payment['fee_name'] == 'Management'):
@@ -247,7 +243,7 @@ class Properties(Resource):
                                             purchase_date=contractRes['result'][0]['start_date'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date.replace(
-                                                day=1) + timedelta(days_in_month(today))
+                                                day=1)
                                         )
 
                                     else:
@@ -264,29 +260,74 @@ class Properties(Resource):
                                             purchase_date=contractRes['result'][0]['start_date'],
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date.replace(
-                                                day=1) + timedelta(days_in_month(today))
+                                                day=1)
                                         )
                             else:
-                                print('%', payment)
-                                charge_date = date.fromisoformat(
-                                    contractRes['result'][0]['start_date'])
-                                charge_month = charge_date.strftime(
-                                    '%B')
-                                purchaseResponse = newPurchase(
-                                    linked_bill_id=None,
-                                    pur_property_id=contractRes['result'][0]['property_uid'],
-                                    payer=payer,
-                                    receiver=contractRes['result'][0]['business_uid'],
-                                    purchase_type='MANAGEMENT',
-                                    description=payment['fee_name'],
-                                    amount_due=(
-                                        int(payment['charge']) * int(contractRes['result'][0]['listed_rent']))/100,
-                                    purchase_notes=charge_month,
-                                    purchase_date=contractRes['result'][0]['start_date'],
-                                    purchase_frequency=payment['frequency'],
-                                    next_payment=charge_date.replace(
-                                        day=1) + timedelta(days_in_month(today))
-                                )
+                                if payment['frequency'] == 'Monthly':
+                                    print('%', payment)
+                                    charge_date = date.fromisoformat(
+                                        contractRes['result'][0]['start_date'])
+                                    charge_month = charge_date.strftime(
+                                        '%B')
+
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=contractRes['result'][0]['property_uid'],
+                                        payer=payer,
+                                        receiver=contractRes['result'][0]['business_uid'],
+                                        purchase_type='MANAGEMENT',
+                                        description=payment['fee_name'],
+                                        amount_due=(
+                                            int(payment['charge']) * int(contractRes['result'][0]['listed_rent']))/100,
+                                        purchase_notes=charge_month,
+                                        purchase_date=contractRes['result'][0]['start_date'],
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=charge_date.replace(
+                                            day=1)
+                                    )
+                                else:
+
+                                    charge_date = date.fromisoformat(
+                                        contractRes['result'][0]['start_date'])
+                                    end_date = date.fromisoformat(
+                                        contractRes['result'][0]['end_date'])
+
+                                    charge_month = charge_date.strftime(
+                                        '%B')
+                                    if(payment['fee_name'] == 'Management'):
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=contractRes['result'][0]['property_uid'],
+                                            payer=payer,
+                                            receiver=contractRes['result'][0]['business_uid'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=(
+                                                int(payment['charge']) * int(contractRes['result'][0]['listed_rent']))/100,
+                                            purchase_notes=charge_month,
+                                            purchase_date=contractRes['result'][0]['start_date'],
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date.replace(
+                                                day=1)
+                                        )
+
+                                    else:
+
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=contractRes['result'][0]['property_uid'],
+                                            payer=payer,
+                                            receiver=contractRes['result'][0]['business_uid'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=(
+                                                int(payment['charge']) * int(contractRes['result'][0]['listed_rent']))/100,
+                                            purchase_notes=charge_month,
+                                            purchase_date=contractRes['result'][0]['start_date'],
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date.replace(
+                                                day=1)
+                                        )
 
                     print('accepted')
                 print(newProperty)

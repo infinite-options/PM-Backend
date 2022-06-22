@@ -216,39 +216,96 @@ class ExtendLease(Resource):
                 }
                 db.insert('leaseTenants', leaseTenant)
 
+            response = db.execute("""SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION' AND property_uid = \'"""
+                                  + newRental['rental_property_id']
+                                  + """\' """)
+            newApplication = {'application_status': 'RENTED'}
+            for response in response['result']:
+                pk = {
+                    'application_uid': response['application_uid']
+                }
+                response = db.update(
+                    'applications', pk, newApplication)
+
+            primaryKeyA = {
+                'application_uid': data.get('application_uid')
+            }
+            # print('newAppl', newApplication)
+            response = db.update(
+                'applications', primaryKeyA, newApplication)
         return response
 
     def put(self):
         response = {}
         with connect() as db:
-            data = request.form
-            rental_uid = data.get('rental_uid')
-            fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee']
+            data = request.json
+            fields = ['rental_uid', 'rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
+                      'message', 'application_status']
             newRental = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     newRental[field] = fieldValue
                     print('fieldvalue', fieldValue)
-                if field == 'documents':
-                    documents = json.loads(data.get('documents'))
-                    for i, doc in enumerate(documents):
-                        filename = f'doc_{i}'
-                        file = request.files.get(filename)
-                        s3Link = doc.get('link')
-                        if file:
-                            doc['file'] = file
-                        elif s3Link:
-                            doc['link'] = s3Link
-                        else:
-                            break
-                    documents = updateDocuments(documents, rental_uid)
-                    newRental['documents'] = json.dumps(documents)
+                print(field, fieldValue)
 
-            primaryKey = {'rental_uid': rental_uid}
-            print('newRental', newRental)
-            response = db.update('rentals', primaryKey, newRental)
+                if field == 'application_status' and fieldValue != None:
+                    # set application_status to LEASE EXTENSION
+                    if newRental['application_status'] == 'LEASE EXTENSION':
+                        print('tenant requesting to extend Lease')
+                        print(newRental)
+                        response = db.execute(
+                            """SELECT * FROM pm.applications WHERE application_status='RENTED' AND property_uid = \'"""
+                            + newRental['property_uid']
+                            + """\' """)
+                        # print('response', response, len(response['result']))
+                        if len(response['result']) > 1:
+                            newRental['application_status'] = 'LEASE EXTENSION REQUESTED'
+                        else:
+                            response = db.execute(
+                                """SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION REQUESTED' AND property_uid = \'"""
+                                + newRental['property_uid']
+                                + """\' """)
+                            print('response', response['result'])
+
+                            if len(response['result']) > 0:
+                                newRental['application_status'] = 'LEASE EXTENSION'
+                                for response in response['result']:
+                                    pk = {
+                                        'application_uid': response['application_uid']
+                                    }
+                                    response = db.update(
+                                        'applications', pk, newRental)
+                    # set application_status back to RENTED
+                    elif newRental['application_status'] == 'REFUSED':
+                        print('pm rejected to extend lease')
+                        response = db.execute(
+                            """SELECT * FROM pm.applications WHERE (application_status='LEASE EXTENSION REQUESTED' OR application_status='LEASE EXTENSION')  AND property_uid = \'"""
+                            + newRental['property_uid']
+                            + """\' """)
+                        newRental['application_status'] = 'RENTED'
+                        for response in response['result']:
+                            pk = {
+                                'application_uid': response['application_uid']
+                            }
+                            response = db.update(
+                                'applications', pk, newRental)
+
+                    primaryKeyA = {
+                        'application_uid': data.get('application_uid')
+                    }
+                    # print('newAppl', newApplication)
+                    response = db.update(
+                        'applications', primaryKeyA, newRental)
+            print(hasattr(newRental, 'rental_uid'))
+            print('rental_uid' in newRental)
+            if 'rental_uid' in newRental:
+                print('here', newRental)
+                primaryKey = {'rental_uid': newRental['rental_uid']}
+                print('newRental', newRental)
+                response = db.update('rentals', primaryKey, newRental)
+
         return response
 
 

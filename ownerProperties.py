@@ -146,72 +146,72 @@ class PropertiesOwner(Resource):
                                         rental_year_revenue = rental_year_revenue + \
                                             weeks_active * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
                                             weeks_current_month*int(owner_revenue['result']
-                                                                    [ore]['amount_paid'])
+                                                                    [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
                                         rental_year_revenue = rental_year_revenue + \
                                             weeks_active/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
                                             weeks_current_month/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
                                         rental_year_revenue = rental_year_revenue + \
                                             yearCal * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Annually':
                                         rental_year_revenue = rental_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         rental_revenue = rental_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     else:
                                         rental_year_revenue = rental_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         rental_revenue = rental_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
 
                                 if owner_revenue['result'][ore]['purchase_type'] == 'EXTRA CHARGES':
                                     if owner_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
                                             weeks_active * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
                                             weeks_current_month*int(owner_revenue['result']
-                                                                    [ore]['amount_paid'])
+                                                                    [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
                                             weeks_active/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
                                             weeks_current_month/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
                                             yearCal * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Annually':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     else:
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
 
                         response['result'][i]['rental_revenue'] = rental_revenue
                         response['result'][i]['extraCharges_revenue'] = extraCharges_revenue
@@ -226,7 +226,6 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type = "RENT" OR p.purchase_type = "EXTRA CHARGES")""")
 
                         response['result'][i]['year_revenue'] = 0
@@ -234,7 +233,7 @@ class PropertiesOwner(Resource):
                             for pr in range(len(yearly_owner_revenue['result'])):
 
                                 response['result'][i]['year_revenue'] = response['result'][i]['year_revenue'] + int(
-                                    yearly_owner_revenue['result'][pr]['amount_paid'])
+                                    yearly_owner_revenue['result'][pr]['amount_due'])
                         else:
                             response['result'][i]['year_revenue'] = 0
                         # monthly expense for the property
@@ -245,7 +244,6 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND p.purchase_status ="PAID"
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
@@ -268,20 +266,20 @@ class PropertiesOwner(Resource):
                                             print('in maintenance once a month')
                                             maintenance_year_expenses = maintenance_year_expenses + yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                          # if maintenance monthly twice a month
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
                                             print(
                                                 'in maintenance twice a month')
                                             maintenance_year_expenses = maintenance_year_expenses + 2*yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
                                                 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                         else:
                                             print('do nothing')
                                      # if maintenance annually
@@ -291,24 +289,24 @@ class PropertiesOwner(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
                                             maintenance_year_expenses = maintenance_year_expenses + \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         # if maintenance annually twice a year
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
                                             maintenance_year_expenses = maintenance_year_expenses + 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         else:
                                             print('do nothing')
                                     # if maintenance one-time
                                     else:
                                         maintenance_year_expenses = maintenance_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                         maintenance_expenses = maintenance_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                 # if management
                                 if owner_expense['result'][ore]['purchase_type'] == 'MANAGEMENT':
                                     # if management monthly
@@ -317,18 +315,18 @@ class PropertiesOwner(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
                                             management_year_expenses = yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                          # if management monthly twice a month
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
                                             management_year_expenses = 2*yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
                                                 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                         else:
                                             print('do nothing')
                                      # if management annually
@@ -337,24 +335,24 @@ class PropertiesOwner(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
                                             management_year_expenses =  \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         # if management annually twice a year
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
                                             management_year_expenses = 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         else:
                                             print('do nothing')
                                     # if management one-time
                                     else:
                                         management_year_expenses = management_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                         management_expenses = management_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
 
                                 if owner_expense['result'][ore]['purchase_type'] == 'REPAIRS':
                                     # if repairs monthly
@@ -363,18 +361,18 @@ class PropertiesOwner(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
                                             repairs_year_expenses = yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                          # if repairs monthly twice a month
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
                                             repairs_year_expenses = 2*yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
                                                 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                         else:
                                             print('do nothing')
                                      # if repairs annually
@@ -383,24 +381,24 @@ class PropertiesOwner(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
                                             repairs_year_expenses =  \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         # if repairs annually twice a year
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
                                             repairs_year_expenses = 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         else:
                                             print('do nothing')
                                     # if repairs one-time
                                     else:
                                         repairs_year_expenses = repairs_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                         repairs_expenses = repairs_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
 
                             response['result'][i]['maintenance_expenses'] = maintenance_expenses
                             response['result'][i]['management_expenses'] = management_expenses
@@ -428,7 +426,7 @@ class PropertiesOwner(Resource):
                             for pr in range(len(yearly_owner_expense['result'])):
 
                                 response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + int(
-                                    yearly_owner_expense['result'][pr]['amount_paid'])
+                                    yearly_owner_expense['result'][pr]['amount_due'])
                         else:
                             print('')
 
@@ -702,72 +700,72 @@ class PropertiesOwnerDetail(Resource):
                                         rental_year_revenue = rental_year_revenue + \
                                             weeks_active * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
                                             weeks_current_month*int(owner_revenue['result']
-                                                                    [ore]['amount_paid'])
+                                                                    [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
                                         rental_year_revenue = rental_year_revenue + \
                                             weeks_active/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
                                             weeks_current_month/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
                                         rental_year_revenue = rental_year_revenue + \
                                             yearCal * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Annually':
                                         rental_year_revenue = rental_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         rental_revenue = rental_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     else:
                                         rental_year_revenue = rental_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         rental_revenue = rental_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
 
                                 if owner_revenue['result'][ore]['purchase_type'] == 'EXTRA CHARGES':
                                     if owner_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
                                             weeks_active * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
                                             weeks_current_month*int(owner_revenue['result']
-                                                                    [ore]['amount_paid'])
+                                                                    [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
                                             weeks_active/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
                                             weeks_current_month/2 * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
                                             yearCal * \
                                             int(owner_revenue['result']
-                                                [ore]['amount_paid'])
+                                                [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Annually':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                     else:
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            owner_revenue['result'][ore]['amount_paid']
+                                            owner_revenue['result'][ore]['amount_due']
 
                         response['result'][i]['rental_revenue'] = rental_revenue
                         response['result'][i]['extraCharges_revenue'] = extraCharges_revenue
@@ -790,7 +788,7 @@ class PropertiesOwnerDetail(Resource):
                             for pr in range(len(yearly_owner_revenue['result'])):
 
                                 response['result'][i]['year_revenue'] = response['result'][i]['year_revenue'] + int(
-                                    yearly_owner_revenue['result'][pr]['amount_paid'])
+                                    yearly_owner_revenue['result'][pr]['amount_due'])
                         else:
                             response['result'][i]['year_revenue'] = 0
                         # # monthly expense for the property
@@ -823,20 +821,20 @@ class PropertiesOwnerDetail(Resource):
                                             print('in maintenance once a month')
                                             maintenance_year_expenses = maintenance_year_expenses + yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                          # if maintenance monthly twice a month
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
                                             print(
                                                 'in maintenance twice a month')
                                             maintenance_year_expenses = maintenance_year_expenses + 2*yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
                                                 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                         else:
                                             print('do nothing')
                                      # if maintenance annually
@@ -846,24 +844,24 @@ class PropertiesOwnerDetail(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
                                             maintenance_year_expenses = maintenance_year_expenses + \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         # if maintenance annually twice a year
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
                                             maintenance_year_expenses = maintenance_year_expenses + 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             maintenance_expenses = maintenance_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         else:
                                             print('do nothing')
                                     # if maintenance one-time
                                     else:
                                         maintenance_year_expenses = maintenance_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                         maintenance_expenses = maintenance_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                 # if management
                                 if owner_expense['result'][ore]['purchase_type'] == 'MANAGEMENT':
                                     # if management monthly
@@ -872,18 +870,18 @@ class PropertiesOwnerDetail(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
                                             management_year_expenses = yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                          # if management monthly twice a month
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
                                             management_year_expenses = 2*yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
                                                 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                         else:
                                             print('do nothing')
                                      # if management annually
@@ -892,24 +890,24 @@ class PropertiesOwnerDetail(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
                                             management_year_expenses =  \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         # if management annually twice a year
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
                                             management_year_expenses = 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             management_expenses = management_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         else:
                                             print('do nothing')
                                     # if management one-time
                                     else:
                                         management_year_expenses = management_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                         management_expenses = management_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
 
                                 if owner_expense['result'][ore]['purchase_type'] == 'REPAIRS':
                                     # if repairs monthly
@@ -918,18 +916,18 @@ class PropertiesOwnerDetail(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
                                             repairs_year_expenses = yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                          # if repairs monthly twice a month
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a month':
                                             repairs_year_expenses = 2*yearCal * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
                                                 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                         else:
                                             print('do nothing')
                                      # if repairs annually
@@ -938,24 +936,24 @@ class PropertiesOwnerDetail(Resource):
                                         if owner_expense['result'][ore]['payment_frequency'] == 'Once a year':
                                             repairs_year_expenses =  \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         # if repairs annually twice a year
                                         elif owner_expense['result'][ore]['payment_frequency'] == 'Twice a year':
                                             repairs_year_expenses = 2 * \
                                                 (owner_expense['result']
-                                                    [ore]['amount_paid'])
+                                                    [ore]['amount_due'])
                                             repairs_expenses = repairs_expenses + \
-                                                owner_expense['result'][ore]['amount_paid']
+                                                owner_expense['result'][ore]['amount_due']
                                         else:
                                             print('do nothing')
                                     # if repairs one-time
                                     else:
                                         repairs_year_expenses = repairs_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
                                         repairs_expenses = repairs_expenses + \
-                                            owner_expense['result'][ore]['amount_paid']
+                                            owner_expense['result'][ore]['amount_due']
 
                             response['result'][i]['maintenance_expenses'] = maintenance_expenses
                             response['result'][i]['management_expenses'] = management_expenses
@@ -985,7 +983,7 @@ class PropertiesOwnerDetail(Resource):
                             for pr in range(len(yearly_owner_expense['result'])):
 
                                 response['result'][i]['year_expense'] = response['result'][i]['year_expense'] + int(
-                                    yearly_owner_expense['result'][pr]['amount_paid'])
+                                    yearly_owner_expense['result'][pr]['amount_due'])
                         else:
                             print('')
                         # monthly expense for the property to include mortgage

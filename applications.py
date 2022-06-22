@@ -299,6 +299,7 @@ class EndEarly(Resource):
                         print(application)
                         updateA = {
                             'application_status': 'PM END EARLY',
+                            'message': updateApp['message']
                         }
                         pk = {
                             'application_uid': application['application_uid']}
@@ -329,6 +330,7 @@ class EndEarly(Resource):
                         if application['application_uid'] == updateApp['application_uid']:
                             updateA = {
                                 'application_status': 'TENANT END REQUESTED',
+                                'message': updateApp['message']
                             }
                             pk = {
                                 'application_uid': application['application_uid']}
@@ -354,6 +356,7 @@ class EndEarly(Resource):
                         for endR in endRes['result']:
                             updateA = {
                                 'application_status': 'TENANT END EARLY',
+
                             }
                             pk = {
                                 'application_uid': endR['application_uid']}
@@ -362,6 +365,7 @@ class EndEarly(Resource):
                         print(application)
                         updateA = {
                             'application_status': 'TENANT END EARLY',
+                            'message': updateApp['message']
                         }
                         pk = {
                             'application_uid': application['application_uid']}

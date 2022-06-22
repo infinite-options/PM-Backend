@@ -64,7 +64,7 @@ mail = Mail(app)
 def sendEmail(recipient, subject, body):
 
     msg = Message(
-        sender=os.environ.get("SUPPORT_EMAIL"),
+        sender=app.config["MAIL_USERNAME"],
         recipients=[recipient],
         subject=subject,
         body=body

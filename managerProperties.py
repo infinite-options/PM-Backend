@@ -6,8 +6,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from data import connect
 import json
 
+
 class ManagerProperties(Resource):
     decorators = [jwt_required()]
+
     def get(self):
         response = {}
         user = get_jwt_identity()
@@ -22,3 +24,13 @@ class ManagerProperties(Resource):
                 'manager_id': business_uid
             })
         return response
+
+
+# class ManagerContractFees_CLASS(Resource):
+#     def get(self):
+#         response = {}
+#         with connect() as db:
+#             response = db.execute("""SELECT * FROM purchases
+#                                     WHERE  """)
+
+#         return response
