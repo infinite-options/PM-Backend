@@ -61,6 +61,15 @@ class ManagerContractFees_CLASS(Resource):
                         for ore in range(len(purRes['result'])):
                             response['result'][i]['expense_amount'] = response['result'][i]['expense_amount'] + int(
                                 purRes['result'][ore]['amount_due'])
+             # getting all the previous management purchases
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    response['result'][i]['expense_amount'] = 0
+                    purRes = db.execute("""SELECT * FROM purchases pur
+                                           WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                                           AND pur.purchase_type = 'MANAGEMENT' """)
+                    response['result'][i]['prevPurchases'] = list(
+                        purRes['result'])
 
             if len(response['result']) > 0:
                 # today's date
@@ -84,6 +93,41 @@ class ManagerContractFees_CLASS(Resource):
                                 print('payment frequency biweekly $')
                             elif payment['frequency'] == 'Monthly':
                                 print('payment frequency monthly $')
+                                start_date = date.fromisoformat(
+                                    contract['start_date'])
+                                end_date = date.fromisoformat(
+                                    contract['end_date'])
+                                # check if today's date is before contract end
+                                if today < end_date:
+                                    # get previous purchases
+                                    if contract['prevPurchases'] != []:
+                                        prevPurchaseDate = datetime.strptime(
+                                            contract['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        # set charge date as first of every month
+                                        charge_date = prevPurchaseDate.replace(
+                                            day=1) + relativedelta(months=1)
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        print('charge_date',
+                                              charge_date, charge_month)
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('enter the fee to purchases')
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=payment['charge'],
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
+
                             elif payment['frequency'] == 'Annually':
                                 print('payment frequency annually $')
                                 start_date = date.fromisoformat(
@@ -117,10 +161,6 @@ class ManagerContractFees_CLASS(Resource):
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date
                                         )
-                                    else:
-                                        print('do nothing')
-                                else:
-                                    print('do nothing')
                             else:
                                 print('payment frequency one-time $')
                         # if fee_type is %, we check for the gross rent or net and calculate the charge according to that
@@ -132,6 +172,64 @@ class ManagerContractFees_CLASS(Resource):
                                 print('payment frequency biweekly %')
                             elif payment['frequency'] == 'Monthly':
                                 print('payment frequency monthly %')
+                                start_date = date.fromisoformat(
+                                    contract['start_date'])
+                                end_date = date.fromisoformat(
+                                    contract['end_date'])
+                                # check if today's date is before contract end
+                                if today < end_date:
+                                    # get previous purchases
+                                    if contract['prevPurchases'] != []:
+                                        prevPurchaseDate = datetime.strptime(
+                                            contract['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        # set charge date as first of every month
+                                        charge_date = prevPurchaseDate.replace(
+                                            day=1) + relativedelta(months=1)
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        print('charge_date',
+                                              charge_date, charge_month)
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('enter the fee to purchases')
+                                            # if yes, then enter the monthly fees to the purchases table
+                                        print('enter the fee to purchases')
+                                        # if gross rent (listed rent)
+                                        if payment['of'] == 'Gross Rent':
+                                            print('payment of gross rent', (
+                                                int(payment['charge']) * int(contract['listed_rent']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            print('payment of net rent', (
+                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
                             elif payment['frequency'] == 'Annually':
                                 print('payment frequency annually %')
                                 start_date = date.fromisoformat(
@@ -187,10 +285,6 @@ class ManagerContractFees_CLASS(Resource):
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date
                                             )
-                                    else:
-                                        print('do nothing')
-                                else:
-                                    print('do nothing')
                             else:
                                 print('payment frequency one-time %')
 

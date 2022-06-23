@@ -372,6 +372,7 @@ class Properties(Resource):
                                     )
                                 elif payment['frequency'] == 'Monthly':
                                     print('payment frequency monthly %')
+                                    print(start_date)
                                     charge_month = start_date.strftime('%B')
                                     charge_date = start_date.replace(
                                         day=days_in_month(start_date))
