@@ -215,8 +215,9 @@ class Properties(Resource):
                                 if payment['frequency'] == 'Weekly':
                                     print('payment frequency weekly $')
                                     charge_month = start_date.strftime('%B')
-                                    charge_date = next_weekday(start_date, 4)
-                                    print('charge_date', charge_date)
+                                    # charge_date = next_weekday(start_date, 4)
+                                    charge_date = start_date
+                                    # print('charge_date', charge_date)
                                     daily_charge = round(
                                         int(payment['charge']) / days_in_month(start_date), 2)
                                     num_days_active = days_in_month(
@@ -238,9 +239,10 @@ class Properties(Resource):
                                 elif payment['frequency'] == 'Biweekly':
                                     print('payment frequency biweekly $')
                                     charge_month = start_date.strftime('%B')
-                                    charge_date = next_weekday_biweekly(
-                                        start_date, 4)
-                                    print('charge_date', charge_date)
+                                    # charge_date = next_weekday_biweekly(
+                                    #     start_date, 4)
+                                    charge_date = start_date
+                                    # print('charge_date', charge_date)
                                     daily_charge = round(
                                         int(payment['charge']) / days_in_month(start_date), 2)
                                     num_days_active = days_in_month(
@@ -262,8 +264,9 @@ class Properties(Resource):
                                 elif payment['frequency'] == 'Monthly':
                                     print('payment frequency monthly $')
                                     charge_month = start_date.strftime('%B')
-                                    charge_date = start_date.replace(
-                                        day=days_in_month(start_date))
+                                    # charge_date = start_date.replace(
+                                    #     day=days_in_month(start_date))
+                                    charge_date = start_date
                                     daily_charge = round(
                                         int(payment['charge']) / days_in_month(start_date), 2)
                                     num_days_active = days_in_month(
@@ -286,8 +289,9 @@ class Properties(Resource):
                                     print('payment frequency annually $')
                                     charge_month = (start_date +
                                                     relativedelta(months=1)).strftime('%B')
-                                    charge_date = start_date.replace(
-                                        day=1) + relativedelta(months=1)
+                                    # charge_date = start_date.replace(
+                                    #     day=1) + relativedelta(months=1)
+                                    charge_date = start_date
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=contractRes['result'][0]['property_uid'],
@@ -305,8 +309,9 @@ class Properties(Resource):
                                     print('payment frequency one-time $')
                                     charge_month = (start_date +
                                                     relativedelta(months=1)).strftime('%B')
-                                    charge_date = start_date.replace(
-                                        day=1) + relativedelta(months=1)
+                                    # charge_date = start_date.replace(
+                                    #     day=1) + relativedelta(months=1)
+                                    charge_date = start_date
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=contractRes['result'][0]['property_uid'],
@@ -326,8 +331,11 @@ class Properties(Resource):
                                 if payment['frequency'] == 'Weekly':
                                     print('payment frequency weekly %')
                                     charge_month = start_date.strftime('%B')
-                                    charge_date = next_weekday(start_date, 4)
-                                    print('charge_date', charge_date)
+                                    # charge_date = next_weekday(start_date, 4)
+                                    # charge_date = start_date.replace(
+                                    #     day=days_in_month(start_date))
+                                    charge_date = start_date
+                                    # print('charge_date', charge_date)
                                     daily_charge = round((int(payment['charge']) * int(
                                         contractRes['result'][0]['listed_rent']))/100 / days_in_month(start_date), 2)
                                     num_days_active = days_in_month(
@@ -349,9 +357,12 @@ class Properties(Resource):
                                 elif payment['frequency'] == 'Biweekly':
                                     print('payment frequency biweekly %')
                                     charge_month = start_date.strftime('%B')
-                                    charge_date = next_weekday_biweekly(
-                                        start_date, 4)
-                                    print('charge_date', charge_date)
+                                    # charge_date = next_weekday_biweekly(
+                                    #     start_date, 4)
+                                    # charge_date = start_date.replace(
+                                    #     day=days_in_month(start_date))
+                                    charge_date = start_date
+                                    # print('charge_date', charge_date)
                                     daily_charge = round((int(payment['charge']) * int(
                                         contractRes['result'][0]['listed_rent']))/100 / days_in_month(start_date), 2)
                                     num_days_active = days_in_month(
@@ -374,8 +385,9 @@ class Properties(Resource):
                                     print('payment frequency monthly %')
                                     print(start_date)
                                     charge_month = start_date.strftime('%B')
-                                    charge_date = start_date.replace(
-                                        day=days_in_month(start_date))
+                                    # charge_date = start_date.replace(
+                                    #     day=days_in_month(start_date))
+                                    charge_date = start_date
                                     daily_charge = round((int(payment['charge']) * int(
                                         contractRes['result'][0]['listed_rent']))/100 / days_in_month(start_date), 2)
                                     num_days_active = days_in_month(
@@ -398,8 +410,9 @@ class Properties(Resource):
                                     print('payment frequency annually %')
                                     charge_month = (start_date +
                                                     relativedelta(months=1)).strftime('%B')
-                                    charge_date = start_date.replace(
-                                        day=1) + relativedelta(months=1)
+                                    # charge_date = start_date.replace(
+                                    #     day=1) + relativedelta(months=1)
+                                    charge_date = start_date
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=contractRes['result'][0]['property_uid'],
@@ -418,8 +431,9 @@ class Properties(Resource):
                                     print('payment frequency one-time %')
                                     charge_month = (start_date +
                                                     relativedelta(months=1)).strftime('%B')
-                                    charge_date = start_date.replace(
-                                        day=1) + relativedelta(months=1)
+                                    # charge_date = start_date.replace(
+                                    #     day=1) + relativedelta(months=1)
+                                    charge_date = start_date
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=contractRes['result'][0]['property_uid'],
