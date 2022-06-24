@@ -20,7 +20,7 @@ from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, Exten
 from purchases import Purchases, CreateExpenses
 from payments import Payments, UserPayments
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner
-from managerProperties import ManagerProperties, ManagerContractFees_CLASS
+from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
 from tenantProperties import TenantProperties
 from refresh import Refresh
 from businesses import Businesses
