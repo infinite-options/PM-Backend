@@ -140,8 +140,8 @@ class ManagerContractFees_CLASS(Resource):
                                 if diff > 12 and today < end_date:
                                     print('lease longer than 1 year')
                                     # create a charge date for 1 year from start date
-                                    charge_date = start_date.replace(
-                                        day=1) + relativedelta(months=13)
+                                    charge_date = start_date + \
+                                        relativedelta(months=12)
                                     charge_month = charge_date.strftime('%B')
                                     # check if today's date == the charge date
                                     if today == charge_date:
@@ -242,8 +242,8 @@ class ManagerContractFees_CLASS(Resource):
                                 if diff > 12 and today < end_date:
                                     print('lease longer than 1 year')
                                     # create a charge date for 1 year from start date
-                                    charge_date = start_date.replace(
-                                        day=1) + relativedelta(months=13)
+                                    charge_date = start_date + \
+                                        relativedelta(months=12)
                                     charge_month = charge_date.strftime('%B')
                                     # check if today's date == the charge date
                                     if today == charge_date:
