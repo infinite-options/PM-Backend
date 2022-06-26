@@ -3,6 +3,7 @@ from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from matplotlib.font_manager import json_dump
+from matplotlib.style import available
 
 from data import connect
 from datetime import date
@@ -64,20 +65,87 @@ class AvailableProperties(Resource):
         response = {}
 
         with connect() as db:
+            # response = db.execute("""SELECT * FROM pm.propertyInfo
+            #                             WHERE(rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING')
+            #                             OR rental_status IS NULL AND (manager_id IS NOT NULL)
+            #                             AND r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
+            #                             OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d")
+            #                             AND (management_status = 'ACCEPTED') """)
 
-            # sql = """SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = \'"""
-            # + tenant_id
-            # + """\'"""
-            # print(sql)
+            response = db.execute("""SELECT * FROM pm.properties p
+                                        LEFT JOIN   pm.rentals r
+                                        ON r.rental_property_id = p.property_uid
+                                        LEFT JOIN pm.propertyManager pM
+                                        ON pM.linked_property_id = p.property_uid
+                                        WHERE (management_status = 'ACCEPTED') """)
 
-            response = db.execute(
-                "SELECT * FROM pm.propertyInfo WHERE  (rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING') OR rental_status IS NULL AND (manager_id IS NOT NULL) AND (management_status = 'ACCEPTED') ")
-            # response = db.execute("""SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = \'"""
-            #                       + tenant_id
-            #                       + """\'""")
-            # response = db.execute(sql)
-            # response = db.execute(
-            #     "SELECT * FROM pm.propertyInfo WHERE rental_status <> 'ACTIVE' AND rental_status <> 'PROCESSING' OR rental_status IS NULL OR tenant_id = %(tenant_id)s")
+            print(response['result'])
+            availableProperties = []
+            terminated = []
+            rentals = []
+            expired = []
+            notRented = []
+            if len(response['result']) > 0:
+                for rentals in response['result']:
+                    # skip rental status ACTIVE
+                    if rentals['rental_status'] == 'ACTIVE':
+                        print('skip if rental_status active',
+                              rentals['rental_status'])
+                    # skip rental status PROCESSING
+                    elif rentals['rental_status'] == 'PROCESSING':
+                        print('skip if rental_status processing',
+                              rentals['rental_status'])
+                    # skip rental status TENANT APPROVED
+                    elif rentals['rental_status'] == 'TENANT APPROVED':
+                        print('skip if rental_status tenant approved',
+                              rentals['rental_status'])
+                    # do sometginf rental status TERMINATED
+                    elif rentals['rental_status'] == 'TERMINATED':
+                        print('do something if rental_status terminated',
+                              rentals['rental_status'])
+                        # check if another lease active for the same property
+                        terminatedResponse = db.execute("""SELECT * FROM pm.rentals r
+                                                        LEFT JOIN  pm.properties p
+                                                        ON p.property_uid = r.rental_property_id
+                                                        LEFT JOIN pm.propertyManager pM
+                                                        ON pM.linked_property_id = p.property_uid
+                                                        WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
+                                                        AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
+                                                        AND management_status = 'ACCEPTED'  """)
+
+                        if len(terminatedResponse['result']) > 0:
+                            print('do not add terminated')
+                        else:
+                            print('add terminated')
+                            terminated.append(rentals)
+
+                     # do sometginf rental status EXPIRED
+                    elif rentals['rental_status'] == 'EXPIRED':
+                        print('do something if rental_status expired',
+                              rentals['rental_status'])
+                        # check if another lease active for the same property
+                        expiredResponse = db.execute("""SELECT * FROM pm.rentals r
+                                                        LEFT JOIN  pm.properties p
+                                                        ON p.property_uid = r.rental_property_id
+                                                        LEFT JOIN pm.propertyManager pM
+                                                        ON pM.linked_property_id = p.property_uid
+                                                        WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
+                                                        AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
+                                                        AND management_status = 'ACCEPTED'  """)
+
+                        if len(expiredResponse['result']) > 0:
+                            print('do not add expired')
+                        else:
+                            print('add expired')
+                            expired.append(rentals)
+                        print('expired', expired,  len(expired))
+                    else:
+                        print('do something if rental_status None',
+                              rentals['rental_status'])
+                        notRented.append(rentals)
+            availableProperties = terminated + expired + notRented
+            response['result'] = availableProperties
+            print(availableProperties, len(availableProperties))
         return response
 
 
