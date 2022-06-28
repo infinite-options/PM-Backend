@@ -49,7 +49,7 @@ class Rentals(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
+            fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
                       'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
             newRental = {}
             for field in fields:

@@ -45,7 +45,7 @@ class Applications(Resource):
         with connect() as db:
             sql = 'SELECT  FROM applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.property_uid = r.rental_property_id'
             cols = 'application_uid, message, application_status, t.*, p.*, r.*'
-            tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.property_uid = r.rental_property_id'
+            tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id'
             response = db.select(cols=cols, tables=tables, where=where)
         return response
 
@@ -76,12 +76,13 @@ class Applications(Resource):
         with connect() as db:
             data = request.json
             fields = ['message', 'application_status',
-                      'property_uid', 'adult_occupants', 'children_occupants']
+                      'property_uid', 'adult_occupants', 'children_occupants', "application_uid"]
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     newApplication[field] = fieldValue
+            # tenant approves lease aggreement
             if newApplication['application_status'] == 'RENTED':
                 response = db.execute(
                     """SELECT * FROM pm.applications WHERE application_status='FORWARDED' AND property_uid = \'"""
@@ -461,7 +462,9 @@ class Applications(Resource):
                             }
                             resRej = db.update(
                                 'applications', pk, rejApplication)
+            # tenant refuses lease aggreement
             elif newApplication['application_status'] == 'REFUSED':
+                print('here tenant refused')
                 response = db.execute(
                     """SELECT * FROM pm.applications WHERE application_status='FORWARDED' AND property_uid = \'"""
                     + newApplication['property_uid']
@@ -474,14 +477,16 @@ class Applications(Resource):
                             SET
                             application_status=\'""" + newApplication['application_status'] + """\'
                             WHERE
-                            application_status='FORWARDED'
+                            application_status='FORWARDED' 
                             AND property_uid = \'""" + newApplication['property_uid'] + """\' """)
 
                     res = db.execute(
-                        """SELECT * FROM pm.rentals WHERE rental_status='PROCESSING' AND rental_property_id = \'"""
-                        + newApplication['property_uid']
-                        + """\' """)
-                    # print('res', res, len(res['result']))
+                        """SELECT * 
+                        FROM pm.rentals
+                        WHERE rental_status='PROCESSING' 
+                        AND rental_property_id = \'""" + newApplication['property_uid'] + """\' 
+                        AND linked_application_id LIKE '%%\"""" + newApplication['application_uid'] + """\"%%' """)
+                    print('res', res, len(res['result']))
                     if len(res['result']) > 0:
                         for res in res['result']:
                             # print('res', res['rental_uid'])
@@ -493,6 +498,22 @@ class Applications(Resource):
                                 'rentals', pk1, newRental)
                 else:
                     newApplication['application_status'] = 'REFUSED'
+                    res = db.execute(
+                        """SELECT * 
+                        FROM pm.rentals
+                        WHERE rental_status='PROCESSING' 
+                        AND rental_property_id = \'""" + newApplication['property_uid'] + """\' 
+                        AND linked_application_id LIKE '%%\"""" + newApplication['application_uid'] + """\"%%' """)
+                    print('res', res, len(res['result']))
+                    if len(res['result']) > 0:
+                        for res in res['result']:
+                            # print('res', res['rental_uid'])
+                            pk1 = {
+                                'rental_uid': res['rental_uid']}
+                            newRental = {
+                                'rental_status': 'REFUSED'}
+                            res = db.update(
+                                'rentals', pk1, newRental)
 
             #     recipient = 'zacharywolfflind@gmail.com'
             #     subject = 'Application Accepted'
