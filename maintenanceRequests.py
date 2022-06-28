@@ -87,9 +87,11 @@ class MaintenanceRequests(Resource):
             newRequestID = db.call('new_request_id')['result'][0]['new_id']
             newRequest['maintenance_request_uid'] = newRequestID
             images = []
-            i = 0
+            i = -1
             while True:
                 filename = f'img_{i}'
+                if i == -1:
+                    filename = 'img_cover'
                 file = request.files.get(filename)
                 if file:
                     key = f'maintenanceRequests/{newRequestID}/{filename}'
@@ -118,19 +120,24 @@ class MaintenanceRequests(Resource):
                 if fieldValue:
                     newRequest[field] = fieldValue
             images = []
-            i = 0
+            i = -1
             imageFiles = {}
             while True:
+                print('if true')
                 filename = f'img_{i}'
+                if i == -1:
+                    filename = 'img_cover'
                 file = request.files.get(filename)
                 s3Link = data.get(filename)
                 if file:
                     imageFiles[filename] = file
                     images = updateImages(imageFiles, maintenance_request_uid)
+                    print('images', images)
                     newRequest['images'] = json.dumps(images)
                 elif s3Link:
                     imageFiles[filename] = s3Link
                     images = updateImages(imageFiles, maintenance_request_uid)
+                    print('images', images)
                     newRequest['images'] = json.dumps(images)
                 else:
                     break
