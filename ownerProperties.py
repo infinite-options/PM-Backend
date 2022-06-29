@@ -134,8 +134,9 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND p.payer LIKE '%%\"""" + owner_id + """\"%%'
-                                                        AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
-                                                        AND (p.purchase_type<> "RENT" OR p.purchase_type<> "EXTRA CHARGES" )""")
+                                                        AND p.purchase_status = 'UNPAID'
+                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" )""")
 
                         response['result'][i]['owner_bills'] = list(
                             owner_bills['result'])
