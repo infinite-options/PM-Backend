@@ -9,12 +9,14 @@ from datetime import date, datetime, timedelta
 
 
 class TenantProperties(Resource):
-    decorators = [jwt_required()]
+    # decorators = [jwt_required()]
 
     def get(self):
         response = {}
-        user = get_jwt_identity()
+        # user = get_jwt_identity()
         with connect() as db:
+            data = request.json
+            user_uid = data['user_uid']
             # where = {
             #     'tenant_id': user['user_uid']
             # }
@@ -23,7 +25,7 @@ class TenantProperties(Resource):
             #                       + """\'""")
             # response = db.select(
             #     "propertyInfo WHERE rental_status= 'ACTIVE'", where)
-            print('here', user['user_uid'])
+            # print('here', user['user_uid'])
             response = db.execute(""" SELECT * FROM pm.properties
                                         LEFT JOIN pm.rentals
                                         ON rental_property_id = property_uid
@@ -31,7 +33,7 @@ class TenantProperties(Resource):
                                         ON linked_rental_uid = rental_uid
                                         LEFT JOIN pm.propertyManager
                                         ON linked_property_id = property_uid
-                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND management_status <> 'REJECTED'; """)
+                                        WHERE linked_tenant_id = \'""" + user_uid + """\' AND rental_status = 'ACTIVE' AND management_status <> 'REJECTED'; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
@@ -71,7 +73,7 @@ class TenantProperties(Resource):
                                             FROM pm.tenantProfileInfo tpi
                                             LEFT JOIN pm.users u
                                             ON u.user_uid = tpi.tenant_id
-                                            WHERE tenant_id = \'""" + user['user_uid'] + """\' """)
+                                            WHERE tenant_id = \'""" + user_uid + """\' """)
                 response['result'][i]['tenantInfo'] = list(
                     rental_res['result'])
 
@@ -81,7 +83,7 @@ class TenantProperties(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
-                                                        AND p.payer LIKE '%%\"""" + user['user_uid'] + """\"%%'
+                                                        AND p.payer LIKE '%%\"""" + user_uid + """\"%%'
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= "UTILITY")""")
                 response['result'][i]['tenantExpenses'] = []
                 if len(tenant_expenses['result']) > 0:
@@ -105,9 +107,19 @@ class TenantProperties(Resource):
                             print('in future')
                             # if utility or extra charges then all
                             if tenant_expenses['result'][ore]['purchase_type'] != 'RENT':
-                                print('appended from here')
-                                response['result'][i]['tenantExpenses'].append(
-                                    (tenant_expenses['result'][ore]))
+                                print('here no rents')
+                                print(
+                                    'appended from here', tenant_expenses['result'][ore]['purchase_type'])
+                                if tenant_expenses['result'][ore]['purchase_frequency'] != 'Monthly':
+                                    print(
+                                        'appended from here purchase_frequency not monthly', tenant_expenses['result'][ore]['purchase_frequency'])
+                                    response['result'][i]['tenantExpenses'].append(
+                                        (tenant_expenses['result'][ore]))
+                                else:
+                                    print(
+                                        'appended from here monthly', tenant_expenses['result'][ore]['purchase_frequency'])
+                                    num_days.append(datetime.strptime(
+                                        tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
                             # add time differences in date, if rent get the most recent upcoming
                             else:
 
@@ -128,13 +140,30 @@ class TenantProperties(Resource):
                 for ore in range(len(tenant_expenses['result'])):
                     # upcoming 1 rent in the future
                     if tenant_expenses['result'][ore]['purchase_type'] == 'RENT':
-                        print('should append from here too')
-                        if datetime.strftime(min(
-                                date, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
-                            print('next payment due',
-                                  tenant_expenses['result'][ore])
-                            response['result'][i]['tenantExpenses'].append(
-                                (tenant_expenses['result'][ore]))
+                        if len(date) > 0:
+                            if datetime.strftime(min(
+                                    date, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                                print('next payment due',
+                                      tenant_expenses['result'][ore])
+                                response['result'][i]['tenantExpenses'].append(
+                                    (tenant_expenses['result'][ore]))
+                    else:
+                        if len(num_days) > 0:
+                            if datetime.strftime(min(
+                                    num_days, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                                print('next payment due',
+                                      tenant_expenses['result'][ore])
+                                response['result'][i]['tenantExpenses'].append(
+                                    (tenant_expenses['result'][ore]))
+                # for ore in range(len(tenant_expenses['result'])):
+                #     # upcoming 1 rent in the future
+
+                #     if datetime.strftime(min(
+                #             num_days, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                #         print('next payment due',
+                #               tenant_expenses['result'][ore])
+                #         response['result'][i]['tenantExpenses'].append(
+                #             (tenant_expenses['result'][ore]))
                 print('tenantExpenses',
                       response['result'][i]['tenantExpenses'])
         return response
