@@ -304,7 +304,7 @@ class Applications(Resource):
                                         purchase_frequency=payment['frequency'],
                                         next_payment=charge_date
                                     )
-                            elif payment['fee_name'] == 'Move-Out Charge':
+                            elif payment['frequency'] == 'Move-Out Charge':
                                 print('payment fee purchase_type EXTRA CHARGES')
 
                                 print('payment frequency one-time $')
@@ -327,7 +327,7 @@ class Applications(Resource):
                                     purchase_frequency=payment['frequency'],
                                     next_payment=charge_date
                                 )
-                            elif payment['fee_name'] == 'Move-in Charge':
+                            elif payment['frequency'] == 'Move-in Charge':
                                 print('payment fee purchase_type EXTRA CHARGES')
 
                                 print('payment frequency one-time $')
