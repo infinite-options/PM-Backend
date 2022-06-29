@@ -9,14 +9,14 @@ from datetime import date, datetime, timedelta
 
 
 class TenantProperties(Resource):
-    # decorators = [jwt_required()]
+    decorators = [jwt_required()]
 
     def get(self):
         response = {}
-        # user = get_jwt_identity()
+        user = get_jwt_identity()
         with connect() as db:
-            data = request.json
-            user_uid = data['user_uid']
+            # data = request.json
+            # user_uid = data['user_uid']
             # where = {
             #     'tenant_id': user['user_uid']
             # }
@@ -25,7 +25,7 @@ class TenantProperties(Resource):
             #                       + """\'""")
             # response = db.select(
             #     "propertyInfo WHERE rental_status= 'ACTIVE'", where)
-            # print('here', user['user_uid'])
+            print('here', user['user_uid'])
             response = db.execute(""" SELECT * FROM pm.properties
                                         LEFT JOIN pm.rentals
                                         ON rental_property_id = property_uid
@@ -33,7 +33,7 @@ class TenantProperties(Resource):
                                         ON linked_rental_uid = rental_uid
                                         LEFT JOIN pm.propertyManager
                                         ON linked_property_id = property_uid
-                                        WHERE linked_tenant_id = \'""" + user_uid + """\' AND rental_status = 'ACTIVE' AND management_status <> 'REJECTED'; """)
+                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND management_status <> 'REJECTED'; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
@@ -73,7 +73,7 @@ class TenantProperties(Resource):
                                             FROM pm.tenantProfileInfo tpi
                                             LEFT JOIN pm.users u
                                             ON u.user_uid = tpi.tenant_id
-                                            WHERE tenant_id = \'""" + user_uid + """\' """)
+                                            WHERE tenant_id = \'""" + user['user_uid'] + """\' """)
                 response['result'][i]['tenantInfo'] = list(
                     rental_res['result'])
 
@@ -83,7 +83,7 @@ class TenantProperties(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
-                                                        AND p.payer LIKE '%%\"""" + user_uid + """\"%%'
+                                                        AND p.payer LIKE '%%\"""" + user['user_uid'] + """\"%%'
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= "UTILITY")""")
                 response['result'][i]['tenantExpenses'] = []
                 if len(tenant_expenses['result']) > 0:
