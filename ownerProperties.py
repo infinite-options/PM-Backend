@@ -692,6 +692,21 @@ class PropertiesOwnerDetail(Resource):
                         weeks_active = round((abs(today - datetime.strptime(
                             response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
 
+                        # monthly bills for the property
+                        owner_bills = db.execute("""SELECT *
+                                                        FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
+                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND p.payer LIKE '%%\"""" + owner_id + """\"%%'
+                                                        AND p.purchase_status = 'UNPAID'
+                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" )""")
+
+                        response['result'][i]['owner_bills'] = list(
+                            owner_bills['result'])
+
                         # monthly revenue for the property
                         owner_revenue = db.execute("""SELECT *
                                                         FROM pm.purchases p
