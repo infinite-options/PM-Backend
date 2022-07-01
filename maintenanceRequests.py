@@ -153,7 +153,7 @@ class MaintenanceRequests(Resource):
 class MaintenanceRequestsandQuotes(Resource):
     def get(self):
         response = {}
-        filters = ['property_uid', 'manager_id']
+        filters = ['property_uid', 'manager_id', 'owner_id']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -185,7 +185,28 @@ class MaintenanceRequestsandQuotes(Resource):
                         quotes_res['result'])
                     response['result'][i]['total_quotes'] = len(
                         quotes_res['result'])
+            elif 'owner_id' in where:
+                print('in elif')
 
+                response = db.execute(""" SELECT * FROM 
+                                                maintenanceRequests mr
+                                                LEFT JOIN properties p
+                                                ON p.property_uid = mr.property_uid
+                                                LEFT JOIN propertyManager pm
+                                                ON pm.linked_property_id = p.property_uid
+                                                WHERE p.owner_id =  \'""" + where['owner_id'] + """\' AND pm.management_status='ACCEPTED' """)
+                print(response['result'])
+                for i in range(len(response['result'])):
+                    req_id = response['result'][i]['maintenance_request_uid']
+                    rid = {'linked_request_uid': req_id}  # rid
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    # print(quotes_res)
+                    # change the response variable here, don't know why
+                    response['result'][i]['quotes'] = list(
+                        quotes_res['result'])
+                    response['result'][i]['total_quotes'] = len(
+                        quotes_res['result'])
             else:
                 response = db.select(
                     ''' maintenanceRequests request ''', where)
