@@ -120,7 +120,7 @@ class MaintenanceRequests(Resource):
                 if fieldValue:
                     newRequest[field] = fieldValue
             images = []
-            i = 0
+            i = -1
             imageFiles = {}
             while True:
                 print('if true')
