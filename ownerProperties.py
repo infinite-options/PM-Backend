@@ -85,18 +85,20 @@ class PropertiesOwner(Resource):
                             owner_res['result'])
                         # rental info for the property
                         rental_res = db.execute("""SELECT 
-                                                        r.*,
-                                                        tpi.tenant_id AS tenant_id,
-                                                        tpi.tenant_first_name AS tenant_first_name,
-                                                        tpi.tenant_last_name AS tenant_last_name,
-                                                        tpi.tenant_email AS tenant_email,
-                                                        tpi.tenant_phone_number AS tenant_phone_number
-                                                        FROM pm.rentals r 
-                                                        LEFT JOIN pm.leaseTenants lt
-                                                        ON lt.linked_rental_uid = r.rental_uid
-                                                        LEFT JOIN pm.tenantProfileInfo tpi
-                                                        ON tpi.tenant_id = lt.linked_tenant_id
-                                                        WHERE r.rental_property_id = \'""" + property_id + """\'""")
+                                                    r.*,
+                                                    GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                                                    GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                                                    GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                                                    GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                                                    GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                                                    FROM pm.rentals r 
+                                                    LEFT JOIN pm.leaseTenants lt
+                                                    ON lt.linked_rental_uid = r.rental_uid
+                                                    LEFT JOIN pm.tenantProfileInfo tpi
+                                                    ON tpi.tenant_id = lt.linked_tenant_id
+                                                    WHERE r.rental_property_id = \'""" + property_id + """\'
+                                                    AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                    GROUP BY lt.linked_rental_uid""")
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
                         # rental status for the property
@@ -126,21 +128,6 @@ class PropertiesOwner(Resource):
                         weeks_active = round((abs(today - datetime.strptime(
                             response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
 
-                        # monthly bills for the property
-                        owner_bills = db.execute("""SELECT *
-                                                        FROM pm.purchases p
-                                                        LEFT JOIN
-                                                        pm.payments pa
-                                                        ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
-                                                        AND p.payer LIKE '%%\"""" + owner_id + """\"%%'
-                                                        AND p.purchase_status = 'UNPAID'
-                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" )""")
-
-                        response['result'][i]['owner_bills'] = list(
-                            owner_bills['result'])
-
                         # monthly revenue for the property
                         owner_revenue = db.execute("""SELECT *
                                                         FROM pm.purchases p
@@ -148,7 +135,7 @@ class PropertiesOwner(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
-                                                        AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
+                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" )""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
@@ -653,18 +640,21 @@ class PropertiesOwnerDetail(Resource):
                         response['result'][i]['owner'] = list(
                             owner_res['result'])
                         rental_res = db.execute("""SELECT 
-                                                        r.*,
-                                                        tpi.tenant_id AS tenant_id,
-                                                        tpi.tenant_first_name AS tenant_first_name,
-                                                        tpi.tenant_last_name AS tenant_last_name,
-                                                        tpi.tenant_email AS tenant_email,
-                                                        tpi.tenant_phone_number AS tenant_phone_number
-                                                        FROM pm.rentals r 
-                                                        LEFT JOIN pm.leaseTenants lt
-                                                        ON lt.linked_rental_uid = r.rental_uid
-                                                        LEFT JOIN pm.tenantProfileInfo tpi
-                                                        ON tpi.tenant_id = lt.linked_tenant_id
-                                                        WHERE r.rental_property_id = \'""" + property_id + """\'""")
+                                                    r.*,
+                                                    GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                                                    GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                                                    GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                                                    GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                                                    GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                                                    FROM pm.rentals r 
+                                                    LEFT JOIN pm.leaseTenants lt
+                                                    ON lt.linked_rental_uid = r.rental_uid
+                                                    LEFT JOIN pm.tenantProfileInfo tpi
+                                                    ON tpi.tenant_id = lt.linked_tenant_id
+                                                    WHERE r.rental_property_id = \'""" + property_id + """\'
+                                                    AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                    GROUP BY lt.linked_rental_uid""")
+                        print(rental_res['result'])
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
                         if len(rental_res['result']) > 0:
@@ -714,7 +704,7 @@ class PropertiesOwnerDetail(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
-                                                        AND ({fn MONTHNAME(pa.payment_date)} = {fn MONTHNAME(now())} AND YEAR(pa.payment_date) = YEAR(now()))
+                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
@@ -1160,5 +1150,35 @@ class PropertiesOwnerDetail(Resource):
                             response['result'][i]['insurance_expenses'] = insurance_expenses
 
                     # print(response)
+
+        return response
+
+
+class OwnerPropertyBills(Resource):
+    def get(self):
+        response = {}
+        filters = ['owner_id']
+        where = {}
+
+        with connect() as db:
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+                    today = date.today()
+                    # list of all properties for the owner
+                    response = db.execute("""SELECT prop.property_uid, prop.address, prop.unit, prop.city, prop.state, prop.zip, p.*, pa.*
+                                            FROM pm.properties prop
+                                            LEFT JOIN
+                                            pm.purchases p
+                                            ON p.pur_property_id = prop.property_uid
+                                            LEFT JOIN
+                                            pm.payments pa
+                                            ON pa.pay_purchase_id = p.purchase_uid
+                                            WHERE prop.owner_id = \'""" + filterValue + """\'
+                                            AND p.payer LIKE '%%\"""" + filterValue + """\"%%'
+                                            AND p.purchase_status = 'UNPAID'
+                                            AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                                            AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" )""")
 
         return response
