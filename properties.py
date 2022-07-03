@@ -154,6 +154,7 @@ class Properties(Resource):
                     break
                 i += 1
 
+                ##Image uploading stuff ends here###
             primaryKey = {
                 'property_uid': property_uid
             }
