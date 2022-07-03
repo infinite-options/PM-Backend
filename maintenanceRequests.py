@@ -131,12 +131,19 @@ class MaintenanceRequests(Resource):
                 s3Link = data.get(filename)
                 if file:
                     imageFiles[filename] = file
-                    images = updateImages(imageFiles, maintenance_request_uid)
+
+                    ##Mickey is trying something - start ##
+                    key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
+                    resultURL = uploadImage(file, key)
+                    images.append(resultURL)
+                    ##Mickey is trying something - end  ##
+
                     print('images', images)
                     newRequest['images'] = json.dumps(images)
                 elif s3Link:
                     imageFiles[filename] = s3Link
-                    images = updateImages(imageFiles, maintenance_request_uid)
+                    #images = updateImages(imageFiles, maintenance_request_uid)
+                    images.append(s3Link)
                     print('images', images)
                     newRequest['images'] = json.dumps(images)
                 else:
