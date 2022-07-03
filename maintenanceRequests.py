@@ -8,6 +8,8 @@ from datetime import datetime
 import boto3
 
 
+# If it is an s3 link, we save the file data into the attribute
+# If it is a file, no need to worry about it, the data is already there.
 def updateImages(imageFiles, maintenance_request_uid):
     for filename in imageFiles:
         if type(imageFiles[filename]) == str:
@@ -111,6 +113,7 @@ class MaintenanceRequests(Resource):
         response = {}
         with connect() as db:
             data = request.form
+            print(data)
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
                       'assigned_business', 'assigned_worker', 'scheduled_date', 'scheduled_time', 'request_status', 'request_created_by', 'request_type', "notes"]
@@ -122,6 +125,33 @@ class MaintenanceRequests(Resource):
             images = []
             i = -1
             imageFiles = {}
+            # while True:
+            #     print('if true')
+            #     filename = f'img_{i}'
+            #     if i == -1:
+            #         filename = 'img_cover'
+            #     file = request.files.get(filename)
+            #     s3Link = data.get(filename)
+            #     if file:
+            #         imageFiles[filename] = file
+            #
+                    # ##Mickey is trying something - start ##
+                    # key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
+                    # resultURL = uploadImage(file, key)
+                    # images.append(resultURL)
+                    ##Mickey is trying something - end  ##
+            #
+            #         print('images', images)
+            #         newRequest['images'] = json.dumps(images)
+            #     elif s3Link:
+            #         imageFiles[filename] = s3Link
+            #         #images = updateImages(imageFiles, maintenance_request_uid)
+            #         images.append(s3Link)
+            #         print('images', images)
+            #         newRequest['images'] = json.dumps(images)
+            #     else:
+            #         break
+            #     i += 1
             while True:
                 print('if true')
                 filename = f'img_{i}'
@@ -131,25 +161,17 @@ class MaintenanceRequests(Resource):
                 s3Link = data.get(filename)
                 if file:
                     imageFiles[filename] = file
-
-                    ##Mickey is trying something - start ##
-                    key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
-                    resultURL = uploadImage(file, key)
-                    images.append(resultURL)
-                    ##Mickey is trying something - end  ##
-
-                    print('images', images)
-                    newRequest['images'] = json.dumps(images)
                 elif s3Link:
                     imageFiles[filename] = s3Link
-                    #images = updateImages(imageFiles, maintenance_request_uid)
-                    images.append(s3Link)
-                    print('images', images)
-                    newRequest['images'] = json.dumps(images)
                 else:
                     break
-                i += 1
+                i+=1
+            print('"yay, linear imageFilesBuild --> imageFile: ', imageFiles)
+            images = updateImages(imageFiles, maintenance_request_uid)
+            print(images)
 
+            #Perform write to database
+            newRequest['images'] = json.dumps(images)
             primaryKey = {
                 'maintenance_request_uid': maintenance_request_uid
             }
