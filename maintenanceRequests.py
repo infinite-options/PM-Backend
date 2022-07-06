@@ -135,11 +135,11 @@ class MaintenanceRequests(Resource):
             #     if file:
             #         imageFiles[filename] = file
             #
-                    # ##Mickey is trying something - start ##
-                    # key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
-                    # resultURL = uploadImage(file, key)
-                    # images.append(resultURL)
-                    ##Mickey is trying something - end  ##
+            # ##Mickey is trying something - start ##
+            # key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
+            # resultURL = uploadImage(file, key)
+            # images.append(resultURL)
+            ##Mickey is trying something - end  ##
             #
             #         print('images', images)
             #         newRequest['images'] = json.dumps(images)
@@ -165,12 +165,12 @@ class MaintenanceRequests(Resource):
                     imageFiles[filename] = s3Link
                 else:
                     break
-                i+=1
+                i += 1
             print('"yay, linear imageFilesBuild --> imageFile: ', imageFiles)
             images = updateImages(imageFiles, maintenance_request_uid)
             print(images)
 
-            #Perform write to database
+            # Perform write to database
             newRequest['images'] = json.dumps(images)
             primaryKey = {
                 'maintenance_request_uid': maintenance_request_uid
@@ -217,25 +217,44 @@ class MaintenanceRequestsandQuotes(Resource):
             elif 'owner_id' in where:
                 print('in elif')
 
-                response = db.execute(""" SELECT * FROM 
-                                                maintenanceRequests mr
-                                                LEFT JOIN properties p
-                                                ON p.property_uid = mr.property_uid
-                                                LEFT JOIN propertyManager pm
-                                                ON pm.linked_property_id = p.property_uid
-                                                WHERE p.owner_id =  \'""" + where['owner_id'] + """\' AND pm.management_status='ACCEPTED' """)
-                print(response['result'])
+                # list of all properties for the owner
+                response = db.execute(
+                    """SELECT * FROM pm.properties p WHERE p.owner_id = \'"""
+                    + filterValue
+                    + """\'""")
+                # info for each property
                 for i in range(len(response['result'])):
-                    req_id = response['result'][i]['maintenance_request_uid']
-                    rid = {'linked_request_uid': req_id}  # rid
-                    quotes_res = db.select(
-                        ''' maintenanceQuotes quote ''', rid)
-                    # print(quotes_res)
-                    # change the response variable here, don't know why
-                    response['result'][i]['quotes'] = list(
-                        quotes_res['result'])
-                    response['result'][i]['total_quotes'] = len(
-                        quotes_res['result'])
+                    property_id = response['result'][i]['property_uid']
+                    # print(property_id)
+                    pid = {'linked_property_id': property_id}
+                    maintenance_res = db.execute("""SELECT *
+                                                        FROM pm.maintenanceRequests mr
+                                                        WHERE mr.property_uid = \'""" + property_id + """\'
+                                                        """)
+                    response['result'][i]['maintenanceRequests'] = list(
+                        maintenance_res['result'])
+
+                    # print(maintenance_res['result'])
+                    for y in range(len(maintenance_res['result'])):
+                        req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                        rid = {'linked_request_uid': req_id}  # rid
+                        # print(rid)
+                        quotes_res = db.select(
+                            ''' maintenanceQuotes quote ''', rid)
+                        # print(quotes_res)
+                        # change the response variable here, don't know why
+                        maintenance_res['result'][y]['quotes'] = list(
+                            quotes_res['result'])
+                        maintenance_res['result'][y]['total_quotes'] = len(
+                            quotes_res['result'])
+                sorted_props = []
+                for prop in response['result']:
+                    print("all", prop['property_uid'])
+                    if len(prop['maintenanceRequests']) > 0:
+                        # print("removed", prop['property_uid'])
+                        # response['result'].remove(prop)
+                        sorted_props.append(prop)
+                response['result'] = sorted_props
             else:
                 response = db.select(
                     ''' maintenanceRequests request ''', where)
@@ -246,6 +265,53 @@ class MaintenanceRequestsandQuotes(Resource):
                     quotes_res = db.select(
                         ''' maintenanceQuotes quote ''', rid)
                     # print(quotes_res)
+                    response['result'][i]['quotes'] = list(
+                        quotes_res['result'])
+                    response['result'][i]['total_quotes'] = len(
+                        quotes_res['result'])
+
+        return response
+
+
+class OwnerMaintenanceRequestsandQuotes(Resource):
+    def get(self):
+        response = {}
+        filters = ['owner_id']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[filter] = filterValue
+                # print((where))
+        with connect() as db:
+
+            # print('in elif', filterValue)
+            # list of all properties for the owner
+            response = db.execute(
+                """SELECT * FROM pm.properties p WHERE p.owner_id = \'"""
+                + filterValue
+                + """\'""")
+            # info for each property
+            for i in range(len(response['result'])):
+                property_id = response['result'][i]['property_uid']
+                # print(property_id)
+                pid = {'linked_property_id': property_id}
+                maintenance_res = db.execute("""SELECT *
+                                                    FROM pm.maintenanceRequests mr
+                                                    WHERE mr.property_uid = \'""" + property_id + """\'
+                                                    """)
+                response['result'][i]['maintenanceRequests'] = list(
+                    maintenance_res['result'])
+
+                # print(maintenance_res['result'])
+                for y in range(len(maintenance_res['result'])):
+                    req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                    rid = {'linked_request_uid': req_id}  # rid
+                    print(rid)
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    print(quotes_res)
+                    # change the response variable here, don't know why
                     response['result'][i]['quotes'] = list(
                         quotes_res['result'])
                     response['result'][i]['total_quotes'] = len(

@@ -26,7 +26,7 @@ from refresh import Refresh
 from businesses import Businesses
 from employees import Employees
 from maintenanceRequests import MaintenanceRequests
-from maintenanceRequests import MaintenanceRequestsandQuotes
+from maintenanceRequests import MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
@@ -238,6 +238,8 @@ api.add_resource(Businesses, '/businesses')
 api.add_resource(Employees, '/employees')
 api.add_resource(MaintenanceRequests, '/maintenanceRequests')
 api.add_resource(MaintenanceRequestsandQuotes, '/maintenanceRequestsandQuotes')
+api.add_resource(OwnerMaintenanceRequestsandQuotes,
+                 '/ownerMaintenanceRequestsandQuotes')
 api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
 api.add_resource(Contracts, '/contracts')
 api.add_resource(PropertiesManagerDetail, '/propertiesManagerDetail')
