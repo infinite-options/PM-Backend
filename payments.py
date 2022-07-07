@@ -90,3 +90,32 @@ class UserPayments(Resource):
             """)
             # response = db.execute(sql, args)
         return response
+
+
+class OwnerPayments(Resource):
+
+    def get(self):
+        response = {}
+        filters = ['owner_id']
+        where = {}
+        with connect() as db:
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+                response = db.execute("""
+                    SELECT p1.*, p2.* 
+                    FROM payments p1 
+                    LEFT JOIN purchases p2 
+                    ON pay_purchase_id = purchase_uid
+                    LEFT JOIN properties p
+                    ON p.property_uid = p2.pur_property_id
+                    WHERE p2.payer = '[\"""" + filterValue + """\"]'
+                    AND p.owner_id=   \'""" + filterValue + """\'
+                """)
+                response = db.execute("""
+                    SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
+                    WHERE p2.payer LIKE '%%\"""" + filterValue + """\"%%'
+                """)
+                # response = db.execute(sql, args)
+        return response
