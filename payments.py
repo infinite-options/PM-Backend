@@ -141,8 +141,7 @@ class TenantPayments_CLASS(Resource):
                                     LEFT JOIN
                                     pm.propertyManager propM
                                     ON propM.linked_property_id = r.rental_property_id
-                                    WHERE r.rental_status = 'ACTIVE' 
-                                    AND r.rental_property_id = '200-000024'
+                                    WHERE r.rental_status = 'ACTIVE'
                                     GROUP BY lt.linked_rental_uid;  """)
 
             # getting all the previous rental payments
@@ -244,7 +243,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -290,7 +289,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # prorate last month
                                             daily_charge_end = round(
                                                 int(payment['charge']) / days_in_month(lease_end), 2)
@@ -444,7 +443,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -487,7 +486,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -530,7 +529,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -621,7 +620,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -689,7 +688,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -757,7 +756,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -938,7 +937,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -1006,7 +1005,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -1074,7 +1073,7 @@ class TenantPayments_CLASS(Resource):
                                             charge_month = due_date.strftime(
                                                 '%B')
                                             print('due_date',
-                                                  due_date, charge_month)
+                                                  due_date, charge_month, charge_date)
                                             # if charge date == today then enter the monthly fee
                                             if charge_date == today:
                                                 print(
@@ -1207,8 +1206,7 @@ def TenantPayments():
                                 LEFT JOIN
                                 pm.propertyManager propM
                                 ON propM.linked_property_id = r.rental_property_id
-                                WHERE r.rental_status = 'ACTIVE' 
-                                AND r.rental_property_id = '200-000024'
+                                WHERE r.rental_status = 'ACTIVE'
                                 GROUP BY lt.linked_rental_uid;  """)
 
         # getting all the previous rental payments
@@ -1267,7 +1265,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month, charge_date)
+                                              due_date, charge_month, charge_date, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1310,7 +1308,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1354,7 +1352,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1485,7 +1483,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1528,7 +1526,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1571,7 +1569,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1662,7 +1660,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1730,7 +1728,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1798,7 +1796,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -1979,7 +1977,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -2047,7 +2045,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
@@ -2115,7 +2113,7 @@ def TenantPayments():
                                         charge_month = due_date.strftime(
                                             '%B')
                                         print('due_date',
-                                              due_date, charge_month)
+                                              due_date, charge_month, charge_date)
                                         # if charge date == today then enter the monthly fee
                                         if charge_date == today:
                                             print(
