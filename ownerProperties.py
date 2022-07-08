@@ -155,19 +155,30 @@ class PropertiesOwner(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
+                                                        LEFT JOIN rentals r
+                                                        ON r.rental_property_id = p.pur_property_id
                                                         WHERE p.pur_property_id = \'""" + property_id + """\'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" )""")
+                                                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" )
+                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
 
                         if len(owner_revenue['result']) > 0:
                             for ore in range(len(owner_revenue['result'])):
+                                print('owner revenue',
+                                      owner_revenue['result'][ore])
+                                yearCal_revenue = today.month - \
+                                    (datetime.strptime(
+                                        owner_revenue['result'][ore]['lease_start'], '%Y-%m-%d')).month
 
+                                weeks_current_month = len( calendar.monthcalendar(2022, int(today.strftime("%m"))))
+
+                                weeks_active_revenue = round((abs(today - datetime.strptime(owner_revenue['result'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
                                 if owner_revenue['result'][ore]['purchase_type'] == 'RENT':
                                     if owner_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
                                         rental_year_revenue = rental_year_revenue + \
-                                            weeks_active * \
+                                            weeks_active_revenue * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
@@ -175,7 +186,7 @@ class PropertiesOwner(Resource):
                                                                     [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
                                         rental_year_revenue = rental_year_revenue + \
-                                            weeks_active/2 * \
+                                            weeks_active_revenue/2 * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
@@ -184,7 +195,7 @@ class PropertiesOwner(Resource):
                                                 [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
                                         rental_year_revenue = rental_year_revenue + \
-                                            yearCal * \
+                                            yearCal_revenue * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_due'])
                                         rental_revenue = rental_revenue + \
@@ -203,7 +214,7 @@ class PropertiesOwner(Resource):
                                 if owner_revenue['result'][ore]['purchase_type'] == 'EXTRA CHARGES':
                                     if owner_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            weeks_active * \
+                                            weeks_active_revenue * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
@@ -211,7 +222,7 @@ class PropertiesOwner(Resource):
                                                                     [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            weeks_active/2 * \
+                                            weeks_active_revenue/2 * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
@@ -220,7 +231,7 @@ class PropertiesOwner(Resource):
                                                 [ore]['amount_due'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
                                         extraCharges_year_revenue = extraCharges_year_revenue + \
-                                            yearCal * \
+                                            yearCal_revenue * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_due'])
                                         extraCharges_revenue = extraCharges_revenue + \
@@ -259,6 +270,7 @@ class PropertiesOwner(Resource):
                                     yearly_owner_revenue['result'][pr]['amount_due'])
                         else:
                             response['result'][i]['year_revenue'] = 0
+
                         # monthly expense for the property
                         owner_expense = db.execute("""SELECT *
                                                         FROM pm.purchases p

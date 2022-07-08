@@ -86,6 +86,7 @@ class ManagerContractFees_CLASS(Resource):
                     purRes = db.execute("""SELECT * FROM purchases pur
                                            WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
                                            AND pur.purchase_type = 'MANAGEMENT' """)
+                    print('purRes', purRes['result'])
                     response['result'][i]['prevPurchases'] = list(
                         purRes['result'])
 
@@ -141,7 +142,7 @@ class ManagerContractFees_CLASS(Resource):
                                                 purchase_frequency=payment['frequency'],
                                                 next_payment=charge_date
                                             )
-                            elif payment['frequency'] == 'Bieekly':
+                            elif payment['frequency'] == 'Biweekly':
                                 print('payment frequency biweekly $')
                                 start_date = date.fromisoformat(
                                     contract['start_date'])
@@ -275,44 +276,44 @@ class ManagerContractFees_CLASS(Resource):
                                         if charge_date == today:
                                             print('enter the fee to purchases')
                                             # if yes, then enter the monthly fees to the purchases table
-                                        print('enter the fee to purchases')
-                                        # if gross rent (listed rent)
-                                        if payment['of'] == 'Gross Rent':
-                                            print('payment of gross rent', (
-                                                int(payment['charge']) * int(contract['listed_rent']))/100)
-                                            purchaseResponse = newPurchase(
-                                                linked_bill_id=None,
-                                                pur_property_id=contract['property_uid'],
-                                                payer=payer,
-                                                receiver=contract['business_uid'],
-                                                purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
-                                                amount_due=(
-                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
-                                                purchase_notes=charge_month,
-                                                purchase_date=contract['start_date'],
-                                                purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
-                                            )
-                                        # if net rent (listed rent-expenses)
-                                        else:
-                                            print('payment of net rent', (
-                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
-                                            purchaseResponse = newPurchase(
-                                                linked_bill_id=None,
-                                                pur_property_id=contract['property_uid'],
-                                                payer=payer,
-                                                receiver=contract['business_uid'],
-                                                purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
-                                                amount_due=(
-                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
-                                                purchase_notes=charge_month,
-                                                purchase_date=contract['start_date'],
-                                                purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
-                                            )
-                            elif payment['frequency'] == 'Bieekly':
+                                            print('enter the fee to purchases')
+                                            # if gross rent (listed rent)
+                                            if payment['of'] == 'Gross Rent':
+                                                print('payment of gross rent', (
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100)
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=contract['property_uid'],
+                                                    payer=payer,
+                                                    receiver=contract['business_uid'],
+                                                    purchase_type='MANAGEMENT',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=contract['start_date'],
+                                                    purchase_frequency=payment['frequency'],
+                                                    next_payment=charge_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+                                                print('payment of net rent', (
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=contract['property_uid'],
+                                                    payer=payer,
+                                                    receiver=contract['business_uid'],
+                                                    purchase_type='MANAGEMENT',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=contract['start_date'],
+                                                    purchase_frequency=payment['frequency'],
+                                                    next_payment=charge_date
+                                                )
+                            elif payment['frequency'] == 'Bwieekly':
                                 print('payment frequency biweekly %')
                                 start_date = date.fromisoformat(
                                     contract['start_date'])
@@ -335,43 +336,43 @@ class ManagerContractFees_CLASS(Resource):
                                         if charge_date == today:
                                             print('enter the fee to purchases')
                                             # if yes, then enter the monthly fees to the purchases table
-                                        print('enter the fee to purchases')
-                                        # if gross rent (listed rent)
-                                        if payment['of'] == 'Gross Rent':
-                                            print('payment of gross rent', (
-                                                int(payment['charge']) * int(contract['listed_rent']))/100)
-                                            purchaseResponse = newPurchase(
-                                                linked_bill_id=None,
-                                                pur_property_id=contract['property_uid'],
-                                                payer=payer,
-                                                receiver=contract['business_uid'],
-                                                purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
-                                                amount_due=(
-                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
-                                                purchase_notes=charge_month,
-                                                purchase_date=contract['start_date'],
-                                                purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
-                                            )
-                                        # if net rent (listed rent-expenses)
-                                        else:
-                                            print('payment of net rent', (
-                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
-                                            purchaseResponse = newPurchase(
-                                                linked_bill_id=None,
-                                                pur_property_id=contract['property_uid'],
-                                                payer=payer,
-                                                receiver=contract['business_uid'],
-                                                purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
-                                                amount_due=(
-                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
-                                                purchase_notes=charge_month,
-                                                purchase_date=contract['start_date'],
-                                                purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
-                                            )
+                                            print('enter the fee to purchases')
+                                            # if gross rent (listed rent)
+                                            if payment['of'] == 'Gross Rent':
+                                                print('payment of gross rent', (
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100)
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=contract['property_uid'],
+                                                    payer=payer,
+                                                    receiver=contract['business_uid'],
+                                                    purchase_type='MANAGEMENT',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=contract['start_date'],
+                                                    purchase_frequency=payment['frequency'],
+                                                    next_payment=charge_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+                                                print('payment of net rent', (
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=contract['property_uid'],
+                                                    payer=payer,
+                                                    receiver=contract['business_uid'],
+                                                    purchase_type='MANAGEMENT',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=contract['start_date'],
+                                                    purchase_frequency=payment['frequency'],
+                                                    next_payment=charge_date
+                                                )
                             elif payment['frequency'] == 'Monthly':
                                 print('payment frequency monthly %')
                                 start_date = date.fromisoformat(
@@ -395,43 +396,43 @@ class ManagerContractFees_CLASS(Resource):
                                         if charge_date == today:
                                             print('enter the fee to purchases')
                                             # if yes, then enter the monthly fees to the purchases table
-                                        print('enter the fee to purchases')
-                                        # if gross rent (listed rent)
-                                        if payment['of'] == 'Gross Rent':
-                                            print('payment of gross rent', (
-                                                int(payment['charge']) * int(contract['listed_rent']))/100)
-                                            purchaseResponse = newPurchase(
-                                                linked_bill_id=None,
-                                                pur_property_id=contract['property_uid'],
-                                                payer=payer,
-                                                receiver=contract['business_uid'],
-                                                purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
-                                                amount_due=(
-                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
-                                                purchase_notes=charge_month,
-                                                purchase_date=contract['start_date'],
-                                                purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
-                                            )
-                                        # if net rent (listed rent-expenses)
-                                        else:
-                                            print('payment of net rent', (
-                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
-                                            purchaseResponse = newPurchase(
-                                                linked_bill_id=None,
-                                                pur_property_id=contract['property_uid'],
-                                                payer=payer,
-                                                receiver=contract['business_uid'],
-                                                purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
-                                                amount_due=(
-                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
-                                                purchase_notes=charge_month,
-                                                purchase_date=contract['start_date'],
-                                                purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
-                                            )
+                                            print('enter the fee to purchases')
+                                            # if gross rent (listed rent)
+                                            if payment['of'] == 'Gross Rent':
+                                                print('payment of gross rent', (
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100)
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=contract['property_uid'],
+                                                    payer=payer,
+                                                    receiver=contract['business_uid'],
+                                                    purchase_type='MANAGEMENT',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=contract['start_date'],
+                                                    purchase_frequency=payment['frequency'],
+                                                    next_payment=charge_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+                                                print('payment of net rent', (
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=contract['property_uid'],
+                                                    payer=payer,
+                                                    receiver=contract['business_uid'],
+                                                    purchase_type='MANAGEMENT',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=contract['start_date'],
+                                                    purchase_frequency=payment['frequency'],
+                                                    next_payment=charge_date
+                                                )
                             elif payment['frequency'] == 'Annually':
                                 print('payment frequency annually %')
                                 start_date = date.fromisoformat(
@@ -588,7 +589,7 @@ def ManagerContractFees():
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date
                                         )
-                        elif payment['frequency'] == 'Bieekly':
+                        elif payment['frequency'] == 'Biweekly':
                             print('payment frequency biweekly $')
                             start_date = date.fromisoformat(
                                 contract['start_date'])
@@ -722,44 +723,44 @@ def ManagerContractFees():
                                     if charge_date == today:
                                         print('enter the fee to purchases')
                                         # if yes, then enter the monthly fees to the purchases table
-                                    print('enter the fee to purchases')
-                                    # if gross rent (listed rent)
-                                    if payment['of'] == 'Gross Rent':
-                                        print('payment of gross rent', (
-                                            int(payment['charge']) * int(contract['listed_rent']))/100)
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=contract['property_uid'],
-                                            payer=payer,
-                                            receiver=contract['business_uid'],
-                                            purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
-                                            amount_due=(
-                                                int(payment['charge']) * int(contract['listed_rent']))/100,
-                                            purchase_notes=charge_month,
-                                            purchase_date=contract['start_date'],
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
-                                    # if net rent (listed rent-expenses)
-                                    else:
-                                        print('payment of net rent', (
-                                            int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=contract['property_uid'],
-                                            payer=payer,
-                                            receiver=contract['business_uid'],
-                                            purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
-                                            amount_due=(
-                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
-                                            purchase_notes=charge_month,
-                                            purchase_date=contract['start_date'],
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
-                        elif payment['frequency'] == 'Bieekly':
+                                        print('enter the fee to purchases')
+                                        # if gross rent (listed rent)
+                                        if payment['of'] == 'Gross Rent':
+                                            print('payment of gross rent', (
+                                                int(payment['charge']) * int(contract['listed_rent']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            print('payment of net rent', (
+                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                        elif payment['frequency'] == 'Biweekly':
                             print('payment frequency biweekly %')
                             start_date = date.fromisoformat(
                                 contract['start_date'])
@@ -782,43 +783,43 @@ def ManagerContractFees():
                                     if charge_date == today:
                                         print('enter the fee to purchases')
                                         # if yes, then enter the monthly fees to the purchases table
-                                    print('enter the fee to purchases')
-                                    # if gross rent (listed rent)
-                                    if payment['of'] == 'Gross Rent':
-                                        print('payment of gross rent', (
-                                            int(payment['charge']) * int(contract['listed_rent']))/100)
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=contract['property_uid'],
-                                            payer=payer,
-                                            receiver=contract['business_uid'],
-                                            purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
-                                            amount_due=(
-                                                int(payment['charge']) * int(contract['listed_rent']))/100,
-                                            purchase_notes=charge_month,
-                                            purchase_date=contract['start_date'],
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
-                                    # if net rent (listed rent-expenses)
-                                    else:
-                                        print('payment of net rent', (
-                                            int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=contract['property_uid'],
-                                            payer=payer,
-                                            receiver=contract['business_uid'],
-                                            purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
-                                            amount_due=(
-                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
-                                            purchase_notes=charge_month,
-                                            purchase_date=contract['start_date'],
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
+                                        print('enter the fee to purchases')
+                                        # if gross rent (listed rent)
+                                        if payment['of'] == 'Gross Rent':
+                                            print('payment of gross rent', (
+                                                int(payment['charge']) * int(contract['listed_rent']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            print('payment of net rent', (
+                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
                         elif payment['frequency'] == 'Monthly':
                             print('payment frequency monthly %')
                             start_date = date.fromisoformat(
@@ -842,43 +843,43 @@ def ManagerContractFees():
                                     if charge_date == today:
                                         print('enter the fee to purchases')
                                         # if yes, then enter the monthly fees to the purchases table
-                                    print('enter the fee to purchases')
-                                    # if gross rent (listed rent)
-                                    if payment['of'] == 'Gross Rent':
-                                        print('payment of gross rent', (
-                                            int(payment['charge']) * int(contract['listed_rent']))/100)
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=contract['property_uid'],
-                                            payer=payer,
-                                            receiver=contract['business_uid'],
-                                            purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
-                                            amount_due=(
-                                                int(payment['charge']) * int(contract['listed_rent']))/100,
-                                            purchase_notes=charge_month,
-                                            purchase_date=contract['start_date'],
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
-                                    # if net rent (listed rent-expenses)
-                                    else:
-                                        print('payment of net rent', (
-                                            int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=contract['property_uid'],
-                                            payer=payer,
-                                            receiver=contract['business_uid'],
-                                            purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
-                                            amount_due=(
-                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
-                                            purchase_notes=charge_month,
-                                            purchase_date=contract['start_date'],
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
+                                        print('enter the fee to purchases')
+                                        # if gross rent (listed rent)
+                                        if payment['of'] == 'Gross Rent':
+                                            print('payment of gross rent', (
+                                                int(payment['charge']) * int(contract['listed_rent']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * int(contract['listed_rent']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            print('payment of net rent', (
+                                                int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100)
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=contract['property_uid'],
+                                                payer=payer,
+                                                receiver=contract['business_uid'],
+                                                purchase_type='MANAGEMENT',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    int(payment['charge']) * (int(contract['listed_rent']) - contract['expense_amount']))/100,
+                                                purchase_notes=charge_month,
+                                                purchase_date=contract['start_date'],
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
                         elif payment['frequency'] == 'Annually':
                             print('payment frequency annually %')
                             start_date = date.fromisoformat(
