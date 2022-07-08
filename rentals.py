@@ -50,7 +50,7 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
@@ -100,7 +100,7 @@ class Rentals(Resource):
             data = request.form
             rental_uid = data.get('rental_uid')
             fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee']
             newRental = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -175,7 +175,7 @@ class ExtendLease(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
@@ -240,7 +240,7 @@ class ExtendLease(Resource):
         with connect() as db:
             data = request.json
             fields = ['rental_uid', 'rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
                       'message', 'application_status']
             newRental = {}
             for field in fields:

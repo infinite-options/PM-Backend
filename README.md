@@ -1263,6 +1263,7 @@
     "email": "greg@beverlyman.com"
   }],
   "rental_status":"PENDING",
+  "available_topay" : ,
   "due_by":"Fifth",
   "late_by":5,
   "late_fee":  100,
@@ -1316,6 +1317,7 @@
   }],
   "doc_0": "",
   "rental_status":"PENDING",
+  "available_topay":,
   "due_by":"Fifth",
   "late_by":5,
   "late_fee":  100,
@@ -1411,6 +1413,7 @@
     "email": "greg@beverlyman.com"
   }],
   "rental_status":"PENDING",
+  "available_topay":,
   "due_by":"Fifth",
   "late_by":5,
   "late_fee":  100,
@@ -1464,6 +1467,7 @@
   }],
   "doc_0": "",
   "rental_status":"PENDING",
+  "available_topay":,
   "due_by":"Fifth",
   "late_by":5,
   "late_fee":  100,
