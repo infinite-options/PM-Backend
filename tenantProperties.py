@@ -33,7 +33,7 @@ class TenantProperties(Resource):
                                         ON linked_rental_uid = rental_uid
                                         LEFT JOIN pm.propertyManager
                                         ON linked_property_id = property_uid
-                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND management_status <> 'REJECTED'; """)
+                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND management_status = 'ACCEPTED'; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']

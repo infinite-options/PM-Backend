@@ -13,7 +13,7 @@ import os
 from properties import Properties, Property
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
-from managerProfileInfo import ManagerProfileInfo
+from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
 from tenantProfileInfo import TenantProfileInfo
 from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee
@@ -226,6 +226,9 @@ api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
 api.add_resource(Payments, '/payments')
 api.add_resource(UserPayments, '/userPayments')
+api.add_resource(ManagerClients, '/managerClients')
+api.add_resource(ManagerPropertyTenants, '/managerPropertyTenants')
+
 
 api.add_resource(OwnerPayments, '/ownerPayments')
 
