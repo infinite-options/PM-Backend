@@ -502,3 +502,22 @@ class Property(Resource):
             }
             response = db.update('properties', primaryKey, newProperty)
         return response
+
+
+class NotManagedProperties(Resource):
+    def get(self):
+        response = {}
+        filters = ['manager_id']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[filter] = filterValue
+        with connect() as db:
+            response = db.execute("""SELECT * FROM properties p
+            LEFT JOIN propertyManager pm
+            ON pm.linked_property_id = p.property_uid
+            WHERE pm.linked_business_id <> \'""" + filterValue + """\' 
+            AND pm.management_status = 'ACCEPTED' """)
+
+        return response

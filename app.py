@@ -10,10 +10,10 @@ from flask_restful import Resource
 from data import connect
 import os
 
-from properties import Properties, Property
+from properties import Properties, Property, NotManagedProperties
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
-from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
+from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
 from tenantProfileInfo import TenantProfileInfo
 from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee
@@ -208,6 +208,8 @@ def LeaseExpiringNotify():
 
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
+api.add_resource(NotManagedProperties, '/notManagedProperties')
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(OwnerProfileInfo, '/ownerProfileInfo')
@@ -228,6 +230,7 @@ api.add_resource(Payments, '/payments')
 api.add_resource(UserPayments, '/userPayments')
 api.add_resource(ManagerClients, '/managerClients')
 api.add_resource(ManagerPropertyTenants, '/managerPropertyTenants')
+api.add_resource(ManagerDocuments, '/managerDocuments')
 
 
 api.add_resource(OwnerPayments, '/ownerPayments')

@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect
 import json
+from datetime import date, datetime, timedelta
 
 
 class ManagerProfileInfo(Resource):
@@ -81,6 +82,12 @@ class ManagerClients(Resource):
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
                     AND pm.management_status = 'ACCEPTED'
                 """)
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    owner_properties = db.execute(""" SELECT * FROM properties
+                    WHERE owner_id = \'""" + response['result'][i]['owner_id'] + """\' """)
+                    response['result'][i]['properties'] = list(
+                        owner_properties['result'])
 
         return response
 
@@ -96,7 +103,7 @@ class ManagerPropertyTenants(Resource):
                 if filterValue is not None:
                     where[filter] = filterValue
                 response = db.execute("""
-                    SELECT DISTINCT tpi.*                    
+                    SELECT DISTINCT tpi.*, r.*, p.*
                     FROM properties p
                     LEFT JOIN propertyManager pm
                     ON pm.linked_property_id = p.property_uid
@@ -110,5 +117,128 @@ class ManagerPropertyTenants(Resource):
                     AND pm.management_status = 'ACCEPTED'
                     AND r.rental_status = 'ACTIVE'
                 """)
+                if len(response['result']) > 0:
+                    for i in range(len(response['result'])):
+                        user_payments = db.execute("""SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
+                                        WHERE p2.payer LIKE '%%\"""" + response['result'][i]['tenant_id'] + """\"%%'
+                                    """)
+                        response['result'][i]['user_payments'] = list(
+                            user_payments['result'])
+                        user_repairRequests = db.execute("""SELECT *
+                                                            FROM pm.maintenanceRequests mr
+                                                            LEFT JOIN pm.maintenanceQuotes mq
+                                                            ON mq.linked_request_uid = mr.maintenance_request_uid
+                                                            LEFT JOIN pm.businesses b
+                                                            ON b.business_uid = mq.quote_business_uid
+                                                            WHERE mr.property_uid = \'""" + response['result'][i]['property_uid'] + """\'
+                                                            """)
+                        response['result'][i]['user_repairRequests'] = list(
+                            user_repairRequests['result'])
+
+        return response
+
+
+class ManagerDocuments(Resource):
+    def get(self):
+        response = {'message': 'Successfully committed SQL query',
+                    'code': 200,
+                    'result': []}
+        filters = ['manager_id']
+        where = {}
+
+        with connect() as db:
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+                    today = date.today()
+                    # list of all active leases for the owner
+                    lease_docs = db.execute("""SELECT *
+                                            FROM pm.properties prop
+                                            LEFT JOIN propertyManager pm
+                                            ON pm.linked_property_id=prop.property_uid
+                                            LEFT JOIN
+                                            pm.rentals r
+                                            ON r.rental_property_id = prop.property_uid
+                                            WHERE pm.linked_business_id = \'""" + filterValue + """\'
+                                            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'PROCESSING' OR r.rental_status='TENTANT APPROVED')""")
+                    active_lease_docs = []
+                    if len(lease_docs['result']) > 0:
+                        print('active lease docs')
+                        for doc in lease_docs['result']:
+                            if len(json.loads(doc['documents'])) > 0:
+                                active_lease_docs.append(
+                                    json.loads(doc['documents']))
+                    print(active_lease_docs)
+
+                    # list of all expired leases for the owner
+                    past_lease_docs = db.execute("""SELECT *
+                                            FROM pm.properties prop
+                                            LEFT JOIN propertyManager pm
+                                            ON pm.linked_property_id=prop.property_uid
+                                            LEFT JOIN
+                                            pm.rentals r
+                                            ON r.rental_property_id = prop.property_uid
+                                            WHERE pm.linked_business_id = \'""" + filterValue + """\'
+                                            AND (r.rental_status = 'EXPIRED' OR r.rental_status = 'TERMINATED')""")
+
+                    expired_lease_docs = []
+                    if len(past_lease_docs['result']) > 0:
+                        print('expired lease docs')
+                        for doc in past_lease_docs['result']:
+                            if len(json.loads(doc['documents'])) > 0:
+                                expired_lease_docs.append(
+                                    json.loads(doc['documents']))
+                    print(expired_lease_docs)
+
+                    # list of all active pm contracts for the owner
+                    manager_docs = db.execute("""SELECT *
+                                            FROM pm.properties prop
+                                            LEFT JOIN
+                                            pm.contracts c
+                                            ON c.property_uid = prop.property_uid
+                                            LEFT JOIN
+                                            pm.propertyManager pm
+                                            ON pm.linked_property_id = prop.property_uid
+                                            WHERE pm.linked_business_id = \'""" + filterValue + """\'
+                                            AND pm.management_status= 'ACCEPTED'
+                                            AND c.business_uid = pm.linked_business_id""")
+
+                    active_manager_docs = []
+                    if len(manager_docs['result']) > 0:
+                        print('active manager docs')
+                        for doc in manager_docs['result']:
+                            if len(json.loads(doc['documents'])) > 0:
+                                active_manager_docs.append(
+                                    json.loads(doc['documents']))
+                    print(active_manager_docs)
+
+                    # list of all active pm contracts for the owner
+                    past_manager_docs = db.execute("""SELECT *
+                                            FROM pm.properties prop
+                                            LEFT JOIN
+                                            pm.contracts c
+                                            ON c.property_uid = prop.property_uid
+                                            LEFT JOIN
+                                            pm.propertyManager pm
+                                            ON pm.linked_property_id = prop.property_uid
+                                            WHERE pm.linked_business_id = \'""" + filterValue + """\'
+                                            AND pm.management_status <> 'ACCEPTED'
+                                            AND c.business_uid = pm.linked_business_id""")
+                    expired_manager_docs = []
+                    if len(past_manager_docs['result']) > 0:
+                        print('past manager docs')
+                        for doc in past_manager_docs['result']:
+                            if len(json.loads(doc['documents'])) > 0:
+                                expired_manager_docs.append(
+                                    json.loads(doc['documents']))
+                    print(expired_manager_docs)
+
+                    response['result'] = [{
+                        'active_lease_docs': list(active_lease_docs),
+                        'past_lease_docs': list(expired_lease_docs),
+                        'active_manager_docs': list(active_manager_docs),
+                        'past_manager_docs': list(expired_manager_docs)
+                    }]
 
         return response
