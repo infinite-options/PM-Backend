@@ -29,7 +29,7 @@ class PropertyInfo(Resource):
             if filterType == 'manager_id':
                 print('here if')
                 response = db.execute(
-                    """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND management_status <> 'TERMINATED' ANDmanager_id = \'"""
+                    """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND management_status <> 'TERMINATED' AND manager_id = \'"""
                     + filterVal
                     + """\' """)
                 for i in range(len(response['result'])):
