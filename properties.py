@@ -521,3 +521,102 @@ class NotManagedProperties(Resource):
             AND pm.management_status = 'ACCEPTED' """)
 
         return response
+
+
+class CancelAgreement(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            print(data)
+            # get data
+            property_uid = data.get('property_uid')
+            manager_id = data.get('manager_id')
+            management_status = data.get('management_status')
+            # primary key for propertyManager
+            pk = {
+                'linked_property_id': property_uid,
+                'linked_business_id': manager_id
+            }
+
+            # updated property manager object
+            propertyManager = {
+                'linked_property_id': property_uid,
+                'linked_business_id': manager_id,
+                'management_status': management_status
+            }
+
+            # get current propertyManager status
+            res = db.execute(
+                """SELECT * FROM pm.propertyManager WHERE linked_property_id = \'""" + property_uid + """\' AND linked_business_id= \'""" + manager_id + """\'""")
+            print('res', res)
+
+            # if current propertyManager contract exists
+            if len(res['result']) > 0:
+                # update
+                print('here in if')
+                if management_status == 'OWNER END EARLY':
+                    response = db.update(
+                        'propertyManager', pk, propertyManager)
+                elif management_status == 'PM ACCEPTED':
+                    propertyManagerAccepted = {
+                        'linked_property_id': property_uid,
+                        'linked_business_id': manager_id,
+                        'management_status': 'TERMINATED'
+                    }
+                    response = db.update(
+                        'propertyManager', pk, propertyManagerAccepted)
+                    contractRes = db.execute(""" SELECT * FROM contracts
+                                                WHERE business_uid = \'""" + manager_id + """\'
+                                                AND property_uid = \'""" + property_uid + """\'
+                                                AND contract_status = 'ACTIVE'""")
+                    if len(contractRes['result']) > 0:
+                        contractPK = {
+                            'contract_uid': contractRes['result'][0]['contract_uid']
+                        }
+                        contractUpdate = {
+                            'contract_status': 'INACTIVE'
+                        }
+                        response = db.update(
+                            'contracts', contractPK, contractUpdate)
+
+                elif management_status == 'PM REJECTED':
+                    propertyManagerRejected = {
+                        'linked_property_id': property_uid,
+                        'linked_business_id': manager_id,
+                        'management_status': 'ACCEPTED'
+                    }
+                    response = db.update(
+                        'propertyManager', pk, propertyManagerRejected)
+                elif management_status == 'PM END EARLY':
+                    response = db.update(
+                        'propertyManager', pk, propertyManager)
+                elif management_status == 'OWNER ACCEPTED':
+                    ownerAccepted = {
+                        'linked_property_id': property_uid,
+                        'linked_business_id': manager_id,
+                        'management_status': 'TERMINATED'
+                    }
+                    response = db.update('propertyManager', pk, ownerAccepted)
+                    contractRes = db.execute(""" SELECT * FROM contracts
+                                                WHERE business_uid = \'""" + manager_id + """\'
+                                                AND property_uid = \'""" + property_uid + """\'
+                                                AND contract_status = 'ACTIVE'""")
+                    if len(contractRes['result']) > 0:
+                        contractPK = {
+                            'contract_uid': contractRes['result'][0]['contract_uid']
+                        }
+                        contractUpdate = {
+                            'contract_status': 'INACTIVE'
+                        }
+                        response = db.update(
+                            'contracts', contractPK, contractUpdate)
+                elif management_status == 'OWNER REJECTED':
+                    ownerRejected = {
+                        'linked_property_id': property_uid,
+                        'linked_business_id': manager_id,
+                        'management_status': 'ACCEPTED'
+                    }
+                    response = db.update('propertyManager', pk, ownerRejected)
+
+        return response

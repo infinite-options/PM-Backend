@@ -10,7 +10,7 @@ from flask_restful import Resource
 from data import connect
 import os
 
-from properties import Properties, Property, NotManagedProperties
+from properties import Properties, Property, NotManagedProperties, CancelAgreement
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
@@ -232,6 +232,7 @@ api.add_resource(ManagerClients, '/managerClients')
 api.add_resource(ManagerPropertyTenants, '/managerPropertyTenants')
 api.add_resource(ManagerDocuments, '/managerDocuments')
 
+api.add_resource(CancelAgreement, '/cancelAgreement')
 
 api.add_resource(OwnerPayments, '/ownerPayments')
 

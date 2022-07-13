@@ -47,7 +47,7 @@ class Contracts(Resource):
         with connect() as db:
             data = request.form
             fields = ['property_uid', 'business_uid', 'start_date', 'end_date', 'contract_fees',
-                      'assigned_contacts', 'contract_name', ]
+                      'assigned_contacts', 'contract_name', 'contract_status']
             newContract = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -66,7 +66,6 @@ class Contracts(Resource):
                 else:
                     break
             newContract['documents'] = json.dumps(documents)
-            newContract['contract_status'] = 'ACTIVE'
             print(newContract)
             response = db.insert('contracts', newContract)
         return response
