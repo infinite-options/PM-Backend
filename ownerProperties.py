@@ -62,11 +62,14 @@ class PropertiesOwner(Resource):
                             property_res['result'])
                         response['result'][i]['management_status'] = ""
                         response['result'][i]['managerInfo'] = {}
+                        print(property_res)
                         # management status for property
                         if len(property_res['result']) > 0:
                             for pr in range(len(property_res['result'])):
-                                if property_res['result'][pr]['management_status'] == 'ACCEPTED':
-                                    response['result'][i]['management_status'] = "ACCEPTED"
+                                print(property_res['result']
+                                      [pr]['management_status'])
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY':
+                                    response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
 
                         else:
@@ -172,9 +175,11 @@ class PropertiesOwner(Resource):
                                     (datetime.strptime(
                                         owner_revenue['result'][ore]['lease_start'], '%Y-%m-%d')).month
 
-                                weeks_current_month = len( calendar.monthcalendar(2022, int(today.strftime("%m"))))
+                                weeks_current_month = len(calendar.monthcalendar(
+                                    2022, int(today.strftime("%m"))))
 
-                                weeks_active_revenue = round((abs(today - datetime.strptime(owner_revenue['result'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                                weeks_active_revenue = round((abs(today - datetime.strptime(
+                                    owner_revenue['result'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
                                 if owner_revenue['result'][ore]['purchase_type'] == 'RENT':
                                     if owner_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
                                         rental_year_revenue = rental_year_revenue + \
@@ -654,9 +659,10 @@ class PropertiesOwnerDetail(Resource):
                         if len(property_res['result']) > 0:
 
                             for pr in range(len(property_res['result'])):
-                                if property_res['result'][pr]['management_status'] == 'ACCEPTED':
-                                    response['result'][i]['management_status'] = "ACCEPTED"
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY':
+                                    response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
+
                                 else:
                                     print('in else')
                         else:

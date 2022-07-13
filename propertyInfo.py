@@ -29,7 +29,7 @@ class PropertyInfo(Resource):
             if filterType == 'manager_id':
                 print('here if')
                 response = db.execute(
-                    """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND manager_id = \'"""
+                    """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND management_status <> 'TERMINATED' ANDmanager_id = \'"""
                     + filterVal
                     + """\' """)
                 for i in range(len(response['result'])):
@@ -198,8 +198,8 @@ class PropertiesManagerDetail(Resource):
                         if len(property_res['result']) > 0:
 
                             for pr in range(len(property_res['result'])):
-                                if property_res['result'][pr]['management_status'] == 'ACCEPTED':
-                                    response['result'][i]['management_status'] = "ACCEPTED"
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY':
+                                    response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
                                 else:
                                     print('in else')
