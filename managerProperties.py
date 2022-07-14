@@ -65,7 +65,7 @@ class ManagerContractFees_CLASS(Resource):
                                     pm.propertyManager propM
                                     ON propM.linked_property_id = c.property_uid
                                     WHERE c.contract_status = 'ACTIVE' 
-                                    AND propM.management_status = 'ACCEPTED'  """)
+                                    AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')  """)
 
             # getting all the expenses and calculating the expense amount
             if len(response['result']) > 0:
@@ -513,7 +513,7 @@ def ManagerContractFees():
                                 pm.propertyManager propM
                                 ON propM.linked_property_id = c.property_uid
                                 WHERE c.contract_status = 'ACTIVE'
-                                AND propM.management_status = 'ACCEPTED'  """)
+                                AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY') """)
 
         # getting all the expenses and calculating the expense amount
         if len(response['result']) > 0:

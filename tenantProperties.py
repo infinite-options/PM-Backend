@@ -31,9 +31,9 @@ class TenantProperties(Resource):
                                         ON rental_property_id = property_uid
                                         LEFT JOIN pm.leaseTenants
                                         ON linked_rental_uid = rental_uid
-                                        LEFT JOIN pm.propertyManager
+                                        LEFT JOIN pm.propertyManager p
                                         ON linked_property_id = property_uid
-                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND management_status = 'ACCEPTED'; """)
+                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
@@ -47,7 +47,7 @@ class TenantProperties(Resource):
                                             LEFT JOIN businesses b
                                             ON b.business_uid = pm.linked_business_id
                                             WHERE pm.linked_property_id = \'""" + property_id + """\'
-                                            AND pm.management_status = 'ACCEPTED' """)
+                                            AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')   """)
 
                 response['result'][i]['property_manager'] = list(
                     property_res['result'])

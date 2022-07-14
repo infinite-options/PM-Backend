@@ -201,7 +201,7 @@ class MaintenanceRequestsandQuotes(Resource):
                 ON p.property_uid = mr.property_uid
                 LEFT JOIN propertyManager pm
                 ON pm.linked_property_id = p.property_uid
-                WHERE linked_business_id =  \'""" + where['manager_id'] + """\' AND management_status = 'ACCEPTED'  """)
+                WHERE linked_business_id =  \'""" + where['manager_id'] + """\' AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY'  )""")
                 print(response)
                 for i in range(len(response['result'])):
                     req_id = response['result'][i]['maintenance_request_uid']

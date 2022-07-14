@@ -68,7 +68,7 @@ class PropertiesOwner(Resource):
                             for pr in range(len(property_res['result'])):
                                 print(property_res['result']
                                       [pr]['management_status'])
-                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY':
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY' or property_res['result'][pr]['management_status'] == 'END EARLY':
                                     response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
 
@@ -659,7 +659,7 @@ class PropertiesOwnerDetail(Resource):
                         if len(property_res['result']) > 0:
 
                             for pr in range(len(property_res['result'])):
-                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY':
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY' or property_res['result'][pr]['management_status'] == 'END EARLY':
                                     response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
 
@@ -1304,7 +1304,7 @@ class OwnerDocuments(Resource):
                                             pm.propertyManager pm
                                             ON pm.linked_property_id = prop.property_uid
                                             WHERE prop.owner_id = \'""" + filterValue + """\'
-                                            AND pm.management_status= 'ACCEPTED'
+                                            AND (pm.management_status= 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')
                                             AND c.business_uid = pm.linked_business_id""")
 
                     active_manager_docs = []

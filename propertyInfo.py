@@ -29,7 +29,7 @@ class PropertyInfo(Resource):
             if filterType == 'manager_id':
                 print('here if')
                 response = db.execute(
-                    """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND management_status <> 'TERMINATED' AND manager_id = \'"""
+                    """SELECT * FROM pm.propertyInfo WHERE management_status <> 'REJECTED' AND management_status <> 'TERMINATED' AND management_status <> 'EXPIRED' AND manager_id = \'"""
                     + filterVal
                     + """\' """)
                 for i in range(len(response['result'])):
@@ -77,7 +77,7 @@ class AvailableProperties(Resource):
                                         ON r.rental_property_id = p.property_uid
                                         LEFT JOIN pm.propertyManager pM
                                         ON pM.linked_property_id = p.property_uid
-                                        WHERE (management_status = 'ACCEPTED') """)
+                                        WHERE (management_status = 'ACCEPTED' OR management_status = 'END EARLY' OR management_status = 'PM END EARLY' OR management_status = 'OWNER END EARLY' ) """)
 
             print(response['result'])
             availableProperties = []
@@ -111,7 +111,7 @@ class AvailableProperties(Resource):
                                                         ON pM.linked_property_id = p.property_uid
                                                         WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
                                                         AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
-                                                        AND management_status = 'ACCEPTED'  """)
+                                                        AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY')   """)
 
                         if len(terminatedResponse['result']) > 0:
                             print('do not add terminated')
@@ -131,7 +131,7 @@ class AvailableProperties(Resource):
                                                         ON pM.linked_property_id = p.property_uid
                                                         WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
                                                         AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
-                                                        AND management_status = 'ACCEPTED'  """)
+                                                        AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY')     """)
 
                         if len(expiredResponse['result']) > 0:
                             print('do not add expired')
@@ -198,7 +198,7 @@ class PropertiesManagerDetail(Resource):
                         if len(property_res['result']) > 0:
 
                             for pr in range(len(property_res['result'])):
-                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY':
+                                if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY' or property_res['result'][pr]['management_status'] == 'END EARLY':
                                     response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
                                 else:

@@ -378,7 +378,7 @@ class ExtendLeaseCRON_CLASS(Resource):
                                             LEFT JOIN pm.propertyManager p
                                             ON p.linked_property_id= r.rental_property_id
                                             WHERE r.rental_status='TENANT APPROVED'
-                                            AND p.management_status = 'ACCEPTED'
+                                            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')   
                                             AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
                                             GROUP BY lt.linked_rental_uid; """)
                 for payment in rentPayments:
@@ -555,7 +555,7 @@ def ExtendLeaseCRON():
                                         LEFT JOIN pm.propertyManager p
                                         ON p.linked_property_id= r.rental_property_id
                                         WHERE r.rental_status='TENANT APPROVED'
-                                        AND p.management_status = 'ACCEPTED'
+                                        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  
                                         AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
                                         GROUP BY lt.linked_rental_uid; """)
             for payment in rentPayments:
@@ -674,7 +674,7 @@ class LeasetoMonth_CLASS(Resource):
                                     WHERE r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE'
-                                    AND p.management_status= 'ACCEPTED'; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -752,7 +752,7 @@ def LeasetoMonth():
                                 WHERE r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                 OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d")
                                 AND r.rental_status='ACTIVE' 
-                                AND p.management_status= 'ACCEPTED'; """)
+                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
         if len(response['result']) > 0:
             for i in range(len(response['result'])):
@@ -825,7 +825,7 @@ class LateFee_CLASS(Resource):
                                     WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE' 
-                                    AND p.management_status= 'ACCEPTED'; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -894,7 +894,7 @@ def LateFee():
                                 WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                 AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                 AND r.rental_status='ACTIVE' 
-                                AND p.management_status= 'ACCEPTED'; """)
+                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
         if len(response['result']) > 0:
             for i in range(len(response['result'])):
@@ -968,7 +968,7 @@ class PerDay_LateFee_CLASS(Resource):
                                     WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE' 
-                                    AND p.management_status= 'ACCEPTED'; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -1045,7 +1045,7 @@ def PerDay_LateFee():
                                     WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE' 
-                                    AND p.management_status= 'ACCEPTED'; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):

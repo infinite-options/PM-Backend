@@ -116,7 +116,7 @@ class Applications(Resource):
                                         LEFT JOIN pm.propertyManager p
                                         ON p.linked_property_id= r.rental_property_id
                                         WHERE r.rental_status='PROCESSING'
-                                        AND p.management_status = 'ACCEPTED'
+                                        AND p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY'
                                         AND r.rental_property_id = \'""" + newApplication['property_uid'] + """\'
                                         GROUP BY lt.linked_rental_uid; """)
                     print('res', res, len(res['result']))

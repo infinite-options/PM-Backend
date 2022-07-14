@@ -518,7 +518,7 @@ class NotManagedProperties(Resource):
             LEFT JOIN propertyManager pm
             ON pm.linked_property_id = p.property_uid
             WHERE pm.linked_business_id <> \'""" + filterValue + """\' 
-            AND pm.management_status = 'ACCEPTED' """)
+            AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY') """)
 
         return response
 
@@ -527,12 +527,19 @@ class CancelAgreement(Resource):
     def put(self):
         response = {}
         with connect() as db:
-            data = request.json
+
+            #  get data
+            data = request.form
             print(data)
-            # get data
             property_uid = data.get('property_uid')
             manager_id = data.get('manager_id')
             management_status = data.get('management_status')
+            fields = ['early_end_date']
+            contract = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    contract[field] = data.get(field)
             # primary key for propertyManager
             pk = {
                 'linked_property_id': property_uid,
@@ -558,11 +565,24 @@ class CancelAgreement(Resource):
                 if management_status == 'OWNER END EARLY':
                     response = db.update(
                         'propertyManager', pk, propertyManager)
+                    contractRes = db.execute(""" SELECT * FROM contracts
+                                                WHERE business_uid = \'""" + manager_id + """\'
+                                                AND property_uid = \'""" + property_uid + """\'
+                                                AND contract_status = 'ACTIVE'""")
+                    if len(contractRes['result']) > 0:
+                        contractPK = {
+                            'contract_uid': contractRes['result'][0]['contract_uid']
+                        }
+                        contractUpdate = {
+                            'early_end_date': contract['early_end_date']
+                        }
+                        response = db.update(
+                            'contracts', contractPK, contractUpdate)
                 elif management_status == 'PM ACCEPTED':
                     propertyManagerAccepted = {
                         'linked_property_id': property_uid,
                         'linked_business_id': manager_id,
-                        'management_status': 'TERMINATED'
+                        'management_status': 'END EARLY'
                     }
                     response = db.update(
                         'propertyManager', pk, propertyManagerAccepted)
@@ -575,7 +595,8 @@ class CancelAgreement(Resource):
                             'contract_uid': contractRes['result'][0]['contract_uid']
                         }
                         contractUpdate = {
-                            'contract_status': 'INACTIVE'
+                            # 'contract_status': 'INACTIVE',
+                            'end_date': contractRes['result'][0]['early_end_date']
                         }
                         response = db.update(
                             'contracts', contractPK, contractUpdate)
@@ -591,11 +612,24 @@ class CancelAgreement(Resource):
                 elif management_status == 'PM END EARLY':
                     response = db.update(
                         'propertyManager', pk, propertyManager)
+                    contractRes = db.execute(""" SELECT * FROM contracts
+                                                WHERE business_uid = \'""" + manager_id + """\'
+                                                AND property_uid = \'""" + property_uid + """\'
+                                                AND contract_status = 'ACTIVE'""")
+                    if len(contractRes['result']) > 0:
+                        contractPK = {
+                            'contract_uid': contractRes['result'][0]['contract_uid']
+                        }
+                        contractUpdate = {
+                            'early_end_date': contract['early_end_date']
+                        }
+                        response = db.update(
+                            'contracts', contractPK, contractUpdate)
                 elif management_status == 'OWNER ACCEPTED':
                     ownerAccepted = {
                         'linked_property_id': property_uid,
                         'linked_business_id': manager_id,
-                        'management_status': 'TERMINATED'
+                        'management_status': 'END EARLY'
                     }
                     response = db.update('propertyManager', pk, ownerAccepted)
                     contractRes = db.execute(""" SELECT * FROM contracts
@@ -607,7 +641,8 @@ class CancelAgreement(Resource):
                             'contract_uid': contractRes['result'][0]['contract_uid']
                         }
                         contractUpdate = {
-                            'contract_status': 'INACTIVE'
+                            # 'contract_status': 'INACTIVE',
+                            'end_date': contractRes['result'][0]['early_end_date']
                         }
                         response = db.update(
                             'contracts', contractPK, contractUpdate)
@@ -620,3 +655,98 @@ class CancelAgreement(Resource):
                     response = db.update('propertyManager', pk, ownerRejected)
 
         return response
+
+
+class ManagerContractEnd_CLASS(Resource):
+    def get(self):
+        with connect() as db:
+            response = db.execute("""SELECT *
+                                    FROM pm.contracts c
+                                    LEFT JOIN
+                                    pm.propertyManager p 
+                                    ON p.linked_property_id = c.property_uid
+                                    WHERE c.contract_status='ACTIVE'
+                                    AND c.end_date = DATE_FORMAT(NOW(), "%Y-%m-%d")
+                                    AND p.management_status= 'ACCEPTED' OR p.management_status='END EARLY'; """)
+            print(response['result'], len(response['result']))
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    contractUpdate = {
+                        'contract_status': 'INACTIVE',
+                    }
+                    contractPK = {
+                        'contract_uid': response['result'][i]['contract_uid']
+                    }
+                    contractresponse = db.update(
+                        'contracts', contractPK, contractUpdate)
+                    if response['result'][i]['management_status'] == 'END EARLY':
+
+                        propertyManagerUpdate = {
+                            'management_status': 'TERMINATED'
+                        }
+                        propertyManagerPK = {
+                            'linked_property_id': response['result'][i]['property_uid'],
+                            'linked_business_id': response['result'][i]['linked_business_id']
+                        }
+                        propertyManagerresponse = db.update(
+                            'propertyManager', propertyManagerPK, propertyManagerUpdate)
+                    else:
+                        propertyManagerUpdate = {
+                            'management_status': 'EXPIRED'
+                        }
+                        propertyManagerPK = {
+                            'linked_property_id': response['result'][i]['property_uid'],
+                            'linked_business_id': response['result'][i]['linked_business_id']
+                        }
+                        propertyManagerresponse = db.update(
+                            'propertyManager', propertyManagerPK, propertyManagerUpdate)
+        return propertyManagerresponse
+
+
+def ManagerContractEnd_CRON():
+
+    print('In ManagerContractEnd_CRON')
+    with connect() as db:
+
+        print("In Manager Contract End CRON Function")
+        response = db.execute("""SELECT *
+                                FROM pm.contracts c
+                                LEFT JOIN
+                                pm.propertyManager p
+                                ON p.linked_property_id = c.property_uid
+                                WHERE c.contract_status='ACTIVE'
+                                AND c.end_date = DATE_FORMAT(NOW(), "%Y-%m-%d")
+                                AND p.management_status= 'ACCEPTED' OR p.management_status='END EARLY'; """)
+        print(response['result'], len(response['result']))
+        if len(response['result']) > 0:
+            for i in range(len(response['result'])):
+                contractUpdate = {
+                    'contract_status': 'INACTIVE',
+                }
+                contractPK = {
+                    'contract_uid': response['result'][i]['contract_uid']
+                }
+                contractresponse = db.update(
+                    'contracts', contractPK, contractUpdate)
+                if response['result'][i]['management_status'] == 'END EARLY':
+
+                    propertyManagerUpdate = {
+                        'management_status': 'TERMINATED'
+                    }
+                    propertyManagerPK = {
+                        'linked_property_id': response['result'][i]['property_uid'],
+                        'linked_business_id': response['result'][i]['linked_business_id']
+                    }
+                    propertyManagerresponse = db.update(
+                        'propertyManager', propertyManagerPK, propertyManagerUpdate)
+                else:
+                    propertyManagerUpdate = {
+                        'management_status': 'EXPIRED'
+                    }
+                    propertyManagerPK = {
+                        'linked_property_id': response['result'][i]['property_uid'],
+                        'linked_business_id': response['result'][i]['linked_business_id']
+                    }
+                    propertyManagerresponse = db.update(
+                        'propertyManager', propertyManagerPK, propertyManagerUpdate)
+    return propertyManagerresponse

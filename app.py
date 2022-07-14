@@ -10,7 +10,7 @@ from flask_restful import Resource
 from data import connect
 import os
 
-from properties import Properties, Property, NotManagedProperties, CancelAgreement
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
@@ -97,7 +97,7 @@ class LeaseExpiringNotify_CLASS(Resource):
                                     ON u.user_uid = lt.linked_tenant_id
                                     WHERE r.lease_end = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 MONTH), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE'
-                                    AND pM.management_status= 'ACCEPTED'; """)
+                                    AND pM.management_status= 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY'; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -233,6 +233,8 @@ api.add_resource(ManagerPropertyTenants, '/managerPropertyTenants')
 api.add_resource(ManagerDocuments, '/managerDocuments')
 
 api.add_resource(CancelAgreement, '/cancelAgreement')
+api.add_resource(ManagerContractEnd_CLASS,
+                 '/managerContractEnd_CLASS')
 
 api.add_resource(OwnerPayments, '/ownerPayments')
 

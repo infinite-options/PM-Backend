@@ -80,7 +80,7 @@ class ManagerClients(Resource):
                     LEFT JOIN ownerProfileInfo opi
                     ON opi.owner_id = p.owner_id
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
-                    AND pm.management_status = 'ACCEPTED'
+                    AND pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY'
                 """)
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -114,7 +114,7 @@ class ManagerPropertyTenants(Resource):
                     LEFT JOIN pm.tenantProfileInfo tpi
                     ON tpi.tenant_id = lt.linked_tenant_id
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
-                    AND pm.management_status = 'ACCEPTED'
+                    AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')
                     AND r.rental_status = 'ACTIVE'
                 """)
                 if len(response['result']) > 0:
@@ -201,7 +201,7 @@ class ManagerDocuments(Resource):
                                             pm.propertyManager pm
                                             ON pm.linked_property_id = prop.property_uid
                                             WHERE pm.linked_business_id = \'""" + filterValue + """\'
-                                            AND pm.management_status= 'ACCEPTED'
+                                            AND (pm.management_status= 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')
                                             AND c.business_uid = pm.linked_business_id""")
 
                     active_manager_docs = []
