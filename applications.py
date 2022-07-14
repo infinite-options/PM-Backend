@@ -800,7 +800,7 @@ class EndEarly(Resource):
                     print('multiEndRes', multiEndRes['result'])
                     # multiple tenants set ENDED from END ACCEPTED
                     if len(multiEndRes['result']) > 0:
-                        updateApp['application_status'] = 'ENDED'
+                        updateApp['application_status'] = 'ENDED EARLY'
                         for multiEndRes in multiEndRes['result']:
                             pk = {
                                 'application_uid': multiEndRes['application_uid']
@@ -813,7 +813,7 @@ class EndEarly(Resource):
                         + """\' """)
                     print(pmEndRes)
                     if len(pmEndRes['result']) > 0:
-                        updateApp['application_status'] = 'ENDED'
+                        updateApp['application_status'] = 'ENDED EARLY'
                         pk = {
                             'application_uid': pmEndRes['result'][0]['application_uid']
                         }
@@ -831,7 +831,7 @@ class EndEarly(Resource):
                     pk1 = {
                         'rental_uid': res['result'][0]['rental_uid']}
                     newRental = {
-                        'rental_status': 'TERMINATED',
+                        # 'rental_status': 'TERMINATED',
                         'lease_end':  res['result'][0]['early_end_date']}
                     res = db.update(
                         'rentals', pk1, newRental)
@@ -856,7 +856,7 @@ class EndEarly(Resource):
                         pk = {
                             'application_uid': endRes['application_uid']
                         }
-                        updateApp['application_status'] = 'ENDED'
+                        updateApp['application_status'] = 'ENDED EARLY'
                         response = db.update('applications', pk, updateApp)
 
                 res = db.execute("""SELECT
@@ -872,7 +872,7 @@ class EndEarly(Resource):
                 pk1 = {
                     'rental_uid': res['result'][0]['rental_uid']}
                 newRental = {
-                    'rental_status': 'TERMINATED',
+                    # 'rental_status': 'TERMINATED',
                     'lease_end':  res['result'][0]['early_end_date']}
                 res = db.update(
                     'rentals', pk1, newRental)
@@ -918,3 +918,96 @@ class EndEarly(Resource):
                         response = db.update('applications', pk, updateRefRes)
 
         return response
+
+
+class TenantRentalEnd_CLASS(Resource):
+    def get(self):
+        with connect() as db:
+            response = db.execute("""SELECT *
+                                    FROM pm.rentals r
+                                    LEFT JOIN
+                                    pm.applications a
+                                    ON a.property_uid = r.rental_property_id
+                                    WHERE r.rental_status='ACTIVE'
+                                    AND r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d")
+                                    AND (a.application_status= 'RENTED' OR a.application_status= 'END EARLY'); """)
+            print(response['result'], len(response['result']))
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    applicationUpdate = {
+                        'application_status': 'ENDED',
+                    }
+                    applicationPK = {
+                        'application_uid': response['result'][i]['application_uid']
+                    }
+                    applicationresponse = db.update(
+                        'applications', applicationPK, applicationUpdate)
+                    if response['result'][i]['application_status'] == 'END EARLY':
+
+                        rentalsUpdate = {
+                            'rental_status': 'TERMINATED'
+                        }
+                        rentalsPK = {
+                            'rental_uid': response['result'][i]['rental_uid']
+                        }
+                        rentalsresponse = db.update(
+                            'rentals', rentalsPK, rentalsUpdate)
+                    else:
+                        rentalsUpdate = {
+                            'rental_status': 'EXPIRED'
+                        }
+                        rentalsPK = {
+                            'rental_uid': response['result'][i]['rental_uid']
+                        }
+                        rentalsresponse = db.update(
+                            'rentals', rentalsPK, rentalsUpdate)
+        return rentalsresponse
+
+
+def TenantRentalEnd_CRON():
+
+    print('In TenantRentalEnd_CRON')
+    with connect() as db:
+
+        print("In Manager Contract End CRON Function")
+        response = db.execute("""SELECT *
+                                FROM pm.contracts c
+                                LEFT JOIN
+                                pm.propertyManager p
+                                ON p.linked_property_id = c.property_uid
+                                WHERE c.contract_status='ACTIVE'
+                                AND c.end_date = DATE_FORMAT(NOW(), "%Y-%m-%d")
+                                AND p.management_status= 'ACCEPTED' OR p.management_status='END EARLY'; """)
+        print(response['result'], len(response['result']))
+        if len(response['result']) > 0:
+            for i in range(len(response['result'])):
+                contractUpdate = {
+                    'contract_status': 'INACTIVE',
+                }
+                contractPK = {
+                    'contract_uid': response['result'][i]['contract_uid']
+                }
+                contractresponse = db.update(
+                    'contracts', contractPK, contractUpdate)
+                if response['result'][i]['management_status'] == 'END EARLY':
+
+                    propertyManagerUpdate = {
+                        'management_status': 'TERMINATED'
+                    }
+                    propertyManagerPK = {
+                        'linked_property_id': response['result'][i]['property_uid'],
+                        'linked_business_id': response['result'][i]['linked_business_id']
+                    }
+                    propertyManagerresponse = db.update(
+                        'propertyManager', propertyManagerPK, propertyManagerUpdate)
+                else:
+                    propertyManagerUpdate = {
+                        'management_status': 'EXPIRED'
+                    }
+                    propertyManagerPK = {
+                        'linked_property_id': response['result'][i]['property_uid'],
+                        'linked_business_id': response['result'][i]['linked_business_id']
+                    }
+                    propertyManagerresponse = db.update(
+                        'propertyManager', propertyManagerPK, propertyManagerUpdate)
+    return propertyManagerresponse

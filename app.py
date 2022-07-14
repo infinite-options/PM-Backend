@@ -30,7 +30,7 @@ from maintenanceRequests import MaintenanceRequestsandQuotes, OwnerMaintenanceRe
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
-from applications import Applications, EndEarly
+from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
 from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
 from bills import Bills
@@ -235,6 +235,7 @@ api.add_resource(ManagerDocuments, '/managerDocuments')
 api.add_resource(CancelAgreement, '/cancelAgreement')
 api.add_resource(ManagerContractEnd_CLASS,
                  '/managerContractEnd_CLASS')
+api.add_resource(TenantRentalEnd_CLASS, '/tenantRentalEnd_CLASS')
 
 api.add_resource(OwnerPayments, '/ownerPayments')
 
