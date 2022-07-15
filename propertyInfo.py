@@ -46,6 +46,15 @@ class PropertyInfo(Resource):
                                                         """)
                     response['result'][i]['maintenanceRequests'] = list(
                         maintenance_res['result'])
+
+                    expense_res = db.execute("""SELECT *
+                                                        FROM pm.purchases p
+                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
+                                                        AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%%\"""" + filterVal + """\"%%')
+                                                        """)
+                    response['result'][i]['expenses'] = list(
+                        expense_res['result'])
                 # print(response)
             elif filterType == 'owner_id':
                 print('here if')
