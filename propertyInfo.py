@@ -53,6 +53,38 @@ class PropertyInfo(Resource):
                                                         AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
                                                         AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%%\"""" + filterVal + """\"%%')
                                                         """)
+
+                    if(len(expense_res['result']) > 0):
+                        for i in range(len(expense_res['result'])):
+                            if expense_res['result'][i]['purchase_type'] == 'UTILITY':
+                                print('in utility')
+                                billRes = db.execute("""SELECT b.*, p.address, p.unit,p.city,p.state,p.zip
+                                                        FROM pm.bills b
+                                                        LEFT JOIN properties p
+                                                        ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                        WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+
+                                if(len(billRes['result']) > 0):
+                                    for j in range(len(billRes['result'])):
+                                        expense_res['result'][i].update(
+                                            billRes['result'][j])
+                                        # expense_res['result'][i] = (expense_res['result'][i]) + (
+                                        #     billRes['result'][j])
+                            elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
+                                print('in maintenance')
+                                maintenanceRes = db.execute("""SELECT mq.*, b.*, p.address, p.unit,p.city,p.state,p.zip
+                                                                FROM maintenanceQuotes mq
+                                                                LEFT JOIN pm.businesses b
+                                                                ON b.business_uid = mq.quote_business_uid
+                                                                LEFT JOIN properties p
+                                                                ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+
+                                if(len(maintenanceRes['result']) > 0):
+                                    for j in range(len(maintenanceRes['result'])):
+                                        expense_res['result'][i].update(
+                                            maintenanceRes['result'][j])
+
                     response['result'][i]['expenses'] = list(
                         expense_res['result'])
                 # print(response)
