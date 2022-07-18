@@ -192,6 +192,46 @@ class Properties(Resource):
                 else:
                     db.insert('propertyManager', propertyManager)
                 if management_status == 'ACCEPTED':
+
+                    rejectOthers = db.execute(""" SELECT * FROM propertyManager 
+                                                WHERE linked_property_id = \'""" + property_uid + """\' 
+                                                AND linked_business_id <> \'""" + manager_id + """\' """)
+                    if len(rejectOthers['result']) > 0:
+                        print("set others to reject")
+                        for i in range(len(rejectOthers['result'])):
+                            print(rejectOthers['result'][i])
+                            if rejectOthers['result'][i]['management_status'] == 'SENT':
+                                contractRes = db.execute("""SELECT * FROM
+                                                            pm.contracts c
+                                                            LEFT JOIN
+                                                            pm.properties p
+                                                            ON p.property_uid = c.property_uid  
+                                                            WHERE c.property_uid = \'""" + property_uid + """\' 
+                                                            AND c.business_uid= \'""" + rejectOthers['result'][i]['linked_business_id'] + """\'""")
+                                if len(contractRes['result']) > 0:
+                                    for i in range(len(contractRes['result'])):
+                                        pk = {
+                                            'contract_uid': contractRes['result'][i]['contract_uid']
+                                        }
+                                        contractsReject = {
+                                            'contract_uid': contractRes['result'][i]['contract_uid'],
+                                            'contract_status': 'REJECTED'
+                                        }
+                                        db.update('contracts', pk,
+                                                  contractsReject)
+
+                            pk = {
+                                'linked_property_id': property_uid,
+                                'linked_business_id': rejectOthers['result'][i]['linked_business_id']
+                            }
+                            propertyManagerReject = {
+                                'linked_property_id': property_uid,
+                                'linked_business_id': rejectOthers['result'][i]['linked_business_id'],
+                                'management_status': 'REJECTED'
+                            }
+                            db.update('propertyManager', pk,
+                                      propertyManagerReject)
+
                     contractRes = db.execute(
                         """SELECT * FROM
                             pm.contracts c
