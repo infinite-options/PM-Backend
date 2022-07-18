@@ -29,7 +29,7 @@ from maintenanceRequests import MaintenanceRequests
 from maintenanceRequests import MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
-from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
+from propertyInfo import ManagerExpenses, PropertyInfo, AvailableProperties, PropertiesManagerDetail
 from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
 from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
@@ -262,8 +262,7 @@ api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
 api.add_resource(Contracts, '/contracts')
 api.add_resource(PropertiesManagerDetail, '/propertiesManagerDetail')
 api.add_resource(PropertyInfo, '/propertyInfo')
-# api.add_resource(AvailableProperties,
-#                  '/availableProperties/<string:tenant_id>')
+api.add_resource(ManagerExpenses, '/managerExpenses')
 api.add_resource(AvailableProperties,
                  '/availableProperties')
 api.add_resource(PropertiesOwner,
