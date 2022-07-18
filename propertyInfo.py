@@ -55,6 +55,8 @@ class PropertyInfo(Resource):
                                                         """)
 
                     if(len(expense_res['result']) > 0):
+                        response['result'][i]['expenses'] = list(
+                            expense_res['result'])
                         for i in range(len(expense_res['result'])):
                             if expense_res['result'][i]['purchase_type'] == 'UTILITY':
                                 print('in utility')
@@ -84,9 +86,11 @@ class PropertyInfo(Resource):
                                     for j in range(len(maintenanceRes['result'])):
                                         expense_res['result'][i].update(
                                             maintenanceRes['result'][j])
+                    else:
+                        response['result'][i]['expenses'] = []
 
-                    response['result'][i]['expenses'] = list(
-                        expense_res['result'])
+                    # response['result'][i]['expenses'] = list(
+                    #     expense_res['result'])
                 # print(response)
             elif filterType == 'owner_id':
                 print('here if')
