@@ -84,8 +84,12 @@ class ManagerClients(Resource):
                 """)
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
-                    owner_properties = db.execute(""" SELECT * FROM properties
-                    WHERE owner_id = \'""" + response['result'][i]['owner_id'] + """\' """)
+                    owner_properties = db.execute(""" SELECT * FROM properties p
+                                                    LEFT JOIN propertyManager pm
+                                                    ON pm.linked_property_id = p.property_uid
+                                                    WHERE owner_id = \'""" + response['result'][i]['owner_id'] + """\'
+                                                    AND pm.linked_business_id = \'""" + filterValue + """\'
+                                                    AND pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm. management_status='OWNER END EARLY' """)
                     response['result'][i]['properties'] = list(
                         owner_properties['result'])
 
