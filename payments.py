@@ -103,6 +103,26 @@ class OwnerPayments(Resource):
         return response
 
 
+class ManagerPayments(Resource):
+
+    def get(self):
+        response = {}
+        filters = ['manager_id']
+        where = {}
+        with connect() as db:
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+
+                response = db.execute("""
+                    SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
+                    WHERE p2.payer LIKE '%%\"""" + filterValue + """\"%%'
+                """)
+                # response = db.execute(sql, args)
+        return response
+
+
 def diff_month(d1, d2):
     return (d1.year - d2.year) * 12 + d1.month - d2.month
 
