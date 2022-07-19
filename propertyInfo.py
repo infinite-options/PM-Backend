@@ -146,6 +146,8 @@ class PropertyInfo(Resource):
                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
                     # print(len(manager_revenue['result']))
+                    response['result'][i]['manager_revenue'] = list(
+                        manager_revenue['result'])
                     response['result'][i]['rental_revenue'] = round(
                         rental_revenue, 2)
                     response['result'][i]['extraCharges_revenue'] = round(
@@ -258,6 +260,8 @@ class PropertyInfo(Resource):
                     AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
+                    response['result'][i]['manager_expense'] = list(
+                        manager_expense['result'])
                     response['result'][i]['maintenance_expenses'] = round(
                         maintenance_expenses, 2)
                     response['result'][i]['management_expenses'] = round(
@@ -613,6 +617,8 @@ class PropertiesManagerDetail(Resource):
                         extraCharges_revenue, 2)
                     response['result'][i]['utility_revenue'] = round(
                         utility_revenue, 2)
+                    response['result'][i]['manager_revenue'] = list(
+                        manager_revenue['result'])
 
                     if len(manager_revenue['result']) > 0:
                         for ore in range(len(manager_revenue['result'])):
@@ -724,7 +730,8 @@ class PropertiesManagerDetail(Resource):
                         management_expenses, 2)
                     response['result'][i]['repairs_expenses'] = round(
                         repairs_expenses, 2)
-
+                    response['result'][i]['manager_expense'] = list(
+                        manager_expense['result'])
                     if len(manager_expense['result']) > 0:
                         for ore in range(len(manager_expense['result'])):
                             print('ore', manager_expense['result'][ore])
