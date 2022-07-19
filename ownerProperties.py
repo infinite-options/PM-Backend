@@ -252,10 +252,14 @@ class PropertiesOwner(Resource):
                                         extraCharges_revenue = extraCharges_revenue + \
                                             owner_revenue['result'][ore]['amount_due']
 
-                        response['result'][i]['rental_revenue'] = rental_revenue
-                        response['result'][i]['extraCharges_revenue'] = extraCharges_revenue
-                        response['result'][i]['rental_year_revenue'] = rental_year_revenue
-                        response['result'][i]['extraCharges_year_revenue'] = extraCharges_year_revenue
+                        response['result'][i]['rental_revenue'] = round(
+                            rental_revenue, 2)
+                        response['result'][i]['extraCharges_revenue'] = round(
+                            extraCharges_revenue, 2)
+                        response['result'][i]['rental_year_revenue'] = round(
+                            rental_year_revenue, 2)
+                        response['result'][i]['extraCharges_year_revenue'] = round(
+                            extraCharges_year_revenue, 2)
 
                         # annual revenue for the property
                         yearly_owner_revenue = db.execute("""SELECT *
@@ -440,12 +444,18 @@ class PropertiesOwner(Resource):
                                         repairs_expenses = repairs_expenses + \
                                             owner_expense['result'][ore]['amount_due']
 
-                            response['result'][i]['maintenance_expenses'] = maintenance_expenses
-                            response['result'][i]['management_expenses'] = management_expenses
-                            response['result'][i]['repairs_expenses'] = repairs_expenses
-                            response['result'][i]['maintenance_year_expense'] = maintenance_year_expenses
-                            response['result'][i]['management_year_expense'] = management_year_expenses
-                            response['result'][i]['repairs_year_expense'] = repairs_year_expenses
+                            response['result'][i]['maintenance_expenses'] = round(
+                                maintenance_expenses, 2)
+                            response['result'][i]['management_expenses'] = round(
+                                management_expenses, 2)
+                            response['result'][i]['repairs_expenses'] = round(
+                                repairs_expenses, 2)
+                            response['result'][i]['maintenance_year_expense'] = round(
+                                maintenance_year_expenses, 2)
+                            response['result'][i]['management_year_expense'] = round(
+                                management_year_expenses, 2)
+                            response['result'][i]['repairs_year_expense'] = round(
+                                repairs_year_expenses, 2)
 
                         # annual expense for the property
                         yearly_owner_expense = db.execute("""SELECT *
@@ -846,10 +856,14 @@ class PropertiesOwnerDetail(Resource):
                                         extraCharges_revenue = extraCharges_revenue + \
                                             owner_revenue['result'][ore]['amount_due']
 
-                        response['result'][i]['rental_revenue'] = rental_revenue
-                        response['result'][i]['extraCharges_revenue'] = extraCharges_revenue
-                        response['result'][i]['rental_year_revenue'] = rental_year_revenue
-                        response['result'][i]['extraCharges_year_revenue'] = extraCharges_year_revenue
+                        response['result'][i]['rental_revenue'] = round(
+                            rental_revenue, 2)
+                        response['result'][i]['extraCharges_revenue'] = round(
+                            extraCharges_revenue, 2)
+                        response['result'][i]['rental_year_revenue'] = round(
+                            rental_year_revenue, 2)
+                        response['result'][i]['extraCharges_year_revenue'] = round(
+                            extraCharges_year_revenue, 2)
 
                         # annual revenue for the property
                         yearly_owner_revenue = db.execute("""SELECT *
@@ -1032,12 +1046,18 @@ class PropertiesOwnerDetail(Resource):
                                         repairs_expenses = repairs_expenses + \
                                             owner_expense['result'][ore]['amount_due']
 
-                            response['result'][i]['maintenance_expenses'] = maintenance_expenses
-                            response['result'][i]['management_expenses'] = management_expenses
-                            response['result'][i]['repairs_expenses'] = repairs_expenses
-                            response['result'][i]['maintenance_year_expense'] = maintenance_year_expenses
-                            response['result'][i]['management_year_expense'] = management_year_expenses
-                            response['result'][i]['repairs_year_expense'] = repairs_year_expenses
+                            response['result'][i]['maintenance_expenses'] = round(
+                                maintenance_expenses, 2)
+                            response['result'][i]['management_expenses'] = round(
+                                management_expenses, 2)
+                            response['result'][i]['repairs_expenses'] = round(
+                                repairs_expenses, 2)
+                            response['result'][i]['maintenance_year_expense'] = round(
+                                maintenance_year_expenses, 2)
+                            response['result'][i]['management_year_expense'] = round(
+                                management_year_expenses, 2)
+                            response['result'][i]['repairs_year_expense'] = round(
+                                repairs_year_expenses, 2)
 
                         # annual expense for the property
                         yearly_owner_expense = db.execute("""SELECT *
@@ -1106,7 +1126,8 @@ class PropertiesOwnerDetail(Resource):
                                         (int(json.loads(
                                             response['result'][i]['mortgages'])['amount']))
                         print(mortgage_expenses)
-                        response['result'][i]['mortgage_expenses'] = mortgage_expenses
+                        response['result'][i]['mortgage_expenses'] = round(
+                            mortgage_expenses, 2)
 
                         # monthly expense for the property to include taxes
                         if response['result'][i]['taxes'] is not None:
@@ -1157,7 +1178,8 @@ class PropertiesOwnerDetail(Resource):
                                             taxes_expenses = taxes_expenses + \
                                                 (int(eval(response['result'][i]['taxes'])[
                                                     te]['amount']))
-                        response['result'][i]['tax_expenses'] = taxes_expenses
+                        response['result'][i]['tax_expenses'] = round(
+                            taxes_expenses, 2)
                         # monthly expense for the property to include insurance
                         # response['result'][i]['insurance_expenses'] = insurance_expenses
                         if response['result'][i]['insurance'] is not None:
@@ -1208,7 +1230,8 @@ class PropertiesOwnerDetail(Resource):
                                             insurance_expenses = insurance_expenses + \
                                                 (int(eval(response['result'][i]['insurance'])[
                                                     te]['amount']))
-                            response['result'][i]['insurance_expenses'] = insurance_expenses
+                            response['result'][i]['insurance_expenses'] = round(
+                                insurance_expenses, 2)
 
                     # print(response)
 
