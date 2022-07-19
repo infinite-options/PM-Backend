@@ -254,21 +254,19 @@ class PropertyInfo(Resource):
                     LEFT JOIN pm.contracts c
                     ON c.property_uid = p.pur_property_id
                     WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
-                    AND c.business_uid = \'""" + filterVal + """\'
                     AND c.contract_status = 'ACTIVE'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                     AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
-                    response['result'][i]['manager_expense'] = list(
-                        manager_expense['result'])
                     response['result'][i]['maintenance_expenses'] = round(
                         maintenance_expenses, 2)
                     response['result'][i]['management_expenses'] = round(
                         management_expenses, 2)
                     response['result'][i]['repairs_expenses'] = round(
                         repairs_expenses, 2)
-
+                    response['result'][i]['manager_expense'] = list(
+                        manager_expense['result'])
                     if len(manager_expense['result']) > 0:
                         for ore in range(len(manager_expense['result'])):
                             print('ore', manager_expense['result'][ore])
