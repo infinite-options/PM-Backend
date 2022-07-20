@@ -814,7 +814,7 @@ class LateFee_CLASS(Resource):
         with connect() as db:
             purchaseResponse = {'message': 'Successfully committed SQL query',
                                 'code': 200}
-            response = db.execute("""SELECT * 
+            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
                                     FROM pm.rentals r 
                                     LEFT JOIN
                                     pm.leaseTenants lt 
@@ -825,7 +825,8 @@ class LateFee_CLASS(Resource):
                                     WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+                                    GROUP BY lt.linked_rental_uid  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -842,6 +843,7 @@ class LateFee_CLASS(Resource):
                         relativedelta(
                             days=int(response['result'][i]['late_by']))
                     print(response['result'][i]['late_by'], late_date)
+                    tenants = response['result'][i]['tenants']
                     # get unpaid rent for the current month from purchases
                     res = db.execute("""SELECT *
                                     FROM pm.purchases p
@@ -859,7 +861,7 @@ class LateFee_CLASS(Resource):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=response['result'][i]['rental_property_id'],
-                                    payer=response['result'][i]['linked_tenant_id'],
+                                    payer=json.dumps(tenants),
                                     receiver=response['result'][i]['linked_business_id'],
                                     purchase_type='EXTRA CHARGES',
                                     description='Late Fee',
@@ -883,7 +885,7 @@ def LateFee():
         print("In Late Fee CRON Function")
         purchaseResponse = {'message': 'Successfully committed SQL query',
                             'code': 200}
-        response = db.execute("""SELECT * 
+        response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
                                 FROM pm.rentals r 
                                 LEFT JOIN
                                 pm.leaseTenants lt 
@@ -894,7 +896,8 @@ def LateFee():
                                 WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                 AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                 AND r.rental_status='ACTIVE' 
-                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY') 
+                                GROUP BY lt.linked_rental_uid ; """)
 
         if len(response['result']) > 0:
             for i in range(len(response['result'])):
@@ -912,15 +915,15 @@ def LateFee():
                     relativedelta(
                         days=int(response['result'][i]['late_by']))
                 print(response['result'][i]['late_by'], late_date)
-                tenants = response['result'][0]['linked_tenant_id']
-                # print('tenants1', tenants)
-                if '[' in tenants:
-                    # print('tenants2', tenants)
-                    tenants = json.loads(tenants)
-                    # print('tenants3', tenants)
-                # print('tenants4', tenants)
-                if type(tenants) == str:
-                    tenants = [tenants]
+                tenants = response['result'][i]['tenants']
+                # # print('tenants1', tenants)
+                # if '[' in tenants:
+                #     # print('tenants2', tenants)
+                #     tenants = json.loads(tenants)
+                #     # print('tenants3', tenants)
+                # # print('tenants4', tenants)
+                # if type(tenants) == str:
+                #     tenants = [tenants]
                 # get unpaid rent for the current month from purchases
                 res = db.execute("""SELECT *
                                 FROM pm.purchases p
@@ -957,7 +960,7 @@ class PerDay_LateFee_CLASS(Resource):
         updateLF = {'message': 'Successfully committed SQL query',
                     'code': 200}
         with connect() as db:
-            response = db.execute("""SELECT * 
+            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
                                     FROM pm.rentals r 
                                     LEFT JOIN
                                     pm.leaseTenants lt 
@@ -968,7 +971,8 @@ class PerDay_LateFee_CLASS(Resource):
                                     WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+                                    GROUP BY lt.linked_rental_uid  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -1034,7 +1038,7 @@ def PerDay_LateFee():
         updateLF = {'message': 'Successfully committed SQL query',
                     'code': 200}
         with connect() as db:
-            response = db.execute("""SELECT * 
+            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
                                     FROM pm.rentals r 
                                     LEFT JOIN
                                     pm.leaseTenants lt 
@@ -1045,7 +1049,8 @@ def PerDay_LateFee():
                                     WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
                                     AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY') 
+                                    GROUP BY lt.linked_rental_uid ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
