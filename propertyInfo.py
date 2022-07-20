@@ -32,32 +32,13 @@ class PropertyInfo(Resource):
             if filterType == 'manager_id':
                 print('here if')
                 response = db.execute(
-                    """SELECT p.*, propM.*,o.*,b.*,r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,  
-                    GROUP_CONCAT(t.tenant_first_name) as `tenant_first_name`,
-                    GROUP_CONCAT(t.tenant_last_name) as `tenant_last_name`,
-                    GROUP_CONCAT(t.tenant_email) as `tenant_email`,
-                    GROUP_CONCAT(t.tenant_phone_number) as `tenant_phone_number`
-                    FROM properties p
-                    LEFT JOIN propertyManager propM
-                    ON propM.linked_property_id=p.property_uid
-                    LEFT JOIN ownerProfileInfo o
-                    ON o.owner_id=p.owner_id
-                    LEFT JOIN businesses b 
-                    ON b.business_uid = propM.linked_business_id 
-                    LEFT JOIN rentals r 
-                    ON r.rental_property_id = p.property_uid
-                    LEFT JOIN leaseTenants lt
-                    ON lt.linked_rental_uid = r.rental_uid
-                    LEFT JOIN tenantProfileInfo t 
-                    ON t.tenant_id = lt.linked_tenant_id
-                    WHERE propM.management_status <> 'REJECTED'
-                    AND propM.management_status <> 'TERMINATED' 
-                    AND propM.management_status <> 'EXPIRED'  
-                    AND propM.linked_business_id = \'""" + filterVal + """\' 
-                    GROUP BY lt.linked_rental_uid""")
+                    """SELECT * 
+                    FROM pm.propertyInfo 
+                    WHERE management_status <> 'REJECTED'
+                    AND management_status <> 'TERMINATED' 
+                    AND management_status <> 'EXPIRED'  
+                    AND manager_id = \'""" + filterVal + """\' """)
                 for i in range(len(response['result'])):
-                    print(i, response['result'][i]['property_uid'],
-                          response['result'][i]['rental_status'])
                     property_id = response['result'][i]['property_uid']
 
                     # get tenant applications
