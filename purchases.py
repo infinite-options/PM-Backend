@@ -76,7 +76,7 @@ class Purchases(Resource):
         data = request.get_json()
         print(data)
         linked_bill_id = data.get('linked_bill_id')
-        pur_property_id = data.get('pur_property_id')
+        pur_property_id = json.dumps(data.get('pur_property_id'))
         payer = json.dumps(data.get('payer'))
         receiver = data.get('receiver')
         purchase_type = data.get('purchase_type')
@@ -92,15 +92,24 @@ class Purchases(Resource):
             if next_payment != "0000-00-00 00:00:00":
                 print('do nothing date provided')
             else:
+                sql = """SELECT * 
+                        FROM pm.rentals r
+                        LEFT JOIN pm.properties p
+                        ON p.property_uid = r.rental_property_id
+                        WHERE r.rental_property_id = \'""" + (pur_property_id).split("\"")[1] + """\'
+                        AND r.rental_status = 'ACTIVE';"""
+                print('rentalRes',  sql)
+
                 rentalRes = db.execute("""SELECT * 
-                                        FROM rentals r
-                                        LEFT JOIN properties p
-                                        ON p.property_uid = r.rental_property_id
-                                        WHERE r.rental_property_id = \'""" + pur_property_id + """\'
-                                        AND r.rental_status = 'ACTIVE' """)
+                                            FROM pm.rentals r
+                                            LEFT JOIN pm.properties p
+                                            ON p.property_uid = r.rental_property_id
+                                            WHERE r.rental_property_id = \'""" + (pur_property_id).split("\"")[1] + """\'
+                                            AND r.rental_status = 'ACTIVE';""")
+
                 propertyRes = db.execute("""SELECT * 
                                         FROM properties 
-                                        WHERE property_uid  = \'""" + pur_property_id + """\' """)
+                                        WHERE property_uid  = \'""" + (pur_property_id).split("\"")[1] + """\' """)
                 print('rentalRes', (propertyRes['result']))
                 def days_in_month(dt): return monthrange(
                     dt.year, dt.month)[1]
@@ -133,19 +142,35 @@ class Purchases(Resource):
                     print(first_day)
                     next_payment = datetime.strftime(
                         first_day, '%Y-%m-%d %H:%M:%S')
-            newPurchase = {
-                "linked_bill_id": linked_bill_id,
-                "pur_property_id": pur_property_id,
-                "payer": payer,
-                "receiver": receiver,
-                "purchase_type": purchase_type,
-                "description": description,
-                "amount_due": amount_due,
-                "purchase_notes": purchase_notes,
-                "purchase_date": purchase_date,
-                "purchase_frequency": purchase_frequency,
-                "next_payment": next_payment
-            }
+            if len((pur_property_id).split("\"")) == 3:
+
+                newPurchase = {
+                    "linked_bill_id": linked_bill_id,
+                    "pur_property_id": (pur_property_id).split("\"")[1],
+                    "payer": payer,
+                    "receiver": receiver,
+                    "purchase_type": purchase_type,
+                    "description": description,
+                    "amount_due": amount_due,
+                    "purchase_notes": purchase_notes,
+                    "purchase_date": purchase_date,
+                    "purchase_frequency": purchase_frequency,
+                    "next_payment": next_payment
+                }
+            else:
+                newPurchase = {
+                    "linked_bill_id": linked_bill_id,
+                    "pur_property_id": pur_property_id,
+                    "payer": payer,
+                    "receiver": receiver,
+                    "purchase_type": purchase_type,
+                    "description": description,
+                    "amount_due": amount_due,
+                    "purchase_notes": purchase_notes,
+                    "purchase_date": purchase_date,
+                    "purchase_frequency": purchase_frequency,
+                    "next_payment": next_payment
+                }
             print(newPurchase)
             newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
             newPurchase['amount_paid'] = 0
@@ -154,7 +179,7 @@ class Purchases(Resource):
             # print(newPurchase)
 
             response = db.insert('purchases', newPurchase)
-
+            response['purchase_uid'] = newPurchaseID
         return response
 
 

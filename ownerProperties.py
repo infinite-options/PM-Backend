@@ -306,7 +306,7 @@ class PropertiesOwner(Resource):
                                     if owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
                                         print('in maintenance monthly')
                                         # if maintenance monthly once a month
-                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month' or owner_expense['result'][ore]['payment_frequency'] is None:
                                             print('in maintenance once a month')
                                             maintenance_year_expenses = maintenance_year_expenses + yearCal * \
                                                 (owner_expense['result']
@@ -353,10 +353,12 @@ class PropertiesOwner(Resource):
                                             owner_expense['result'][ore]['amount_due']
                                 # if management
                                 if owner_expense['result'][ore]['purchase_type'] == 'MANAGEMENT':
+                                    print("MANAGEMTN")
                                     # if management monthly
                                     if owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
                                         # if management monthly once a month
-                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month' or owner_expense['result'][ore]['payment_frequency'] is None:
+                                            print('here')
                                             management_year_expenses = yearCal * \
                                                 (owner_expense['result']
                                                     [ore]['amount_due'])
@@ -402,7 +404,7 @@ class PropertiesOwner(Resource):
                                     # if repairs monthly
                                     if owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
                                         # if repairs monthly once a month
-                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month':
+                                        if owner_expense['result'][ore]['payment_frequency'] == 'Once a month' or owner_expense['result'][ore]['payment_frequency'] is None:
                                             repairs_year_expenses = yearCal * \
                                                 (owner_expense['result']
                                                     [ore]['amount_due'])
@@ -444,18 +446,18 @@ class PropertiesOwner(Resource):
                                         repairs_expenses = repairs_expenses + \
                                             owner_expense['result'][ore]['amount_due']
 
-                            response['result'][i]['maintenance_expenses'] = round(
-                                maintenance_expenses, 2)
-                            response['result'][i]['management_expenses'] = round(
-                                management_expenses, 2)
-                            response['result'][i]['repairs_expenses'] = round(
-                                repairs_expenses, 2)
-                            response['result'][i]['maintenance_year_expense'] = round(
-                                maintenance_year_expenses, 2)
-                            response['result'][i]['management_year_expense'] = round(
-                                management_year_expenses, 2)
-                            response['result'][i]['repairs_year_expense'] = round(
-                                repairs_year_expenses, 2)
+                        response['result'][i]['maintenance_expenses'] = round(
+                            maintenance_expenses, 2)
+                        response['result'][i]['management_expenses'] = round(
+                            management_expenses, 2)
+                        response['result'][i]['repairs_expenses'] = round(
+                            repairs_expenses, 2)
+                        response['result'][i]['maintenance_year_expense'] = round(
+                            maintenance_year_expenses, 2)
+                        response['result'][i]['management_year_expense'] = round(
+                            management_year_expenses, 2)
+                        response['result'][i]['repairs_year_expense'] = round(
+                            repairs_year_expenses, 2)
 
                         # annual expense for the property
                         yearly_owner_expense = db.execute("""SELECT *
