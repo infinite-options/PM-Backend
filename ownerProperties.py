@@ -214,12 +214,16 @@ class PropertiesOwner(Resource):
                                             int(owner_revenue['result']
                                                 [ore]['amount_paid'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
+                                        print('rental_year_revenue',
+                                              rental_year_revenue, rental_revenue)
                                         rental_year_revenue = rental_year_revenue + \
                                             yearCal_revenue * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_paid'])
                                         rental_revenue = rental_revenue + \
                                             owner_revenue['result'][ore]['amount_paid']
+                                        print('rental_year_revenue', yearCal_revenue,
+                                              rental_year_revenue, rental_revenue)
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Annually':
                                         rental_year_revenue = rental_year_revenue + \
                                             owner_revenue['result'][ore]['amount_paid']
@@ -275,7 +279,7 @@ class PropertiesOwner(Resource):
                             rental_year_revenue, 2)
                         response['result'][i]['extraCharges_year_revenue'] = round(
                             extraCharges_year_revenue, 2)
-
+                        print('rental_year_revenue', rental_year_revenue)
                         owner_utility_revenue = db.execute("""SELECT *
                                                         FROM pm.purchases p
                                                         LEFT JOIN
