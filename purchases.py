@@ -96,7 +96,7 @@ class Purchases(Resource):
                         FROM pm.rentals r
                         LEFT JOIN pm.properties p
                         ON p.property_uid = r.rental_property_id
-                        WHERE r.rental_property_id = \'""" + pur_property_id + """\'
+                        WHERE r.rental_property_id LIKE '%""" + 'pur_property_id' + """%'
                         AND r.rental_status = 'ACTIVE';"""
                 print('rentalRes',  sql)
 
@@ -104,12 +104,12 @@ class Purchases(Resource):
                                             FROM pm.rentals r
                                             LEFT JOIN pm.properties p
                                             ON p.property_uid = r.rental_property_id
-                                            WHERE r.rental_property_id = \'""" + pur_property_id + """\'
+                                            WHERE r.rental_property_id LIKE '%""" + 'pur_property_id' + """%'
                                             AND r.rental_status = 'ACTIVE';""")
 
                 propertyRes = db.execute("""SELECT * 
                                         FROM properties 
-                                        WHERE property_uid  = \'""" + pur_property_id + """\' """)
+                                        WHERE property_uid  LIKE '%""" + 'pur_property_id' + """%' """)
                 print('rentalRes', (propertyRes['result']))
                 def days_in_month(dt): return monthrange(
                     dt.year, dt.month)[1]

@@ -15,838 +15,745 @@ import math
 class PropertyInfo(Resource):
     def get(self):
         response = {}
-        filters = ['property_uid', 'owner_id', 'manager_id', 'tenant_id']
+        filters = ['manager_id']
         where = {}
-        filterType = ''
-        filterVal = ''
+
         with connect() as db:
-            today = date.today()
             for filter in filters:
                 filterValue = request.args.get(filter)
                 if filterValue is not None:
                     where[filter] = filterValue
-                    # print(where, filter)
-                    filterType = filter
-                    filterVal = filterValue
+                    today = date.today()
 
-            if filterType == 'manager_id':
-                # print('here if')
-                response = db.execute(
-                    """SELECT *
-                    FROM pm.propertyInfo
-                    WHERE management_status <> 'REJECTED'
-                    AND management_status <> 'TERMINATED'
-                    AND management_status <> 'EXPIRED'
-                    AND manager_id = \'""" + filterVal + """\' """)
-                for i in range(len(response['result'])):
-                    property_id = response['result'][i]['property_uid']
-                    print(property_id)
-                    # get tenant applications
-                    application_res = db.execute("""SELECT
-                                                        *
-                                                        FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
-                    print('application_res', application_res)
-                    response['result'][i]['applications'] = list(
-                        application_res['result'])
+                    response = db.execute("""SELECT *
+                                            FROM pm.propertyInfo
+                                            WHERE management_status <> 'REJECTED'
+                                            AND management_status <> 'TERMINATED'
+                                            AND management_status <> 'EXPIRED'
+                                            AND manager_id = \'""" + filterValue + """\' """)
 
-                    # get maintenance requests
-                    maintenance_res = db.execute("""SELECT *
-                                                        FROM pm.maintenanceRequests mr
-                                                        WHERE mr.property_uid = \'""" + property_id + """\'
-                                                        """)
-                    response['result'][i]['maintenanceRequests'] = list(
-                        maintenance_res['result'])
+                    for i in range(len(response['result'])):
+                        property_id = response['result'][i]['property_uid']
+                        print(property_id)
 
-                    # get utilities or maintenance/repair expenses
-                    expense_res = db.execute("""SELECT *
+                        # rental_revenue = 0
+                        # extraCharges_revenue = 0
+                        # utility_revenue = 0
+                        # maintenance_expenses = 0
+                        # management_expenses = 0
+                        # repairs_expenses = 0
+                        # rental_expected_revenue = 0
+                        # extraCharges_expected_revenue = 0
+                        # utility_expected_revenue = 0
+                        # maintenance_expected_expenses = 0
+                        # management_expected_expenses = 0
+                        # repairs_expected_expenses = 0
+                        # get tenant applications
+                        application_res = db.execute("""SELECT
+                                                            *
+                                                            FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
+
+                        response['result'][i]['applications'] = list(
+                            application_res['result'])
+
+                        # get maintenance requests
+                        maintenance_res = db.execute("""SELECT *
+                                                            FROM pm.maintenanceRequests mr
+                                                            WHERE mr.property_uid = \'""" + property_id + """\'
+                                                            """)
+                        response['result'][i]['maintenanceRequests'] = list(
+                            maintenance_res['result'])
+
+                        # get utilities or maintenance/repair expenses
+                        expense_res = db.execute("""SELECT *
+                            FROM pm.purchases p
+                            LEFT JOIN payments pa
+                            ON pa.pay_purchase_id = p.purchase_uid
+                            WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                            AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
+                            AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%%')
+                            """)
+
+                        if len(expense_res['result']) > 0:
+                            response['result'][i]['expenses'] = list(
+                                expense_res['result'])
+                            for i in range(len(expense_res['result'])):
+                                # if utility return all the details related to the utility
+                                if expense_res['result'][i]['purchase_type'] == 'UTILITY':
+
+                                    billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                                            FROM pm.bills b
+                                                            LEFT JOIN properties p
+                                                            ON p.property_uid  LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
+                                                            WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+
+                                    if(len(billRes['result']) > 0):
+                                        for j in range(len(billRes['result'])):
+                                            expense_res['result'][i].update(
+                                                billRes['result'][j])
+                                            # expense_res['result'][i] = (expense_res['result'][i]) + (
+                                            #     billRes['result'][j])
+                                # if maintainence return all the details related to the maintenance requests
+                                elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
+
+                                    maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                                                    FROM maintenanceQuotes mq
+                                                                    LEFT JOIN pm.maintenanceRequests mr
+                                                                    ON mr.maintenance_request_uid = mq.linked_request_uid
+                                                                    LEFT JOIN pm.businesses b
+                                                                    ON b.business_uid = mq.quote_business_uid
+                                                                    LEFT JOIN properties p
+                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
+                                                                    WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+
+                                    if(len(maintenanceRes['result']) > 0):
+                                        for j in range(len(maintenanceRes['result'])):
+                                            expense_res['result'][i].update(
+                                                maintenanceRes['result'][j])
+                                # if repair return all the details related to the repair requests
+                                elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
+
+                                    repairRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                                                    FROM maintenanceQuotes mq
+                                                                    LEFT JOIN pm.maintenanceRequests mr
+                                                                    ON mr.maintenance_request_uid = mq.linked_request_uid
+                                                                    LEFT JOIN pm.businesses b
+                                                                    ON b.business_uid = mq.quote_business_uid
+                                                                    LEFT JOIN properties p
+                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
+                                                                    WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+
+                                    if(len(repairRes['result']) > 0):
+                                        for j in range(len(repairRes['result'])):
+                                            expense_res['result'][i].update(
+                                                repairRes['result'][j])
+                        else:
+                            response['result'][i]['expenses'] = []
+
+                        weeks_current_month = len(calendar.monthcalendar(
+                            2022, int(today.strftime("%m"))))
+
+                        weeks_active = round((abs(today - datetime.strptime(
+                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+
+                        rental_revenue = 0
+                        extraCharges_revenue = 0
+                        utility_revenue = 0
+                        maintenance_expenses = 0
+                        management_expenses = 0
+                        repairs_expenses = 0
+
+                        weeks_current_month = len(
+                            calendar.monthcalendar(2022, int(today.strftime("%m"))))
+
+                        weeks_active = round((abs(today - datetime.strptime(
+                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+                        # monthly revenue for the property
+                        manager_revenue = db.execute("""SELECT *
                         FROM pm.purchases p
-                        LEFT JOIN payments pa
+                        LEFT JOIN
+                        pm.payments pa
                         ON pa.pay_purchase_id = p.purchase_uid
+                        LEFT JOIN rentals r
+                        ON r.rental_property_id LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                        AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                        AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%""" + filterVal + """%%')
-                        """)
-                    sql = """SELECT *
+                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
+                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                        AND p.purchase_status = 'PAID' """)
+
+                        response['result'][i]['rental_revenue'] = round(
+                            rental_revenue, 2)
+                        response['result'][i]['extraCharges_revenue'] = round(
+                            extraCharges_revenue, 2)
+                        response['result'][i]['utility_revenue'] = round(
+                            utility_revenue, 2)
+                        response['result'][i]['manager_revenue'] = list(
+                            manager_revenue['result'])
+
+                        if len(manager_revenue['result']) > 0:
+                            for mre in range(len(manager_revenue['result'])):
+                                # print('mre', manager_revenue['result'][mre])
+
+                                # calculate rental revenue
+                                if manager_revenue['result'][mre]['purchase_type'] == 'RENT':
+                                    if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
+
+                                        rental_revenue = rental_revenue + \
+                                            float(manager_revenue['result']
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
+
+                                        rental_revenue = rental_revenue + \
+                                            float(manager_revenue['result']
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
+
+                                        rental_revenue = rental_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
+
+                                        rental_revenue = rental_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    else:
+
+                                        rental_revenue = rental_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+
+                                # calculate revenue from extra charges
+                                if manager_revenue['result'][mre]['purchase_type'] == 'EXTRA CHARGES':
+                                    if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
+
+                                        extraCharges_revenue = extraCharges_revenue + \
+                                            float(manager_revenue['result']
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
+
+                                        extraCharges_revenue = extraCharges_revenue + \
+                                            float(manager_revenue['result']
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
+
+                                        extraCharges_revenue = extraCharges_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
+
+                                        extraCharges_revenue = extraCharges_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    else:
+
+                                        extraCharges_revenue = extraCharges_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+
+                                # calculate revenue from UTILITY payments
+                                if manager_revenue['result'][mre]['purchase_type'] == 'UTILITY':
+                                    if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
+
+                                        utility_revenue = utility_revenue + \
+                                            float(manager_revenue['result']
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
+
+                                        utility_revenue = utility_revenue + \
+                                            float(manager_revenue['result']
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
+
+                                        utility_revenue = utility_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
+
+                                        utility_revenue = utility_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    else:
+
+                                        utility_revenue = utility_revenue + \
+                                            manager_revenue['result'][mre]['amount_paid']
+
+                            response['result'][i]['rental_revenue'] = round(
+                                rental_revenue, 2)
+                            response['result'][i]['extraCharges_revenue'] = round(
+                                extraCharges_revenue, 2)
+                            response['result'][i]['utility_revenue'] = round(
+                                utility_revenue, 2)
+
+                        # monthly expenses for the property
+                        manager_expense = db.execute("""SELECT *
                         FROM pm.purchases p
-                        LEFT JOIN payments pa
+                        LEFT JOIN
+                        pm.payments pa
                         ON pa.pay_purchase_id = p.purchase_uid
+                        LEFT JOIN pm.rentals r
+                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                        LEFT JOIN pm.contracts c
+                        ON c.property_uid LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                        AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                        AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%""" + filterVal + """%')
-                        """
-                    print('sql', sql, expense_res)
-                    if len(expense_res['result']) > 0:
-                        response['result'][i]['expenses'] = list(
-                            expense_res['result'])
-                        for i in range(len(expense_res['result'])):
-                            # if utility return all the details related to the utility
-                            if expense_res['result'][i]['purchase_type'] == 'UTILITY':
-                                print('in utility')
-                                billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
-                                                        FROM pm.bills b
-                                                        LEFT JOIN properties p
-                                                        ON p.property_uid  LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
-                                                        WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
-                                sql = """SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
-                                                        FROM pm.bills b
-                                                        LEFT JOIN properties p
-                                                        ON p.property_uid  LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
-                                                        WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """
-                                print('sql', sql)
-                                if(len(billRes['result']) > 0):
-                                    for j in range(len(billRes['result'])):
-                                        expense_res['result'][i].update(
-                                            billRes['result'][j])
-                                        # expense_res['result'][i] = (expense_res['result'][i]) + (
-                                        #     billRes['result'][j])
-                            # if maintainence return all the details related to the maintenance requests
-                            elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
-                                print('in maintenance')
-                                maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
-                                                                FROM maintenanceQuotes mq
-                                                                LEFT JOIN pm.maintenanceRequests mr
-                                                                ON mr.maintenance_request_uid = mq.linked_request_uid
-                                                                LEFT JOIN pm.businesses b
-                                                                ON b.business_uid = mq.quote_business_uid
-                                                                LEFT JOIN properties p
-                                                                ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
-                                                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
-
-                                if(len(maintenanceRes['result']) > 0):
-                                    for j in range(len(maintenanceRes['result'])):
-                                        expense_res['result'][i].update(
-                                            maintenanceRes['result'][j])
-                            # if repair return all the details related to the repair requests
-                            elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
-                                print('in maintenance')
-                                repairRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
-                                                                FROM maintenanceQuotes mq
-                                                                LEFT JOIN pm.maintenanceRequests mr
-                                                                ON mr.maintenance_request_uid = mq.linked_request_uid
-                                                                LEFT JOIN pm.businesses b
-                                                                ON b.business_uid = mq.quote_business_uid
-                                                                LEFT JOIN properties p
-                                                                ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
-                                                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
-
-                                if(len(repairRes['result']) > 0):
-                                    for j in range(len(repairRes['result'])):
-                                        expense_res['result'][i].update(
-                                            repairRes['result'][j])
-                    else:
-                        response['result'][i]['expenses'] = []
-
-                    weeks_current_month = len(calendar.monthcalendar(
-                        2022, int(today.strftime("%m"))))
-
-                    weeks_active = round((abs(today - datetime.strptime(
-                        response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
-
-                    rental_revenue = 0
-                    extraCharges_revenue = 0
-                    utility_revenue = 0
-                    maintenance_expenses = 0
-                    management_expenses = 0
-                    repairs_expenses = 0
-
-                    # response['result'][i]['rental_revenue'] = round(
-                    #     rental_revenue, 2)
-                    # response['result'][i]['extraCharges_revenue'] = round(
-                    #     extraCharges_revenue, 2)
-                    # response['result'][i]['utility_revenue'] = round(
-                    #     utility_revenue, 2)
-                    # response['result'][i]['manager_revenue'] = []
-                    # response['result'][i]['maintenance_expenses'] = round(
-                    #     maintenance_expenses, 2)
-                    # response['result'][i]['management_expenses'] = round(
-                    #     management_expenses, 2)
-                    # response['result'][i]['repairs_expenses'] = round(
-                    #     repairs_expenses, 2)
-                    # response['result'][i]['manager_expense'] = []
-                    # print(filterVal)
-
-                    manager_revenue = db.execute("""SELECT *
-                                                    FROM pm.purchases p
-                                                    LEFT JOIN
-                                                    pm.payments pa
-                                                    ON pa.pay_purchase_id = p.purchase_uid
-                                                    LEFT JOIN rentals r
-                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                    AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
-                                                    AND r.rental_status = 'ACTIVE'
-                                                    AND p.receiver = \'""" + filterVal + """\'
-                                                    AND p.purchase_status = 'PAID'""")
-
-                    response['result'][i]['manager_revenue'] = list(
-                        manager_revenue['result'])
-
-                    if len(manager_revenue['result']) > 0:
-                        for mre in range(len(manager_revenue['result'])):
-
-                            # calculate rental revenue
-                            if manager_revenue['result'][mre]['purchase_type'] == 'RENT':
-
-                                if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
-
-                                    rental_revenue = rental_revenue + \
-                                        float(manager_revenue['result']
-                                              [mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
-
-                                    rental_revenue = rental_revenue + \
-                                        float(manager_revenue['result']
-                                              [mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
-                                    # print('here mre monthly')
-                                    rental_revenue = rental_revenue + \
-                                        float(
-                                            manager_revenue['result'][mre]['amount_paid'])
-                                    # print('here mre monthly',
-                                    #   rental_revenue)
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
-
-                                    rental_revenue = rental_revenue + \
-                                        float(
-                                            manager_revenue['result'][mre]['amount_paid'])
-                                else:
-
-                                    rental_revenue = rental_revenue + \
-                                        float(
-                                            manager_revenue['result'][mre]['amount_paid'])
-
-                            # calculate revenue from extra charges
-                            if manager_revenue['result'][mre]['purchase_type'] == 'EXTRA CHARGES':
-                                # print(
-                                # 'mre EXTRA', manager_revenue['result'][mre]['purchase_uid'])
-                                if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
-
-                                    extraCharges_revenue = extraCharges_revenue + \
-                                        float(manager_revenue['result']
-                                              [mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
-
-                                    extraCharges_revenue = extraCharges_revenue + \
-                                        float(manager_revenue['result']
-                                              [mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
-
-                                    extraCharges_revenue = extraCharges_revenue + \
-                                        float(
-                                            manager_revenue['result'][mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
-
-                                    extraCharges_revenue = extraCharges_revenue + \
-                                        float(
-                                            manager_revenue['result'][mre]['amount_paid'])
-                                else:
-                                    # print('here mre extra charges one-time')
-                                    extraCharges_revenue = extraCharges_revenue + \
-                                        float(
-                                            manager_revenue['result'][mre]['amount_paid'])
-                                    # print('here mre extra charges one-time',
-                                    #   extraCharges_revenue)
-
-                            # calculate revenue from UTILITY payments
-                            if manager_revenue['result'][mre]['purchase_type'] == 'UTILITY':
-                                if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
-
-                                    utility_revenue = utility_revenue + \
-                                        float(manager_revenue['result']
-                                              [mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
-
-                                    utility_revenue = utility_revenue + \
-                                        float(manager_revenue['result']
-                                              [mre]['amount_paid'])
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
-
-                                    utility_revenue = utility_revenue + \
-                                        manager_revenue['result'][mre]['amount_paid']
-                                elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
-
-                                    utility_revenue = utility_revenue + \
-                                        manager_revenue['result'][mre]['amount_paid']
-                                else:
-
-                                    utility_revenue = utility_revenue + \
-                                        manager_revenue['result'][mre]['amount_paid']
-
-                    response['result'][i]['rental_revenue'] = round(
-                        rental_revenue, 2)
-                    response['result'][i]['extraCharges_revenue'] = round(
-                        extraCharges_revenue, 2)
-                    response['result'][i]['utility_revenue'] = round(
-                        utility_revenue, 2)
-                    # prfloat('here mre revenue',
-                    #   response['result'][i]['rental_revenue'],  response['result'][i]['extraCharges_revenue'])
-
-                    # monthly expenses for the property
-                    manager_expense = db.execute("""SELECT *
-                                                FROM pm.purchases p
-                                                LEFT JOIN
-                                                pm.payments pa
-                                                ON pa.pay_purchase_id = p.purchase_uid
-                                                LEFT JOIN pm.rentals r
-                                                ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                LEFT JOIN pm.contracts c
-                                                ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                AND c.contract_status = 'ACTIVE'
-                                                AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
-                                                AND r.rental_status = 'ACTIVE'
-                                                AND p.purchase_status = 'PAID'""")
-
-                    response['result'][i]['manager_expense'] = list(
-                        manager_expense['result'])
-                    if len(manager_expense['result']) > 0:
-                        for mex in range(len(manager_expense['result'])):
-                            # print('mex', manager_expense['result'][mex])
-                            # if maintenance
-                            if manager_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
-                                # print('in maintenance')
-                                # if maintenance monthly
-                                if manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
-                                    # print('in maintenance monthly')
-                                    # if maintenance monthly once a month
-                                    if manager_expense['result'][mex]['payment_frequency'] == 'Once a month':
-                                        # print('in maintenance once a month')
-
-                                        maintenance_expenses = maintenance_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                        # if maintenance monthly twice a month
-                                    elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a month':
-                                        # print(
-                                        # 'in maintenance twice a month')
-
-                                        maintenance_expenses = maintenance_expenses + \
-                                            2 * \
-                                            (manager_expense['result']
-                                                [mex]['amount_paid'])
-                                    else:
-                                        print('do nothing')
-                                    # if maintenance annually
-                                elif manager_expense['result'][mex]['purchase_frequency'] == 'Annually':
-                                    # print('in maintenance annually')
-                                    # if maintenance annually once a year
-                                    if manager_expense['result'][mex]['payment_frequency'] == 'Once a year':
-
-                                        maintenance_expenses = maintenance_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                    # if maintenance annually twice a year
-                                    elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a year':
-
-                                        maintenance_expenses = maintenance_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                    else:
-                                        print('do nothing')
-                                # if maintenance one-time
-                                else:
-                                    maintenance_expenses = maintenance_expenses + \
-                                        manager_expense['result'][mex]['amount_paid']
-                            # if management
-                            if manager_expense['result'][mex]['purchase_type'] == 'RENT':
-                                managementPayments = json.loads(
-                                    manager_expense['result'][mex]['contract_fees'])
-
-                                for payment in managementPayments:
-                                    # print('amount paid to owner', payment)
-                                    if payment['fee_type'] == '%':
-                                        print(management_expenses)
-                                        if payment['of'] == 'Gross Rent':
-
-                                            if payment['frequency'] == 'Weekly':
-                                                print('amount weekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'], weeks_current_month)
-                                                management_expenses = management_expenses +  \
-                                                    weeks_current_month*float((
-                                                        float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                                print('amount weekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                            elif payment['frequency'] == 'Biweekly':
-                                                print('amount biweekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'], weeks_current_month/2)
-                                                management_expenses = management_expenses +  \
-                                                    weeks_current_month/2 * \
-                                                    ((
-                                                        float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                                print('amount biweekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                            elif payment['frequency'] == 'Monthly':
-                                                print('amount monthly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                                management_expenses = management_expenses +  \
-                                                    (
-                                                        float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                                print('amount monthly %',
-                                                      management_expenses, float(
-                                                          manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                            elif payment['frequency'] == 'Annually':
-                                                print(
-                                                    'amount annually %', management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                                if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
-                                                    management_expenses = management_expenses +  \
-                                                        (
-                                                            float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount annually %', management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                            elif payment['frequency'] == 'One-time':
-                                                print(
-                                                    'amount one-time %', management_expenses, date.fromisoformat(manager_expense['result'][mex]['start_date']).month)
-                                                if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
-                                                    management_expenses = management_expenses +  \
-                                                        (
-                                                            float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount one-time %', management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
-                                            else:
-                                                print('do nothing')
-                                    elif payment['fee_type'] == '$':
-                                        if payment['frequency'] == 'Weekly':
-                                            print('amount weekly $',
-                                                  management_expenses)
-                                            management_expenses = management_expenses + weeks_current_month * \
-                                                float(payment['charge'])
-                                            print('amount weekly $',
-                                                  management_expenses)
-                                        elif payment['frequency'] == 'Biweekly':
-                                            print('amount biweekly $',
-                                                  management_expenses)
-                                            management_expenses = management_expenses + weeks_current_month/2 * \
-                                                float(payment['charge'])
-                                            print('amount biweekly $',
-                                                  management_expenses)
-                                        elif payment['frequency'] == 'Monthly':
-                                            print('amount monthly $',
-                                                  management_expenses)
-                                            management_expenses = management_expenses + \
-                                                float(payment['charge'])
-                                            print('amount monthly $',
-                                                  management_expenses)
-                                        elif payment['frequency'] == 'Annually':
-                                            print('amount annually $',
-                                                  management_expenses)
-                                            if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
-                                                management_expenses = management_expenses + \
-                                                    float(
-                                                        payment['charge'])
-                                                print(
-                                                    'amount annually $', management_expenses, payment['charge'])
-                                        elif payment['frequency'] == 'One-time':
-                                            print(
-                                                'amount one-time $', management_expenses)
-                                            if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
-                                                management_expenses = management_expenses + \
-                                                    float(
-                                                        payment['charge'])
-                                                print(
-                                                    'amount one-time $', management_expenses)
-                                        else:
-                                            print('do nothing')
-                                    else:
-                                        print('do nothing')
-
-                            if manager_expense['result'][mex]['purchase_type'] == 'REPAIRS':
-                                # if repairs monthly
-                                if manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
-                                    # if repairs monthly once a month
-                                    if manager_expense['result'][mex]['payment_frequency'] == 'Once a month':
-
-                                        repairs_expenses = repairs_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                        # if repairs monthly twice a month
-                                    elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a month':
-
-                                        repairs_expenses = repairs_expenses + 2 * \
-                                            (manager_expense['result']
-                                                [mex]['amount_paid'])
-                                    else:
-                                        print('do nothing')
-                                    # if repairs annually
-                                elif manager_expense['result'][mex]['purchase_frequency'] == 'Annually':
-                                    # if repairs annually once a year
-                                    if manager_expense['result'][mex]['payment_frequency'] == 'Once a year':
-
-                                        repairs_expenses = repairs_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                    # if repairs annually twice a year
-                                    elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a year':
-
-                                        repairs_expenses = repairs_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                    else:
-                                        print('do nothing')
-                                # if repairs one-time
-                                else:
-                                    repairs_expenses = repairs_expenses + \
-                                        manager_expense['result'][mex]['amount_paid']
+                        AND c.contract_status = 'ACTIVE'
+                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
+                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                        AND p.purchase_status ='PAID' """)
 
                         response['result'][i]['maintenance_expenses'] = round(
                             maintenance_expenses, 2)
-                        response['result'][i]['management_expenses'] = round((float(manager_expense['result'][mex]['amount_paid']) -
-                                                                              management_expenses), 2)
+                        response['result'][i]['management_expenses'] = round(
+                            management_expenses, 2)
                         response['result'][i]['repairs_expenses'] = round(
                             repairs_expenses, 2)
-                    rental_expected_revenue = 0
-                    extraCharges_expected_revenue = 0
-                    utility_expected_revenue = 0
-                    maintenance_expected_expenses = 0
-                    management_expected_expenses = 0
-                    repairs_expected_expenses = 0
+                        response['result'][i]['manager_expense'] = list(
+                            manager_expense['result'])
+                        if len(manager_expense['result']) > 0:
+                            for mex in range(len(manager_expense['result'])):
+                                # print('mex', manager_expense['result'][mex])
+                                # if maintenance
+                                if manager_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
+                                    #
+                                    # if maintenance monthly
+                                    if manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
+                                        # print('in maintenance monthly')
+                                        # if maintenance monthly once a month
+                                        if manager_expense['result'][mex]['payment_frequency'] == 'Once a month':
+                                            # print('in maintenance once a month')
 
-                    response['result'][i]['rental_expected_revenue'] = round(
-                        rental_expected_revenue, 2)
-                    response['result'][i]['extraCharges_expected_revenue'] = round(
-                        extraCharges_expected_revenue, 2)
-                    response['result'][i]['utility_expected_revenue'] = round(
-                        utility_expected_revenue, 2)
-                    response['result'][i]['manager_expected_revenue'] = []
-                    response['result'][i]['maintenance_expected_expenses'] = round(
-                        maintenance_expected_expenses, 2)
-                    response['result'][i]['management_expected_expenses'] = round(
-                        management_expected_expenses, 2)
-                    response['result'][i]['repairs_expected_expenses'] = round(
-                        repairs_expected_expenses, 2)
-                    response['result'][i]['manager_expected_expense'] = []
-                    # if response['result'][i]['rental_status'] == 'ACTIVE':
-                    # print('active rental status',
-                    #   response['result'][i]['property_uid'])
-                    # monthly revenue for the property
-                    manager_expected_revenue = db.execute("""SELECT *
-                                                    FROM pm.purchases p
-                                                    LEFT JOIN
-                                                    pm.payments pa
-                                                    ON pa.pay_purchase_id = p.purchase_uid
-                                                    LEFT JOIN rentals r
-                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                    AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
-                                                    AND p.receiver = \'""" + filterVal + """\'
-                                                    AND r.rental_status = 'ACTIVE'""")
-                    # print('manager revenue', (manager_expected_revenue['result']))
+                                            maintenance_expenses = maintenance_expenses + \
+                                                manager_expense['result'][mex]['amount_paid']
+                                            # if maintenance monthly twice a month
+                                        elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a month':
+                                            # print(
+                                            # 'in maintenance twice a month')
 
-                    response['result'][i]['manager_expected_revenue'] = list(
-                        manager_expected_revenue['result'])
-
-                    if len(manager_expected_revenue['result']) > 0:
-                        for mre in range(len(manager_expected_revenue['result'])):
-
-                            # calculate rental revenue
-                            if manager_expected_revenue['result'][mre]['purchase_type'] == 'RENT':
-
-                                if manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
-
-                                    rental_expected_revenue = rental_expected_revenue + \
-                                        float(manager_expected_revenue['result']
-                                              [mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
-
-                                    rental_expected_revenue = rental_expected_revenue + \
-                                        float(manager_expected_revenue['result']
-                                              [mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
-                                    # print('here mre monthly')
-                                    rental_expected_revenue = rental_expected_revenue + \
-                                        float(
-                                            manager_expected_revenue['result'][mre]['amount_due'])
-                                    # print('here mre monthly',
-                                    #   rental_expected_revenue)
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Annually':
-
-                                    rental_expected_revenue = rental_expected_revenue + \
-                                        float(
-                                            manager_expected_revenue['result'][mre]['amount_due'])
-                                else:
-
-                                    rental_expected_revenue = rental_expected_revenue + \
-                                        float(
-                                            manager_expected_revenue['result'][mre]['amount_due'])
-
-                            # calculate revenue from extra charges
-                            if manager_expected_revenue['result'][mre]['purchase_type'] == 'EXTRA CHARGES':
-                                # print(
-                                # 'mre EXTRA', manager_expected_revenue['result'][mre]['purchase_uid'])
-                                if manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
-
-                                    extraCharges_expected_revenue = extraCharges_expected_revenue + \
-                                        float(manager_expected_revenue['result']
-                                              [mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
-
-                                    extraCharges_expected_revenue = extraCharges_expected_revenue + \
-                                        float(manager_expected_revenue['result']
-                                              [mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
-
-                                    extraCharges_expected_revenue = extraCharges_expected_revenue + \
-                                        float(
-                                            manager_expected_revenue['result'][mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Annually':
-
-                                    extraCharges_expected_revenue = extraCharges_expected_revenue + \
-                                        float(
-                                            manager_expected_revenue['result'][mre]['amount_due'])
-                                else:
-                                    # print('here mre extra charges one-time')
-                                    extraCharges_expected_revenue = extraCharges_expected_revenue + \
-                                        float(
-                                            manager_expected_revenue['result'][mre]['amount_due'])
-                                    # print('here mre extra charges one-time',
-                                    #   extraCharges_expected_revenue)
-
-                            # calculate revenue from UTILITY payments
-                            if manager_expected_revenue['result'][mre]['purchase_type'] == 'UTILITY':
-                                if manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
-
-                                    utility_expected_revenue = utility_expected_revenue + \
-                                        float(manager_expected_revenue['result']
-                                              [mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
-
-                                    utility_expected_revenue = utility_expected_revenue + \
-                                        float(manager_expected_revenue['result']
-                                              [mre]['amount_due'])
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
-
-                                    utility_expected_revenue = utility_expected_revenue + \
-                                        manager_expected_revenue['result'][mre]['amount_due']
-                                elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Annually':
-
-                                    utility_expected_revenue = utility_expected_revenue + \
-                                        manager_expected_revenue['result'][mre]['amount_due']
-                                else:
-
-                                    utility_expected_revenue = utility_expected_revenue + \
-                                        manager_expected_revenue['result'][mre]['amount_due']
-
-                    response['result'][i]['rental_expected_revenue'] = round(
-                        rental_expected_revenue, 2)
-                    response['result'][i]['extraCharges_expected_revenue'] = round(
-                        extraCharges_expected_revenue, 2)
-                    response['result'][i]['utility_expected_revenue'] = round(
-                        utility_expected_revenue, 2)
-                    # print('here mre revenue',
-                    #   response['result'][i]['rental_expected_revenue'],  response['result'][i]['extraCharges_expected_revenue'])
-
-                    # monthly expenses for the property
-                    manager_expected_expense = db.execute("""SELECT *
-                                                FROM pm.purchases p
-                                                LEFT JOIN
-                                                pm.payments pa
-                                                ON pa.pay_purchase_id = p.purchase_uid
-                                                LEFT JOIN pm.rentals r
-                                                ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                LEFT JOIN pm.contracts c
-                                                ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                AND c.contract_status = 'ACTIVE'
-                                                AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
-                                                AND r.rental_status = 'ACTIVE'""")
-
-                    response['result'][i]['manager_expected_expense'] = list(
-                        manager_expected_expense['result'])
-                    if len(manager_expected_expense['result']) > 0:
-                        for mex in range(len(manager_expected_expense['result'])):
-                            # print('mex', manager_expected_expense['result'][mex])
-                            # if maintenance
-                            if manager_expected_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
-                                # print('in maintenance')
-                                # if maintenance monthly
-                                if manager_expected_expense['result'][mex]['purchase_frequency'] == 'Monthly':
-                                    # print('in maintenance monthly')
-                                    # if maintenance monthly once a month
-                                    if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a month':
-                                        # print('in maintenance once a month')
-
-                                        maintenance_expected_expenses = maintenance_expected_expenses + \
-                                            manager_expected_expense['result'][mex]['amount_due']
-                                        # if maintenance monthly twice a month
-                                    elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a month':
-                                        # print(
-                                        # 'in maintenance twice a month')
-
-                                        maintenance_expected_expenses = maintenance_expected_expenses + \
-                                            2 * \
-                                            (manager_expected_expense['result']
-                                                [mex]['amount_due'])
-                                    else:
-                                        print('do nothing')
-                                    # if maintenance annually
-                                elif manager_expected_expense['result'][mex]['purchase_frequency'] == 'Annually':
-                                    # print('in maintenance annually')
-                                    # if maintenance annually once a year
-                                    if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a year':
-
-                                        maintenance_expected_expenses = maintenance_expected_expenses + \
-                                            manager_expected_expense['result'][mex]['amount_due']
-                                    # if maintenance annually twice a year
-                                    elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a year':
-
-                                        maintenance_expected_expenses = maintenance_expected_expenses + \
-                                            manager_expected_expense['result'][mex]['amount_due']
-                                    else:
-                                        print('do nothing')
-                                # if maintenance one-time
-                                else:
-                                    maintenance_expected_expenses = maintenance_expected_expenses + \
-                                        manager_expected_expense['result'][mex]['amount_due']
-                            # if management
-                            if manager_expected_expense['result'][mex]['purchase_type'] == 'RENT':
-                                managementPayments = json.loads(
-                                    manager_expected_expense['result'][mex]['contract_fees'])
-
-                                for payment in managementPayments:
-                                    # print('amount paid to owner', payment)
-                                    if payment['fee_type'] == '%':
-                                        print(management_expected_expenses)
-                                        if payment['of'] == 'Gross Rent':
-
-                                            if payment['frequency'] == 'Weekly':
-                                                print('amount weekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'], weeks_current_month)
-                                                management_expected_expenses = management_expected_expenses +  \
-                                                    weeks_current_month*float((
-                                                        float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                                print('amount weekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                            elif payment['frequency'] == 'Biweekly':
-                                                print('amount biweekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'], weeks_current_month/2)
-                                                management_expected_expenses = management_expected_expenses +  \
-                                                    weeks_current_month/2 * \
-                                                    ((
-                                                        float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                                print('amount biweekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                            elif payment['frequency'] == 'Monthly':
-                                                print('amount monthly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                                management_expected_expenses = management_expected_expenses +  \
-                                                    (
-                                                        float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                                print('amount monthly %',
-                                                      management_expected_expenses, float(
-                                                          manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                            elif payment['frequency'] == 'Annually':
-                                                print(
-                                                    'amount annually %', management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                                if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
-                                                    management_expected_expenses = management_expected_expenses +  \
-                                                        (
-                                                            float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount annually %', management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                            elif payment['frequency'] == 'One-time':
-                                                print(
-                                                    'amount one-time %', management_expected_expenses, date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month)
-                                                if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
-                                                    management_expected_expenses = management_expected_expenses +  \
-                                                        (
-                                                            float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount one-time %', management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
-                                            else:
-                                                print('do nothing')
-                                    elif payment['fee_type'] == '$':
-                                        if payment['frequency'] == 'Weekly':
-                                            print('amount weekly $',
-                                                  management_expected_expenses)
-                                            management_expected_expenses = management_expected_expenses + weeks_current_month * \
-                                                float(payment['charge'])
-                                            print('amount weekly $',
-                                                  management_expected_expenses)
-                                        elif payment['frequency'] == 'Biweekly':
-                                            print('amount biweekly $',
-                                                  management_expected_expenses)
-                                            management_expected_expenses = management_expected_expenses + weeks_current_month/2 * \
-                                                float(payment['charge'])
-                                            print('amount biweekly $',
-                                                  management_expected_expenses)
-                                        elif payment['frequency'] == 'Monthly':
-                                            print('amount monthly $',
-                                                  management_expected_expenses)
-                                            management_expected_expenses = management_expected_expenses + \
-                                                float(payment['charge'])
-                                            print('amount monthly $',
-                                                  management_expected_expenses)
-                                        elif payment['frequency'] == 'Annually':
-                                            print('amount annually $',
-                                                  management_expected_expenses)
-                                            if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
-                                                management_expected_expenses = management_expected_expenses + \
-                                                    float(
-                                                        payment['charge'])
-                                                print(
-                                                    'amount annually $', management_expected_expenses, payment['charge'])
-                                        elif payment['frequency'] == 'One-time':
-                                            print(
-                                                'amount one-time $', management_expected_expenses)
-                                            if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
-                                                management_expected_expenses = management_expected_expenses + \
-                                                    float(
-                                                        payment['charge'])
-                                                print(
-                                                    'amount one-time $', management_expected_expenses)
+                                            maintenance_expenses = maintenance_expenses + \
+                                                2 * \
+                                                (manager_expense['result']
+                                                    [mex]['amount_paid'])
                                         else:
                                             print('do nothing')
+                                        # if maintenance annually
+                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Annually':
+                                        # print('in maintenance annually')
+                                        # if maintenance annually once a year
+                                        if manager_expense['result'][mex]['payment_frequency'] == 'Once a year':
+
+                                            maintenance_expenses = maintenance_expenses + \
+                                                manager_expense['result'][mex]['amount_paid']
+                                        # if maintenance annually twice a year
+                                        elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a year':
+
+                                            maintenance_expenses = maintenance_expenses + \
+                                                manager_expense['result'][mex]['amount_paid']
+                                        else:
+                                            print('do nothing')
+                                    # if maintenance one-time
                                     else:
-                                        print('do nothing')
-                            if manager_expected_expense['result'][mex]['purchase_type'] == 'REPAIRS':
-                                # if repairs monthly
-                                if manager_expected_expense['result'][mex]['purchase_frequency'] == 'Monthly':
-                                    # if repairs monthly once a month
-                                    if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a month':
+                                        maintenance_expenses = maintenance_expenses + \
+                                            manager_expense['result'][mex]['amount_paid']
+                                # if management
+                                if manager_expense['result'][mex]['purchase_type'] == 'RENT':
+                                    managementPayments = json.loads(
+                                        manager_expense['result'][mex]['contract_fees'])
 
-                                        repairs_expected_expenses = repairs_expected_expenses + \
-                                            manager_expected_expense['result'][mex]['amount_due']
-                                        # if repairs monthly twice a month
-                                    elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a month':
+                                    for payment in managementPayments:
+                                        # print('amount paid to owner', payment)
+                                        if payment['fee_type'] == '%':
 
-                                        repairs_expected_expenses = repairs_expected_expenses + 2 * \
-                                            (manager_expected_expense['result']
-                                                [mex]['amount_due'])
+                                            if payment['of'] == 'Gross Rent':
+
+                                                if payment['frequency'] == 'Weekly':
+
+                                                    management_expenses = management_expenses +  \
+                                                        weeks_current_month*float((
+                                                            float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
+
+                                                elif payment['frequency'] == 'Biweekly':
+
+                                                    management_expenses = management_expenses +  \
+                                                        weeks_current_month/2 * \
+                                                        ((
+                                                            float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
+
+                                                elif payment['frequency'] == 'Monthly':
+
+                                                    management_expenses = management_expenses +  \
+                                                        (
+                                                            float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+
+                                                elif payment['frequency'] == 'Annually':
+
+                                                    if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
+                                                        management_expenses = management_expenses +  \
+                                                            (
+                                                                float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+
+                                                elif payment['frequency'] == 'One-time':
+
+                                                    if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
+                                                        management_expenses = management_expenses +  \
+                                                            (
+                                                                float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+
+                                                else:
+                                                    print('do nothing')
+                                        elif payment['fee_type'] == '$':
+                                            if payment['frequency'] == 'Weekly':
+
+                                                management_expenses = management_expenses + weeks_current_month * \
+                                                    float(payment['charge'])
+
+                                            elif payment['frequency'] == 'Biweekly':
+
+                                                management_expenses = management_expenses + weeks_current_month/2 * \
+                                                    float(payment['charge'])
+
+                                            elif payment['frequency'] == 'Monthly':
+
+                                                management_expenses = management_expenses + \
+                                                    float(payment['charge'])
+
+                                            elif payment['frequency'] == 'Annually':
+
+                                                if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
+                                                    management_expenses = management_expenses + \
+                                                        float(
+                                                            payment['charge'])
+
+                                            elif payment['frequency'] == 'One-time':
+
+                                                if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
+                                                    management_expenses = management_expenses + \
+                                                        float(
+                                                            payment['charge'])
+
+                                            else:
+                                                print('do nothing')
+                                        else:
+                                            print('do nothing')
+                                if manager_expense['result'][mex]['purchase_type'] == 'REPAIRS':
+                                    # if repairs monthly
+                                    if manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
+                                        # if repairs monthly once a month
+                                        if manager_expense['result'][mex]['payment_frequency'] == 'Once a month':
+
+                                            repairs_expenses = repairs_expenses + \
+                                                manager_expense['result'][mex]['amount_paid']
+                                            # if repairs monthly twice a month
+                                        elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a month':
+
+                                            repairs_expenses = repairs_expenses + 2 * \
+                                                (manager_expense['result']
+                                                    [mex]['amount_paid'])
+                                        else:
+                                            print('do nothing')
+                                        # if repairs annually
+                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Annually':
+                                        # if repairs annually once a year
+                                        if manager_expense['result'][mex]['payment_frequency'] == 'Once a year':
+
+                                            repairs_expenses = repairs_expenses + \
+                                                manager_expense['result'][mex]['amount_paid']
+                                        # if repairs annually twice a year
+                                        elif manager_expense['result'][mex]['payment_frequency'] == 'Twice a year':
+
+                                            repairs_expenses = repairs_expenses + \
+                                                manager_expense['result'][mex]['amount_paid']
+                                        else:
+                                            print('do nothing')
+                                    # if repairs one-time
                                     else:
-                                        print('do nothing')
-                                    # if repairs annually
-                                elif manager_expected_expense['result'][mex]['purchase_frequency'] == 'Annually':
-                                    # if repairs annually once a year
-                                    if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a year':
+                                        repairs_expenses = repairs_expenses + \
+                                            manager_expense['result'][mex]['amount_paid']
 
-                                        repairs_expected_expenses = repairs_expected_expenses + \
-                                            manager_expected_expense['result'][mex]['amount_due']
-                                    # if repairs annually twice a year
-                                    elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a year':
+                            response['result'][i]['maintenance_expenses'] = round(
+                                maintenance_expenses, 2)
+                            response['result'][i]['management_expenses'] = round((float(manager_expense['result'][mex]['amount_paid']) -
+                                                                                  management_expenses), 2)
+                            response['result'][i]['repairs_expenses'] = round(
+                                repairs_expenses, 2)
 
-                                        repairs_expected_expenses = repairs_expected_expenses + \
-                                            manager_expected_expense['result'][mex]['amount_due']
+                        rental_expected_revenue = 0
+                        extraCharges_expected_revenue = 0
+                        utility_expected_revenue = 0
+                        maintenance_expected_expenses = 0
+                        management_expected_expenses = 0
+                        repairs_expected_expenses = 0
+
+                        # monthly revenue for the property
+                        manager_expected_revenue = db.execute("""SELECT *
+                        FROM pm.purchases p
+                        LEFT JOIN
+                        pm.payments pa
+                        ON pa.pay_purchase_id = p.purchase_uid
+                        LEFT JOIN rentals r
+                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
+                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
+
+                        response['result'][i]['rental_expected_revenue'] = round(
+                            rental_expected_revenue, 2)
+                        response['result'][i]['extraCharges_expected_revenue'] = round(
+                            extraCharges_expected_revenue, 2)
+                        response['result'][i]['utility_expected_revenue'] = round(
+                            utility_expected_revenue, 2)
+                        response['result'][i]['manager_expected_revenue'] = list(
+                            manager_expected_revenue['result'])
+
+                        if len(manager_expected_revenue['result']) > 0:
+                            for mre in range(len(manager_expected_revenue['result'])):
+                                # print('mre', manager_expected_revenue['result'][mre])
+
+                                # calculate rental revenue
+                                if manager_expected_revenue['result'][mre]['purchase_type'] == 'RENT':
+                                    if manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
+
+                                        rental_expected_revenue = rental_expected_revenue + \
+                                            float(manager_expected_revenue['result']
+                                                  [mre]['amount_due'])
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
+
+                                        rental_expected_revenue = rental_expected_revenue + \
+                                            float(manager_expected_revenue['result']
+                                                  [mre]['amount_due'])
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
+
+                                        rental_expected_revenue = rental_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Annually':
+
+                                        rental_expected_revenue = rental_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
                                     else:
-                                        print('do nothing')
-                                # if repairs one-time
-                                else:
-                                    repairs_expected_expenses = repairs_expected_expenses + \
-                                        manager_expected_expense['result'][mex]['amount_due']
+
+                                        rental_expected_revenue = rental_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+
+                                # calculate revenue from extra charges
+                                if manager_expected_revenue['result'][mre]['purchase_type'] == 'EXTRA CHARGES':
+                                    if manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
+
+                                        extraCharges_expected_revenue = extraCharges_expected_revenue + \
+                                            float(manager_expected_revenue['result']
+                                                  [mre]['amount_due'])
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
+
+                                        extraCharges_expected_revenue = extraCharges_expected_revenue + \
+                                            float(manager_expected_revenue['result']
+                                                  [mre]['amount_due'])
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
+
+                                        extraCharges_expected_revenue = extraCharges_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Annually':
+
+                                        extraCharges_expected_revenue = extraCharges_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+                                    else:
+
+                                        extraCharges_expected_revenue = extraCharges_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+
+                                # calculate revenue from UTILITY payments
+                                if manager_expected_revenue['result'][mre]['purchase_type'] == 'UTILITY':
+                                    if manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
+
+                                        utility_expected_revenue = utility_expected_revenue + \
+                                            float(manager_expected_revenue['result']
+                                                  [mre]['amount_due'])
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
+
+                                        utility_expected_revenue = utility_expected_revenue + \
+                                            float(manager_expected_revenue['result']
+                                                  [mre]['amount_due'])
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
+
+                                        utility_expected_revenue = utility_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+                                    elif manager_expected_revenue['result'][mre]['purchase_frequency'] == 'Annually':
+
+                                        utility_expected_revenue = utility_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+                                    else:
+
+                                        utility_expected_revenue = utility_expected_revenue + \
+                                            manager_expected_revenue['result'][mre]['amount_due']
+
+                            response['result'][i]['rental_expected_revenue'] = round(
+                                rental_expected_revenue, 2)
+                            response['result'][i]['extraCharges_expected_revenue'] = round(
+                                extraCharges_expected_revenue, 2)
+                            response['result'][i]['utility_expected_revenue'] = round(
+                                utility_expected_revenue, 2)
+
+                        # monthly expenses for the property
+                        manager_expected_expense = db.execute("""SELECT *
+                        FROM pm.purchases p
+                        LEFT JOIN
+                        pm.payments pa
+                        ON pa.pay_purchase_id = p.purchase_uid
+                        LEFT JOIN pm.rentals r
+                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                        LEFT JOIN pm.contracts c
+                        ON c.property_uid LIKE '%""" + property_id + """%'
+                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                        AND c.contract_status = 'ACTIVE'
+                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
+                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
                         response['result'][i]['maintenance_expected_expenses'] = round(
                             maintenance_expected_expenses, 2)
-                        response['result'][i]['management_expected_expenses'] = round((float(manager_expected_expense['result'][mex]['amount_due']) -
-                                                                                       management_expected_expenses), 2)
+                        response['result'][i]['management_expected_expenses'] = round(
+                            management_expected_expenses, 2)
                         response['result'][i]['repairs_expected_expenses'] = round(
                             repairs_expected_expenses, 2)
+                        response['result'][i]['manager_expected_expense'] = list(
+                            manager_expected_expense['result'])
+                        if len(manager_expected_expense['result']) > 0:
+                            for mex in range(len(manager_expected_expense['result'])):
+                                # print('mex', manager_expected_expense['result'][mex])
+                                # if maintenance
+                                if manager_expected_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
+                                    #
+                                    # if maintenance monthly
+                                    if manager_expected_expense['result'][mex]['purchase_frequency'] == 'Monthly':
+                                        # print('in maintenance monthly')
+                                        # if maintenance monthly once a month
+                                        if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a month':
+                                            # print('in maintenance once a month')
 
-            elif filterType == 'owner_id':
-                print('here if')
-                response = db.execute(
-                    """SELECT * FROM pm.propertyInfo WHERE owner_id = \'"""
-                    + filterVal
-                    + """\' """)
-                print(response)
-            else:
-                print('here else')
-                response = db.select('propertyInfo', where)
+                                            maintenance_expected_expenses = maintenance_expected_expenses + \
+                                                manager_expected_expense['result'][mex]['amount_due']
+                                            # if maintenance monthly twice a month
+                                        elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a month':
+                                            # print(
+                                            # 'in maintenance twice a month')
+
+                                            maintenance_expected_expenses = maintenance_expected_expenses + \
+                                                2 * \
+                                                (manager_expected_expense['result']
+                                                    [mex]['amount_due'])
+                                        else:
+                                            print('do nothing')
+                                        # if maintenance annually
+                                    elif manager_expected_expense['result'][mex]['purchase_frequency'] == 'Annually':
+                                        # print('in maintenance annually')
+                                        # if maintenance annually once a year
+                                        if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a year':
+
+                                            maintenance_expected_expenses = maintenance_expected_expenses + \
+                                                manager_expected_expense['result'][mex]['amount_due']
+                                        # if maintenance annually twice a year
+                                        elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a year':
+
+                                            maintenance_expected_expenses = maintenance_expected_expenses + \
+                                                manager_expected_expense['result'][mex]['amount_due']
+                                        else:
+                                            print('do nothing')
+                                    # if maintenance one-time
+                                    else:
+                                        maintenance_expected_expenses = maintenance_expected_expenses + \
+                                            manager_expected_expense['result'][mex]['amount_due']
+                                # if management
+                                if manager_expected_expense['result'][mex]['purchase_type'] == 'RENT':
+                                    managementPayments = json.loads(
+                                        manager_expected_expense['result'][mex]['contract_fees'])
+
+                                    for payment in managementPayments:
+                                        # print('amount paid to owner', payment)
+                                        if payment['fee_type'] == '%':
+                                            if payment['of'] == 'Gross Rent':
+
+                                                if payment['frequency'] == 'Weekly':
+
+                                                    management_expected_expenses = management_expected_expenses +  \
+                                                        weeks_current_month*float((
+                                                            float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
+
+                                                elif payment['frequency'] == 'Biweekly':
+
+                                                    management_expected_expenses = management_expected_expenses +  \
+                                                        weeks_current_month/2 * \
+                                                        ((
+                                                            float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
+
+                                                elif payment['frequency'] == 'Monthly':
+
+                                                    management_expected_expenses = management_expected_expenses +  \
+                                                        (
+                                                            float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
+
+                                                elif payment['frequency'] == 'Annually':
+
+                                                    if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
+                                                        management_expected_expenses = management_expected_expenses +  \
+                                                            (
+                                                                float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
+
+                                                elif payment['frequency'] == 'One-time':
+
+                                                    if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
+                                                        management_expected_expenses = management_expected_expenses +  \
+                                                            (
+                                                                float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
+
+                                                else:
+                                                    print('do nothing')
+                                        elif payment['fee_type'] == '$':
+                                            if payment['frequency'] == 'Weekly':
+
+                                                management_expected_expenses = management_expected_expenses + weeks_current_month * \
+                                                    float(payment['charge'])
+
+                                            elif payment['frequency'] == 'Biweekly':
+
+                                                management_expected_expenses = management_expected_expenses + weeks_current_month/2 * \
+                                                    float(payment['charge'])
+
+                                            elif payment['frequency'] == 'Monthly':
+
+                                                management_expected_expenses = management_expected_expenses + \
+                                                    float(payment['charge'])
+
+                                            elif payment['frequency'] == 'Annually':
+
+                                                if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
+                                                    management_expected_expenses = management_expected_expenses + \
+                                                        float(
+                                                            payment['charge'])
+
+                                            elif payment['frequency'] == 'One-time':
+
+                                                if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
+                                                    management_expected_expenses = management_expected_expenses + \
+                                                        float(
+                                                            payment['charge'])
+
+                                            else:
+                                                print('do nothing')
+                                        else:
+                                            print('do nothing')
+                                if manager_expected_expense['result'][mex]['purchase_type'] == 'REPAIRS':
+                                    # if repairs monthly
+                                    if manager_expected_expense['result'][mex]['purchase_frequency'] == 'Monthly':
+                                        # if repairs monthly once a month
+                                        if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a month':
+
+                                            repairs_expected_expenses = repairs_expected_expenses + \
+                                                manager_expected_expense['result'][mex]['amount_due']
+                                            # if repairs monthly twice a month
+                                        elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a month':
+
+                                            repairs_expected_expenses = repairs_expected_expenses + 2 * \
+                                                (manager_expected_expense['result']
+                                                    [mex]['amount_due'])
+                                        else:
+                                            print('do nothing')
+                                        # if repairs annually
+                                    elif manager_expected_expense['result'][mex]['purchase_frequency'] == 'Annually':
+                                        # if repairs annually once a year
+                                        if manager_expected_expense['result'][mex]['payment_frequency'] == 'Once a year':
+
+                                            repairs_expected_expenses = repairs_expected_expenses + \
+                                                manager_expected_expense['result'][mex]['amount_due']
+                                        # if repairs annually twice a year
+                                        elif manager_expected_expense['result'][mex]['payment_frequency'] == 'Twice a year':
+
+                                            repairs_expected_expenses = repairs_expected_expenses + \
+                                                manager_expected_expense['result'][mex]['amount_due']
+                                        else:
+                                            print('do nothing')
+                                    # if repairs one-time
+                                    else:
+                                        repairs_expected_expenses = repairs_expected_expenses + \
+                                            manager_expected_expense['result'][mex]['amount_due']
+
+                            response['result'][i]['maintenance_expected_expenses'] = round(
+                                maintenance_expected_expenses, 2)
+                            response['result'][i]['management_expected_expenses'] = round((float(manager_expected_expense['result'][mex]['amount_due']) -
+                                                                                           management_expected_expenses), 2)
+                            response['result'][i]['repairs_expected_expenses'] = round(
+                                repairs_expected_expenses, 2)
+
         return response
 
 
@@ -962,7 +869,7 @@ class PropertiesManagerDetail(Resource):
                         application_res = db.execute("""SELECT
                                                         *
                                                         FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
-                        print('application_res', application_res)
+
                         response['result'][i]['applications'] = list(
                             application_res['result'])
                         maintenance_res = db.execute("""SELECT *
@@ -1054,7 +961,7 @@ class PropertiesManagerDetail(Resource):
                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                     AND p.purchase_status = 'PAID' """)
-                    print(len(manager_revenue['result']))
+
                     response['result'][i]['rental_revenue'] = round(
                         rental_revenue, 2)
                     response['result'][i]['extraCharges_revenue'] = round(
@@ -1180,7 +1087,7 @@ class PropertiesManagerDetail(Resource):
                             # print('mex', manager_expense['result'][mex])
                             # if maintenance
                             if manager_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
-                                # print('in maintenance')
+                                #
                                 # if maintenance monthly
                                 if manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
                                     # print('in maintenance monthly')
@@ -1228,95 +1135,74 @@ class PropertiesManagerDetail(Resource):
                                 for payment in managementPayments:
                                     # print('amount paid to owner', payment)
                                     if payment['fee_type'] == '%':
-                                        print(management_expenses)
+
                                         if payment['of'] == 'Gross Rent':
 
                                             if payment['frequency'] == 'Weekly':
-                                                print('amount weekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'], weeks_current_month)
+
                                                 management_expenses = management_expenses +  \
                                                     weeks_current_month*float((
                                                         float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                                print('amount weekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                             elif payment['frequency'] == 'Biweekly':
-                                                print('amount biweekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'], weeks_current_month/2)
+
                                                 management_expenses = management_expenses +  \
                                                     weeks_current_month/2 * \
                                                     ((
                                                         float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                                print('amount biweekly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                             elif payment['frequency'] == 'Monthly':
-                                                print('amount monthly %',
-                                                      management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                                 management_expenses = management_expenses +  \
                                                     (
                                                         float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                                print('amount monthly %',
-                                                      management_expenses, float(
-                                                          manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                             elif payment['frequency'] == 'Annually':
-                                                print(
-                                                    'amount annually %', management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                                 if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
                                                     management_expenses = management_expenses +  \
                                                         (
                                                             float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount annually %', management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                             elif payment['frequency'] == 'One-time':
-                                                print(
-                                                    'amount one-time %', management_expenses, date.fromisoformat(manager_expense['result'][mex]['start_date']).month)
+
                                                 if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
                                                     management_expenses = management_expenses +  \
                                                         (
                                                             float(manager_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount one-time %', management_expenses, float(manager_expense['result'][mex]['amount_paid']), payment['charge'])
+
                                             else:
                                                 print('do nothing')
                                     elif payment['fee_type'] == '$':
                                         if payment['frequency'] == 'Weekly':
-                                            print('amount weekly $',
-                                                  management_expenses)
+
                                             management_expenses = management_expenses + weeks_current_month * \
                                                 float(payment['charge'])
-                                            print('amount weekly $',
-                                                  management_expenses)
+
                                         elif payment['frequency'] == 'Biweekly':
-                                            print('amount biweekly $',
-                                                  management_expenses)
+
                                             management_expenses = management_expenses + weeks_current_month/2 * \
                                                 float(payment['charge'])
-                                            print('amount biweekly $',
-                                                  management_expenses)
+
                                         elif payment['frequency'] == 'Monthly':
-                                            print('amount monthly $',
-                                                  management_expenses)
+
                                             management_expenses = management_expenses + \
                                                 float(payment['charge'])
-                                            print('amount monthly $',
-                                                  management_expenses)
+
                                         elif payment['frequency'] == 'Annually':
-                                            print('amount annually $',
-                                                  management_expenses)
+
                                             if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
                                                 management_expenses = management_expenses + \
                                                     float(
                                                         payment['charge'])
-                                                print(
-                                                    'amount annually $', management_expenses, payment['charge'])
+
                                         elif payment['frequency'] == 'One-time':
-                                            print(
-                                                'amount one-time $', management_expenses)
+
                                             if date.fromisoformat(manager_expense['result'][mex]['start_date']).month == today.month:
                                                 management_expenses = management_expenses + \
                                                     float(
                                                         payment['charge'])
-                                                print(
-                                                    'amount one-time $', management_expenses)
+
                                         else:
                                             print('do nothing')
                                     else:
@@ -1382,7 +1268,7 @@ class PropertiesManagerDetail(Resource):
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
-                    print(len(manager_expected_revenue['result']))
+
                     response['result'][i]['rental_expected_revenue'] = round(
                         rental_expected_revenue, 2)
                     response['result'][i]['extraCharges_expected_revenue'] = round(
@@ -1507,7 +1393,7 @@ class PropertiesManagerDetail(Resource):
                             # print('mex', manager_expected_expense['result'][mex])
                             # if maintenance
                             if manager_expected_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
-                                # print('in maintenance')
+                                #
                                 # if maintenance monthly
                                 if manager_expected_expense['result'][mex]['purchase_frequency'] == 'Monthly':
                                     # print('in maintenance monthly')
@@ -1555,95 +1441,73 @@ class PropertiesManagerDetail(Resource):
                                 for payment in managementPayments:
                                     # print('amount paid to owner', payment)
                                     if payment['fee_type'] == '%':
-                                        print(management_expected_expenses)
                                         if payment['of'] == 'Gross Rent':
 
                                             if payment['frequency'] == 'Weekly':
-                                                print('amount weekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'], weeks_current_month)
+
                                                 management_expected_expenses = management_expected_expenses +  \
                                                     weeks_current_month*float((
                                                         float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                                print('amount weekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                             elif payment['frequency'] == 'Biweekly':
-                                                print('amount biweekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'], weeks_current_month/2)
+
                                                 management_expected_expenses = management_expected_expenses +  \
                                                     weeks_current_month/2 * \
                                                     ((
                                                         float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                                print('amount biweekly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                             elif payment['frequency'] == 'Monthly':
-                                                print('amount monthly %',
-                                                      management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                                 management_expected_expenses = management_expected_expenses +  \
                                                     (
                                                         float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                                print('amount monthly %',
-                                                      management_expected_expenses, float(
-                                                          manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                             elif payment['frequency'] == 'Annually':
-                                                print(
-                                                    'amount annually %', management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                                 if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
                                                     management_expected_expenses = management_expected_expenses +  \
                                                         (
                                                             float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount annually %', management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                             elif payment['frequency'] == 'One-time':
-                                                print(
-                                                    'amount one-time %', management_expected_expenses, date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month)
+
                                                 if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
                                                     management_expected_expenses = management_expected_expenses +  \
                                                         (
                                                             float(manager_expected_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                                    print(
-                                                        'amount one-time %', management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'])
+
                                             else:
                                                 print('do nothing')
                                     elif payment['fee_type'] == '$':
                                         if payment['frequency'] == 'Weekly':
-                                            print('amount weekly $',
-                                                  management_expected_expenses)
+
                                             management_expected_expenses = management_expected_expenses + weeks_current_month * \
                                                 float(payment['charge'])
-                                            print('amount weekly $',
-                                                  management_expected_expenses)
+
                                         elif payment['frequency'] == 'Biweekly':
-                                            print('amount biweekly $',
-                                                  management_expected_expenses)
+
                                             management_expected_expenses = management_expected_expenses + weeks_current_month/2 * \
                                                 float(payment['charge'])
-                                            print('amount biweekly $',
-                                                  management_expected_expenses)
+
                                         elif payment['frequency'] == 'Monthly':
-                                            print('amount monthly $',
-                                                  management_expected_expenses)
+
                                             management_expected_expenses = management_expected_expenses + \
                                                 float(payment['charge'])
-                                            print('amount monthly $',
-                                                  management_expected_expenses)
+
                                         elif payment['frequency'] == 'Annually':
-                                            print('amount annually $',
-                                                  management_expected_expenses)
+
                                             if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
                                                 management_expected_expenses = management_expected_expenses + \
                                                     float(
                                                         payment['charge'])
-                                                print(
-                                                    'amount annually $', management_expected_expenses, payment['charge'])
+
                                         elif payment['frequency'] == 'One-time':
-                                            print(
-                                                'amount one-time $', management_expected_expenses)
+
                                             if date.fromisoformat(manager_expected_expense['result'][mex]['start_date']).month == today.month:
                                                 management_expected_expenses = management_expected_expenses + \
                                                     float(
                                                         payment['charge'])
-                                                print(
-                                                    'amount one-time $', management_expected_expenses)
+
                                         else:
                                             print('do nothing')
                                     else:
@@ -1743,13 +1607,13 @@ class ManagerExpenses(Resource):
                                     propRes['result'][0]['address'])
 
                     elif response['result'][i]['purchase_type'] == 'MAINTENANCE':
-                        # print('in maintenance')
+                        #
                         maintenanceRes = db.execute("""SELECT mq.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
                                                                 FROM maintenanceQuotes mq
                                                                 LEFT JOIN pm.businesses b
                                                                 ON b.business_uid = mq.quote_business_uid
                                                                 LEFT JOIN properties p
-                                                                ON p.property_uid = \'""" + response['result'][i]['pur_property_id'] + """\'
+                                                                ON p.property_uid LIKE '%""" + response['result'][i]['pur_property_id'] + """%'
                                                                 WHERE  mq.maintenance_quote_uid = \'""" + response['result'][i]['linked_bill_id'] + """\' """)
 
                         if(len(maintenanceRes['result']) > 0):
@@ -1757,13 +1621,13 @@ class ManagerExpenses(Resource):
                                 response['result'][i].update(
                                     maintenanceRes['result'][j])
                     elif response['result'][i]['purchase_type'] == 'REPAIRS':
-                        # print('in maintenance')
+                        #
                         maintenanceRes = db.execute("""SELECT mq.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
                                                                 FROM maintenanceQuotes mq
                                                                 LEFT JOIN pm.businesses b
                                                                 ON b.business_uid = mq.quote_business_uid
                                                                 LEFT JOIN properties p
-                                                                ON p.property_uid = \'""" + response['result'][i]['pur_property_id'] + """\'
+                                                                ON p.property_uid = LIKE '%""" + response['result'][i]['pur_property_id'] + """%'
                                                                 WHERE  mq.maintenance_quote_uid = \'""" + response['result'][i]['linked_bill_id'] + """\' """)
 
                         if(len(maintenanceRes['result']) > 0):

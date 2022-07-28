@@ -854,7 +854,7 @@ class EndEarly(Resource):
                         'rentals', pk1, newRental)
                     # deletes any future rent payments or charges for that property
                     pur_pk = {
-                        'pur_property_id': json.dumps(updateApp['property_uid'])
+                        'pur_property_id': json.dumps([updateApp['property_uid']])
                     }
                     pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + updateApp['property_uid'] + """%'
                                                     AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
@@ -896,7 +896,7 @@ class EndEarly(Resource):
 
                 # deletes any future rent payments or charges for that property
                 pur_pk = {
-                    'pur_property_id': json.dumps(updateApp['property_uid'])
+                    'pur_property_id': json.dumps([updateApp['property_uid']])
                 }
                 pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + updateApp['property_uid'] + """%'
                                                 AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))

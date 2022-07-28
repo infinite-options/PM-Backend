@@ -1305,7 +1305,7 @@ class PropertiesOwner(Resource):
                                     billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
                                                             FROM pm.bills b
                                                             LEFT JOIN properties p
-                                                            ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                            ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                             WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(billRes['result']) > 0):
@@ -1324,7 +1324,7 @@ class PropertiesOwner(Resource):
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
                                                                     LEFT JOIN properties p
-                                                                    ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(maintenanceRes['result']) > 0):
@@ -1341,7 +1341,7 @@ class PropertiesOwner(Resource):
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
                                                                     LEFT JOIN properties p
-                                                                    ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(repairRes['result']) > 0):
@@ -1838,7 +1838,7 @@ class PropertiesOwnerDetail(Resource):
                                                     ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
                                                     ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT")
@@ -2483,7 +2483,7 @@ class PropertiesOwnerDetail(Resource):
                                                     ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
                                                     ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT")
@@ -2624,7 +2624,7 @@ class PropertiesOwnerDetail(Resource):
                                     billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
                                                             FROM pm.bills b
                                                             LEFT JOIN properties p
-                                                            ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                            ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                             WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(billRes['result']) > 0):
@@ -2643,7 +2643,7 @@ class PropertiesOwnerDetail(Resource):
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
                                                                     LEFT JOIN properties p
-                                                                    ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(maintenanceRes['result']) > 0):
@@ -2660,7 +2660,7 @@ class PropertiesOwnerDetail(Resource):
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
                                                                     LEFT JOIN properties p
-                                                                    ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(repairRes['result']) > 0):
@@ -2678,6 +2678,7 @@ class PropertiesOwnerDetail(Resource):
 class OwnerPropertyBills(Resource):
     def get(self):
         response = {}
+        purchase_res = []
         filters = ['owner_id']
         where = {}
 
@@ -2688,11 +2689,18 @@ class OwnerPropertyBills(Resource):
                     where[filter] = filterValue
                     today = date.today()
                     # list of all properties for the owner
-                    response = db.execute("""SELECT prop.property_uid, prop.address, prop.unit, prop.city, prop.state, prop.zip, p.*, pa.*
+
+                    response = db.execute("""SELECT *
+                                            FROM pm.properties prop
+                                            WHERE prop.owner_id = \'""" + filterValue + """\'
+                                            """)
+                    for i in range(len(response['result'])):
+
+                        purchase = db.execute("""SELECT prop.property_uid, prop.address, prop.unit, prop.city, prop.state, prop.zip, p.*, pa.*
                                             FROM pm.properties prop
                                             LEFT JOIN
                                             pm.purchases p
-                                            ON p.pur_property_id = prop.property_uid
+                                            ON p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                             LEFT JOIN
                                             pm.payments pa
                                             ON pa.pay_purchase_id = p.purchase_uid
@@ -2702,6 +2710,9 @@ class OwnerPropertyBills(Resource):
                                             AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                             AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" )""")
 
+                        purchase_res = purchase_res + list(purchase['result'])
+                    response['result'] = purchase_res
+                    print(purchase_res)
         return response
 
 
