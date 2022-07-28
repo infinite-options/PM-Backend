@@ -1287,10 +1287,12 @@ class PropertiesOwner(Resource):
                         # print(response)
 
                         # get utilities or maintenance/repair expenses
-                        expense_res = db.execute("""SELECT *
+                        expense_res = db.execute("""SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
                             FROM pm.purchases p
                             LEFT JOIN payments pa
                             ON pa.pay_purchase_id = p.purchase_uid
+                            LEFT JOIN pm.properties prop
+                            ON prop.property_uid LIKE '%""" + property_id + """%'
                             WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                             AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
                             AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
@@ -1302,10 +1304,9 @@ class PropertiesOwner(Resource):
                                 # if utility return all the details related to the utility
                                 if expense_res['result'][i]['purchase_type'] == 'UTILITY':
                                     print('in utility')
-                                    billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
-                                                            FROM pm.bills b
-                                                            LEFT JOIN properties p
-                                                            ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
+
+                                    billRes = db.execute("""SELECT b.*
+                                                            FROM pm.bills b                
                                                             WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(billRes['result']) > 0):
@@ -1317,14 +1318,12 @@ class PropertiesOwner(Resource):
                                 # if maintainence return all the details related to the maintenance requests
                                 elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
                                     print('in maintenance')
-                                    maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                    maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*
                                                                     FROM maintenanceQuotes mq
                                                                     LEFT JOIN pm.maintenanceRequests mr
                                                                     ON mr.maintenance_request_uid = mq.linked_request_uid
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
-                                                                    LEFT JOIN properties p
-                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(maintenanceRes['result']) > 0):
@@ -1334,14 +1333,12 @@ class PropertiesOwner(Resource):
                                 # if repair return all the details related to the repair requests
                                 elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
                                     print('in maintenance')
-                                    repairRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                    repairRes = db.execute("""SELECT mq.*, mr.*, b.*
                                                                     FROM maintenanceQuotes mq
                                                                     LEFT JOIN pm.maintenanceRequests mr
                                                                     ON mr.maintenance_request_uid = mq.linked_request_uid
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
-                                                                    LEFT JOIN properties p
-                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(repairRes['result']) > 0):
