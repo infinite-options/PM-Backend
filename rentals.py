@@ -157,9 +157,9 @@ class EndLease(Resource):
                         'application_uid': application['application_uid']}
                     appResponse = db.update('applications', pk, updateApp)
             pur_pk = {
-                'pur_property_id': rentalUpdate['rental_property_id']
+                'pur_property_id': json.dumps([rentalUpdate['rental_property_id']])
             }
-            pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + rentalUpdate['rental_property_id'] + """\'
+            pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + rentalUpdate['rental_property_id'] + """%'
                                             AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
                                             AND purchase_status ="UNPAID"
                                             AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
@@ -341,7 +341,7 @@ class ExtendLeaseCRON_CLASS(Resource):
             if newLease['lease_start'] == today:
                 print('here')
                 if datetime.strptime(oldLease['lease_end'], '%Y-%m-%d') > datetime.strptime(today, '%Y-%m-%d'):
-                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + oldLease['rental_property_id'] + """\'
+                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
                                             AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
                                             AND purchase_status ="UNPAID"
                                             AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
@@ -398,7 +398,8 @@ class ExtendLeaseCRON_CLASS(Resource):
                             if(payment['fee_name'] == 'Rent'):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
-                                    pur_property_id=newLease['rental_property_id'],
+                                    pur_property_id=json.dumps(
+                                        [newLease['rental_property_id']]),
                                     payer=json.dumps(tenants),
                                     receiver=res['result'][0]['linked_business_id'],
                                     purchase_type='RENT',
@@ -412,7 +413,8 @@ class ExtendLeaseCRON_CLASS(Resource):
                             else:
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
-                                    pur_property_id=newLease['rental_property_id'],
+                                    pur_property_id=json.dumps(
+                                        [newLease['rental_property_id']]),
                                     payer=json.dumps(tenants),
                                     receiver=res['result'][0]['linked_business_id'],
                                     purchase_type='EXTRA CHARGES',
@@ -444,7 +446,8 @@ class ExtendLeaseCRON_CLASS(Resource):
                         if(payment['fee_name'] == 'Rent'):
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
-                                pur_property_id=newLease['rental_property_id'],
+                                pur_property_id=json.dumps(
+                                    [newLease['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=res['result'][0]['linked_business_id'],
                                 purchase_type='RENT',
@@ -460,7 +463,8 @@ class ExtendLeaseCRON_CLASS(Resource):
 
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
-                                pur_property_id=newLease['rental_property_id'],
+                                pur_property_id=json.dumps(
+                                    [newLease['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=res['result'][0]['linked_business_id'],
                                 purchase_type='EXTRA CHARGES',
@@ -518,7 +522,7 @@ def ExtendLeaseCRON():
         if newLease['lease_start'] == today:
             print('here')
             if datetime.strptime(oldLease['lease_end'], '%Y-%m-%d') > datetime.strptime(today, '%Y-%m-%d'):
-                pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + oldLease['rental_property_id'] + """\'
+                pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
                                         AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
                                         AND purchase_status ="UNPAID"
                                         AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
@@ -575,7 +579,8 @@ def ExtendLeaseCRON():
                         if(payment['fee_name'] == 'Rent'):
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
-                                pur_property_id=newLease['rental_property_id'],
+                                pur_property_id=json.dumps(
+                                    [newLease['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=res['result'][0]['linked_business_id'],
                                 purchase_type='RENT',
@@ -589,7 +594,8 @@ def ExtendLeaseCRON():
                         else:
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
-                                pur_property_id=newLease['rental_property_id'],
+                                pur_property_id=json.dumps(
+                                    [newLease['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=res['result'][0]['linked_business_id'],
                                 purchase_type='EXTRA CHARGES',
@@ -621,7 +627,8 @@ def ExtendLeaseCRON():
                     if(payment['fee_name'] == 'Rent'):
                         purchaseResponse = newPurchase(
                             linked_bill_id=None,
-                            pur_property_id=newLease['rental_property_id'],
+                            pur_property_id=json.dumps(
+                                [newLease['rental_property_id']]),
                             payer=json.dumps(tenants),
                             receiver=res['result'][0]['linked_business_id'],
                             purchase_type='RENT',
@@ -637,7 +644,8 @@ def ExtendLeaseCRON():
 
                         purchaseResponse = newPurchase(
                             linked_bill_id=None,
-                            pur_property_id=newLease['rental_property_id'],
+                            pur_property_id=json.dumps(
+                                [newLease['rental_property_id']]),
                             payer=json.dumps(tenants),
                             receiver=res['result'][0]['linked_business_id'],
                             purchase_type='EXTRA CHARGES',
@@ -718,7 +726,8 @@ class LeasetoMonth_CLASS(Resource):
                             print(charge_date, charge_month)
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
-                                pur_property_id=response['result'][i]['rental_property_id'],
+                                pur_property_id=json.dumps(
+                                    [response['result'][i]['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=response['result'][i]['linked_business_id'],
                                 purchase_type='RENT',
@@ -793,7 +802,8 @@ def LeasetoMonth():
                         print(charge_date, charge_month)
                         purchaseResponse = newPurchase(
                             linked_bill_id=None,
-                            pur_property_id=response['result'][i]['rental_property_id'],
+                            pur_property_id=json.dumps(
+                                [response['result'][i]['rental_property_id']]),
                             payer=json.dumps(tenants),
                             receiver=response['result'][i]['linked_business_id'],
                             purchase_type='RENT',
@@ -850,7 +860,7 @@ class LateFee_CLASS(Resource):
                                     WHERE p.purchase_status='UNPAID' 
                                     AND p.purchase_type='RENT' 
                                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id = \'""" + response['result'][i]['rental_property_id'] + """\'; """)
+                                    AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
                         for j in range(len(res['result'])):
@@ -860,7 +870,8 @@ class LateFee_CLASS(Resource):
 
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
-                                    pur_property_id=response['result'][i]['rental_property_id'],
+                                    pur_property_id=json.dumps(
+                                        [response['result'][i]['rental_property_id']]),
                                     payer=json.dumps(tenants),
                                     receiver=response['result'][i]['linked_business_id'],
                                     purchase_type='EXTRA CHARGES',
@@ -930,7 +941,7 @@ def LateFee():
                                 WHERE p.purchase_status='UNPAID' 
                                 AND p.purchase_type='RENT' 
                                 AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                AND p.pur_property_id = \'""" + response['result'][i]['rental_property_id'] + """\'; """)
+                                AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
 
                 if len(res['result']) > 0:
                     for j in range(len(res['result'])):
@@ -940,7 +951,8 @@ def LateFee():
 
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
-                                pur_property_id=response['result'][i]['rental_property_id'],
+                                pur_property_id=json.dumps(
+                                    [response['result'][i]['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=response['result'][i]['linked_business_id'],
                                 purchase_type='EXTRA CHARGES',
@@ -996,7 +1008,7 @@ class PerDay_LateFee_CLASS(Resource):
                                     WHERE p.purchase_status='UNPAID' 
                                     AND p.purchase_type='RENT' 
                                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id = \'""" + response['result'][i]['rental_property_id'] + """\'; """)
+                                    AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
                         for j in range(len(res['result'])):
@@ -1005,7 +1017,7 @@ class PerDay_LateFee_CLASS(Resource):
                             else:
                                 latePurResponse = db.execute("""SELECT *
                                                                 FROM pm.purchases p
-                                                                WHERE p.pur_property_id = \'""" + response['result'][i]['rental_property_id'] + """\'
+                                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'
                                                                 AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
                                                                 AND p.description = 'Late Fee'
                                                                 AND p.purchase_status='UNPAID'; """)
@@ -1074,7 +1086,7 @@ def PerDay_LateFee():
                                     WHERE p.purchase_status='UNPAID' 
                                     AND p.purchase_type='RENT' 
                                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id = \'""" + response['result'][i]['rental_property_id'] + """\'; """)
+                                    AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
                         for j in range(len(res['result'])):
@@ -1083,7 +1095,7 @@ def PerDay_LateFee():
                             else:
                                 latePurResponse = db.execute("""SELECT *
                                                                 FROM pm.purchases p
-                                                                WHERE p.pur_property_id = \'""" + response['result'][i]['rental_property_id'] + """\'
+                                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'
                                                                 AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
                                                                 AND p.description = 'Late Fee'
                                                                 AND p.purchase_status='UNPAID'; """)

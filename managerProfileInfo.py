@@ -124,7 +124,7 @@ class ManagerPropertyTenants(Resource):
                 if len(response['result']) > 0:
                     for i in range(len(response['result'])):
                         user_payments = db.execute("""SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
-                                        WHERE p2.payer LIKE '%%\"""" + response['result'][i]['tenant_id'] + """\"%%'
+                                        WHERE p2.payer LIKE '%""" + response['result'][i]['tenant_id'] + """%'
                                     """)
                         response['result'][i]['user_payments'] = list(
                             user_payments['result'])

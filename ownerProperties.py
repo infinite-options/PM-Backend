@@ -173,8 +173,8 @@ class PropertiesOwner(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
                                                         AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
@@ -286,8 +286,8 @@ class PropertiesOwner(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
@@ -329,7 +329,7 @@ class PropertiesOwner(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type = "RENT" OR p.purchase_type = "EXTRA CHARGES") AND p.purchase_status = 'PAID' """)
 
@@ -348,7 +348,7 @@ class PropertiesOwner(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")
                                                         AND p.purchase_status = 'PAID' """)
@@ -516,10 +516,10 @@ class PropertiesOwner(Resource):
                                                     pm.payments pa
                                                     ON pa.pay_purchase_id = p.purchase_uid
                                                     LEFT JOIN pm.rentals r
-                                                    ON r.rental_property_id = p.pur_property_id
+                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
-                                                    ON c.property_uid = p.pur_property_id
-                                                    WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                    ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                                                    WHERE p.pur_property_id  LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT")
@@ -653,7 +653,7 @@ class PropertiesOwner(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id  LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
@@ -824,8 +824,8 @@ class PropertiesOwner(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
                                                         AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -932,8 +932,8 @@ class PropertiesOwner(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
@@ -974,7 +974,7 @@ class PropertiesOwner(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type = "RENT" OR p.purchase_type = "EXTRA CHARGES") """)
 
@@ -993,7 +993,7 @@ class PropertiesOwner(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES") """)
                         response['result'][i]['owner_expected_expense'] = list(
@@ -1161,9 +1161,9 @@ class PropertiesOwner(Resource):
                                                     pm.payments pa
                                                     ON pa.pay_purchase_id = p.purchase_uid
                                                     LEFT JOIN pm.rentals r
-                                                    ON r.rental_property_id = p.pur_property_id
+                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
-                                                    ON c.property_uid = p.pur_property_id
+                                                    ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
@@ -1291,9 +1291,9 @@ class PropertiesOwner(Resource):
                             FROM pm.purchases p
                             LEFT JOIN payments pa
                             ON pa.pay_purchase_id = p.purchase_uid
-                            WHERE p.pur_property_id = \'""" + property_id + """\'
+                            WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                             AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                            AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%%\"""" + filterValue + """\"%%')
+                            AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
                             """)
                         if len(expense_res['result']) > 0:
                             response['result'][i]['expenses'] = list(
@@ -1496,8 +1496,8 @@ class PropertiesOwnerDetail(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
                                                         AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
@@ -1605,8 +1605,8 @@ class PropertiesOwnerDetail(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
@@ -1648,7 +1648,7 @@ class PropertiesOwnerDetail(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type = "RENT" OR p.purchase_type = "EXTRA CHARGES") AND p.purchase_status = 'PAID' """)
 
@@ -1667,7 +1667,7 @@ class PropertiesOwnerDetail(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")
                                                         AND p.purchase_status = 'PAID' """)
@@ -1835,9 +1835,9 @@ class PropertiesOwnerDetail(Resource):
                                                     pm.payments pa
                                                     ON pa.pay_purchase_id = p.purchase_uid
                                                     LEFT JOIN pm.rentals r
-                                                    ON r.rental_property_id = p.pur_property_id
+                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
-                                                    ON c.property_uid = p.pur_property_id
+                                                    ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
@@ -1972,7 +1972,7 @@ class PropertiesOwnerDetail(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
@@ -2143,8 +2143,8 @@ class PropertiesOwnerDetail(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
                                                         AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -2251,8 +2251,8 @@ class PropertiesOwnerDetail(Resource):
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         LEFT JOIN rentals r
-                                                        ON r.rental_property_id = p.pur_property_id
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
@@ -2293,7 +2293,7 @@ class PropertiesOwnerDetail(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type = "RENT" OR p.purchase_type = "EXTRA CHARGES") """)
 
@@ -2312,7 +2312,7 @@ class PropertiesOwnerDetail(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES") """)
                         response['result'][i]['owner_expected_expense'] = list(
@@ -2480,9 +2480,9 @@ class PropertiesOwnerDetail(Resource):
                                                     pm.payments pa
                                                     ON pa.pay_purchase_id = p.purchase_uid
                                                     LEFT JOIN pm.rentals r
-                                                    ON r.rental_property_id = p.pur_property_id
+                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
-                                                    ON c.property_uid = p.pur_property_id
+                                                    ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
@@ -2610,9 +2610,9 @@ class PropertiesOwnerDetail(Resource):
                             FROM pm.purchases p
                             LEFT JOIN payments pa
                             ON pa.pay_purchase_id = p.purchase_uid
-                            WHERE p.pur_property_id = \'""" + property_id + """\'
+                            WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                             AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                            AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%%\"""" + filterValue + """\"%%')
+                            AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
                             """)
                         if len(expense_res['result']) > 0:
                             response['result'][i]['expenses'] = list(
@@ -2697,7 +2697,7 @@ class OwnerPropertyBills(Resource):
                                             pm.payments pa
                                             ON pa.pay_purchase_id = p.purchase_uid
                                             WHERE prop.owner_id = \'""" + filterValue + """\'
-                                            AND p.payer LIKE '%%\"""" + filterValue + """\"%%'
+                                            AND p.payer LIKE '%""" + filterValue + """%'
                                             AND p.purchase_status = 'UNPAID'
                                             AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                             AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" )""")

@@ -62,11 +62,19 @@ class PropertyInfo(Resource):
                         FROM pm.purchases p
                         LEFT JOIN payments pa
                         ON pa.pay_purchase_id = p.purchase_uid
-                        WHERE p.pur_property_id = \'""" + property_id + """\'
+                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                         AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                        AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%%\"""" + filterVal + """\"%%')
+                        AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%""" + filterVal + """%%')
                         """)
-
+                    sql = """SELECT *
+                        FROM pm.purchases p
+                        LEFT JOIN payments pa
+                        ON pa.pay_purchase_id = p.purchase_uid
+                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                        AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
+                        AND (receiver = \'""" + filterVal + """\' OR payer LIKE '%""" + filterVal + """%')
+                        """
+                    print('sql', sql, expense_res)
                     if len(expense_res['result']) > 0:
                         response['result'][i]['expenses'] = list(
                             expense_res['result'])
@@ -77,9 +85,14 @@ class PropertyInfo(Resource):
                                 billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
                                                         FROM pm.bills b
                                                         LEFT JOIN properties p
-                                                        ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                        ON p.property_uid  LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                         WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
-
+                                sql = """SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                                        FROM pm.bills b
+                                                        LEFT JOIN properties p
+                                                        ON p.property_uid  LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
+                                                        WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """
+                                print('sql', sql)
                                 if(len(billRes['result']) > 0):
                                     for j in range(len(billRes['result'])):
                                         expense_res['result'][i].update(
@@ -96,7 +109,7 @@ class PropertyInfo(Resource):
                                                                 LEFT JOIN pm.businesses b
                                                                 ON b.business_uid = mq.quote_business_uid
                                                                 LEFT JOIN properties p
-                                                                ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                 WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                 if(len(maintenanceRes['result']) > 0):
@@ -113,7 +126,7 @@ class PropertyInfo(Resource):
                                                                 LEFT JOIN pm.businesses b
                                                                 ON b.business_uid = mq.quote_business_uid
                                                                 LEFT JOIN properties p
-                                                                ON p.property_uid = \'""" + expense_res['result'][i]['pur_property_id'] + """\'
+                                                                ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                 WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                 if(len(repairRes['result']) > 0):
@@ -136,39 +149,35 @@ class PropertyInfo(Resource):
                     management_expenses = 0
                     repairs_expenses = 0
 
-                    response['result'][i]['rental_revenue'] = round(
-                        rental_revenue, 2)
-                    response['result'][i]['extraCharges_revenue'] = round(
-                        extraCharges_revenue, 2)
-                    response['result'][i]['utility_revenue'] = round(
-                        utility_revenue, 2)
-                    response['result'][i]['manager_revenue'] = []
-                    response['result'][i]['maintenance_expenses'] = round(
-                        maintenance_expenses, 2)
-                    response['result'][i]['management_expenses'] = round(
-                        management_expenses, 2)
-                    response['result'][i]['repairs_expenses'] = round(
-                        repairs_expenses, 2)
-                    response['result'][i]['manager_expense'] = []
-                    # if response['result'][i]['rental_status'] == 'ACTIVE':
-                    # print('active rental status',
-                    #   response['result'][i]['property_uid'])
-                    # monthly revenue for the property
-                    print(filterVal)
+                    # response['result'][i]['rental_revenue'] = round(
+                    #     rental_revenue, 2)
+                    # response['result'][i]['extraCharges_revenue'] = round(
+                    #     extraCharges_revenue, 2)
+                    # response['result'][i]['utility_revenue'] = round(
+                    #     utility_revenue, 2)
+                    # response['result'][i]['manager_revenue'] = []
+                    # response['result'][i]['maintenance_expenses'] = round(
+                    #     maintenance_expenses, 2)
+                    # response['result'][i]['management_expenses'] = round(
+                    #     management_expenses, 2)
+                    # response['result'][i]['repairs_expenses'] = round(
+                    #     repairs_expenses, 2)
+                    # response['result'][i]['manager_expense'] = []
+                    # print(filterVal)
+
                     manager_revenue = db.execute("""SELECT *
                                                     FROM pm.purchases p
                                                     LEFT JOIN
                                                     pm.payments pa
                                                     ON pa.pay_purchase_id = p.purchase_uid
                                                     LEFT JOIN rentals r
-                                                    ON r.rental_property_id = p.pur_property_id
-                                                    WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                                                     AND r.rental_status = 'ACTIVE'
                                                     AND p.receiver = \'""" + filterVal + """\'
                                                     AND p.purchase_status = 'PAID'""")
-                    print('manager revenue', (manager_revenue['result']))
 
                     response['result'][i]['manager_revenue'] = list(
                         manager_revenue['result'])
@@ -280,10 +289,10 @@ class PropertyInfo(Resource):
                                                 pm.payments pa
                                                 ON pa.pay_purchase_id = p.purchase_uid
                                                 LEFT JOIN pm.rentals r
-                                                ON r.rental_property_id = p.pur_property_id
+                                                ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                 LEFT JOIN pm.contracts c
-                                                ON c.property_uid = p.pur_property_id
-                                                WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                 AND c.contract_status = 'ACTIVE'
                                                 AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                 AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
@@ -511,8 +520,8 @@ class PropertyInfo(Resource):
                                                     pm.payments pa
                                                     ON pa.pay_purchase_id = p.purchase_uid
                                                     LEFT JOIN rentals r
-                                                    ON r.rental_property_id = p.pur_property_id
-                                                    WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                    ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                                                     AND p.receiver = \'""" + filterVal + """\'
@@ -629,10 +638,10 @@ class PropertyInfo(Resource):
                                                 pm.payments pa
                                                 ON pa.pay_purchase_id = p.purchase_uid
                                                 LEFT JOIN pm.rentals r
-                                                ON r.rental_property_id = p.pur_property_id
+                                                ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                 LEFT JOIN pm.contracts c
-                                                ON c.property_uid = p.pur_property_id
-                                                WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                 AND c.contract_status = 'ACTIVE'
                                                 AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                 AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
@@ -1039,8 +1048,8 @@ class PropertiesManagerDetail(Resource):
                     pm.payments pa
                     ON pa.pay_purchase_id = p.purchase_uid
                     LEFT JOIN rentals r
-                    ON r.rental_property_id = p.pur_property_id
-                    WHERE p.pur_property_id = \'""" + property_id + """\'
+                    ON r.rental_property_id LIKE '%""" + property_id + """%'
+                    WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
@@ -1148,10 +1157,10 @@ class PropertiesManagerDetail(Resource):
                     pm.payments pa
                     ON pa.pay_purchase_id = p.purchase_uid
                     LEFT JOIN pm.rentals r
-                    ON r.rental_property_id = p.pur_property_id
+                    ON r.rental_property_id LIKE '%""" + property_id + """%'
                     LEFT JOIN pm.contracts c
-                    ON c.property_uid = p.pur_property_id
-                    WHERE p.pur_property_id = \'""" + property_id + """\'
+                    ON c.property_uid LIKE '%""" + property_id + """%'
+                    WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                     AND c.contract_status = 'ACTIVE'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                     AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
@@ -1368,8 +1377,8 @@ class PropertiesManagerDetail(Resource):
                     pm.payments pa
                     ON pa.pay_purchase_id = p.purchase_uid
                     LEFT JOIN rentals r
-                    ON r.rental_property_id = p.pur_property_id
-                    WHERE p.pur_property_id = \'""" + property_id + """\'
+                    ON r.rental_property_id LIKE '%""" + property_id + """%'
+                    WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                     AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -1476,10 +1485,10 @@ class PropertiesManagerDetail(Resource):
                     pm.payments pa
                     ON pa.pay_purchase_id = p.purchase_uid
                     LEFT JOIN pm.rentals r
-                    ON r.rental_property_id = p.pur_property_id
+                    ON r.rental_property_id LIKE '%""" + property_id + """%'
                     LEFT JOIN pm.contracts c
-                    ON c.property_uid = p.pur_property_id
-                    WHERE p.pur_property_id = \'""" + property_id + """\'
+                    ON c.property_uid LIKE '%""" + property_id + """%'
+                    WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                     AND c.contract_status = 'ACTIVE'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                     AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
@@ -1703,7 +1712,7 @@ class ManagerExpenses(Resource):
                                     GROUP_CONCAT(p.purchase_status) AS purchases_status
                                     FROM pm.purchases p
                                     WHERE (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                                    AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%%\"""" + filterValue + """\"%%')
+                                    AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
                                     GROUP BY linked_bill_id
                                     """)
             if(len(response['result']) > 0):

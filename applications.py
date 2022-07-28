@@ -166,7 +166,8 @@ class Applications(Resource):
                                         prorated_charge = num_days_active * daily_charge
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='RENT',
@@ -192,7 +193,8 @@ class Applications(Resource):
                                         prorated_charge = num_days_active * daily_charge
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='RENT',
@@ -218,7 +220,8 @@ class Applications(Resource):
 
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='RENT',
@@ -239,7 +242,8 @@ class Applications(Resource):
                                         charge_date = start_date
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='RENT',
@@ -259,7 +263,8 @@ class Applications(Resource):
                                         charge_date = start_date
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='RENT',
@@ -288,7 +293,8 @@ class Applications(Resource):
                                     charge_date = start_date
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
-                                        pur_property_id=res['result'][0]['rental_property_id'],
+                                        pur_property_id=json.dumps(
+                                            [res['result'][0]['rental_property_id']]),
                                         payer=json.dumps(tenants),
                                         receiver=res['result'][0]['linked_business_id'],
                                         purchase_type='EXTRA CHARGES',
@@ -317,7 +323,8 @@ class Applications(Resource):
                                         prorated_charge = num_days_active * daily_charge
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -343,7 +350,8 @@ class Applications(Resource):
                                         prorated_charge = num_days_active * daily_charge
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -371,7 +379,8 @@ class Applications(Resource):
 
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -391,7 +400,8 @@ class Applications(Resource):
                                         charge_date = start_date
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -411,7 +421,8 @@ class Applications(Resource):
                                         charge_date = start_date
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -443,7 +454,8 @@ class Applications(Resource):
                                     charge_date = start_date
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
-                                        pur_property_id=res['result'][0]['rental_property_id'],
+                                        pur_property_id=json.dumps(
+                                            [res['result'][0]['rental_property_id']]),
                                         payer=json.dumps(tenants),
                                         receiver=res['result'][0]['linked_business_id'],
                                         purchase_type='EXTRA CHARGES',
@@ -473,7 +485,8 @@ class Applications(Resource):
                                         prorated_charge = num_days_active * daily_charge
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -499,7 +512,8 @@ class Applications(Resource):
                                         prorated_charge = num_days_active * daily_charge
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -526,7 +540,8 @@ class Applications(Resource):
 
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -546,7 +561,8 @@ class Applications(Resource):
                                         charge_date = start_date
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -567,7 +583,8 @@ class Applications(Resource):
                                         charge_date = start_date
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=res['result'][0]['rental_property_id'],
+                                            pur_property_id=json.dumps(
+                                                [res['result'][0]['rental_property_id']]),
                                             payer=json.dumps(tenants),
                                             receiver=res['result'][0]['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -626,7 +643,7 @@ class Applications(Resource):
                         FROM pm.rentals
                         WHERE rental_status='PROCESSING' 
                         AND rental_property_id = \'""" + newApplication['property_uid'] + """\' 
-                        AND linked_application_id LIKE '%%\"""" + newApplication['application_uid'] + """\"%%' """)
+                        AND linked_application_id LIKE '%""" + newApplication['application_uid'] + """%' """)
                     print('res', res, len(res['result']))
                     if len(res['result']) > 0:
                         for res in res['result']:
@@ -644,7 +661,7 @@ class Applications(Resource):
                         FROM pm.rentals
                         WHERE rental_status='PROCESSING' 
                         AND rental_property_id = \'""" + newApplication['property_uid'] + """\' 
-                        AND linked_application_id LIKE '%%\"""" + newApplication['application_uid'] + """\"%%' """)
+                        AND linked_application_id LIKE '%""" + newApplication['application_uid'] + """%' """)
                     print('res', res, len(res['result']))
                     if len(res['result']) > 0:
                         for res in res['result']:
@@ -837,9 +854,9 @@ class EndEarly(Resource):
                         'rentals', pk1, newRental)
                     # deletes any future rent payments or charges for that property
                     pur_pk = {
-                        'pur_property_id': updateApp['property_uid']
+                        'pur_property_id': json.dumps(updateApp['property_uid'])
                     }
-                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + updateApp['property_uid'] + """%'
                                                     AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
                                                     AND purchase_status ="UNPAID"
                                                     AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
@@ -879,9 +896,9 @@ class EndEarly(Resource):
 
                 # deletes any future rent payments or charges for that property
                 pur_pk = {
-                    'pur_property_id': updateApp['property_uid']
+                    'pur_property_id': json.dumps(updateApp['property_uid'])
                 }
-                pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id = \'""" + updateApp['property_uid'] + """\'
+                pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + updateApp['property_uid'] + """%'
                                                 AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
                                                 AND purchase_status ="UNPAID"
                                                 AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")

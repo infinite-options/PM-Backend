@@ -68,7 +68,7 @@ class UserPayments(Resource):
             filters = ['pur_property_id']
             response = db.execute("""
                 SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
-                WHERE p2.payer LIKE '%%\"""" + user_id + """\"%%'
+                WHERE p2.payer LIKE '%""" + user_id + """%'
             """)
             # response = db.execute(sql, args)
         return response
@@ -85,19 +85,19 @@ class OwnerPayments(Resource):
                 filterValue = request.args.get(filter)
                 if filterValue is not None:
                     where[filter] = filterValue
-                response = db.execute("""
-                    SELECT p1.*, p2.* 
-                    FROM payments p1 
-                    LEFT JOIN purchases p2 
-                    ON pay_purchase_id = purchase_uid
-                    LEFT JOIN properties p
-                    ON p.property_uid = p2.pur_property_id
-                    WHERE p2.payer = '[\"""" + filterValue + """\"]'
-                    AND p.owner_id=   \'""" + filterValue + """\'
-                """)
+                # response = db.execute("""
+                #     SELECT p1.*, p2.*
+                #     FROM payments p1
+                #     LEFT JOIN purchases p2
+                #     ON pay_purchase_id = purchase_uid
+                #     LEFT JOIN properties p
+                #     ON p.property_uid = p2.pur_property_id
+                #     WHERE p2.payer = '[\"""" + filterValue + """\"]'
+                #     AND p.owner_id=   \'""" + filterValue + """\'
+                # """)
                 response = db.execute("""
                     SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
-                    WHERE p2.payer LIKE '%%\"""" + filterValue + """\"%%'
+                    WHERE p2.payer LIKE '%""" + filterValue + """%'
                 """)
                 # response = db.execute(sql, args)
         return response
@@ -117,7 +117,7 @@ class ManagerPayments(Resource):
 
                 response = db.execute("""
                     SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
-                    WHERE p2.payer LIKE '%%\"""" + filterValue + """\"%%'
+                    WHERE p2.payer LIKE '%""" + filterValue + """%'
                 """)
                 # response = db.execute(sql, args)
         return response
@@ -169,7 +169,7 @@ class TenantPayments_CLASS(Resource):
                 for i in range(len(response['result'])):
                     response['result'][i]['expense_amount'] = 0
                     purRes = db.execute("""SELECT * FROM purchases pur
-                                           WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                                           WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                            AND pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' """)
                     print('purRes', purRes['result'])
                     response['result'][i]['prevPurchases'] = list(
@@ -228,7 +228,8 @@ class TenantPayments_CLASS(Resource):
 
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -271,7 +272,8 @@ class TenantPayments_CLASS(Resource):
 
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -322,7 +324,8 @@ class TenantPayments_CLASS(Resource):
 
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -338,7 +341,8 @@ class TenantPayments_CLASS(Resource):
                                                     'here end_date.moth == due_date.month', due_date, lease_end, charge_date)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -381,7 +385,8 @@ class TenantPayments_CLASS(Resource):
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
@@ -419,7 +424,8 @@ class TenantPayments_CLASS(Resource):
                                                 'enter the fee to purchases')
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -471,7 +477,8 @@ class TenantPayments_CLASS(Resource):
 
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -514,7 +521,8 @@ class TenantPayments_CLASS(Resource):
 
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -557,7 +565,8 @@ class TenantPayments_CLASS(Resource):
 
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -598,7 +607,8 @@ class TenantPayments_CLASS(Resource):
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -654,7 +664,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * int(rent))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='RENT',
@@ -672,7 +683,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * (int(rent)))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='RENT',
@@ -722,7 +734,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * int(rent))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='RENT',
@@ -740,7 +753,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * (int(rent)))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='RENT',
@@ -790,7 +804,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * int(rent))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='RENT',
@@ -808,7 +823,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * (int(rent)))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='RENT',
@@ -852,7 +868,8 @@ class TenantPayments_CLASS(Resource):
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -870,7 +887,8 @@ class TenantPayments_CLASS(Resource):
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -912,7 +930,8 @@ class TenantPayments_CLASS(Resource):
                                                 'enter the fee to purchases')
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -971,7 +990,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * int(rent))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='EXTRA CHARGES',
@@ -989,7 +1009,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * (int(rent)))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='EXTRA CHARGES',
@@ -1039,7 +1060,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * int(rent))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='EXTRA CHARGES',
@@ -1057,7 +1079,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * (int(rent)))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='EXTRA CHARGES',
@@ -1107,7 +1130,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * int(rent))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='EXTRA CHARGES',
@@ -1125,7 +1149,8 @@ class TenantPayments_CLASS(Resource):
                                                         int(payment['charge']) * (int(rent)))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
-                                                        pur_property_id=lease['property_uid'],
+                                                        pur_property_id=json.dumps(
+                                                            [lease['property_uid']]),
                                                         payer=payer,
                                                         receiver=lease['linked_business_id'],
                                                         purchase_type='EXTRA CHARGES',
@@ -1169,7 +1194,8 @@ class TenantPayments_CLASS(Resource):
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -1187,7 +1213,8 @@ class TenantPayments_CLASS(Resource):
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -1234,7 +1261,7 @@ def TenantPayments():
             for i in range(len(response['result'])):
                 response['result'][i]['expense_amount'] = 0
                 purRes = db.execute("""SELECT * FROM purchases pur
-                                        WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                                        WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                         AND pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' """)
                 print('purRes', purRes['result'])
                 response['result'][i]['prevPurchases'] = list(
@@ -1293,7 +1320,8 @@ def TenantPayments():
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
@@ -1336,7 +1364,8 @@ def TenantPayments():
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
@@ -1380,7 +1409,8 @@ def TenantPayments():
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
@@ -1421,7 +1451,8 @@ def TenantPayments():
 
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=lease['property_uid'],
+                                            pur_property_id=json.dumps(
+                                                [lease['property_uid']]),
                                             payer=payer,
                                             receiver=lease['linked_business_id'],
                                             purchase_type='RENT',
@@ -1459,7 +1490,8 @@ def TenantPayments():
                                             'enter the fee to purchases')
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=lease['property_uid'],
+                                            pur_property_id=json.dumps(
+                                                [lease['property_uid']]),
                                             payer=payer,
                                             receiver=lease['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -1511,7 +1543,8 @@ def TenantPayments():
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -1554,7 +1587,8 @@ def TenantPayments():
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -1597,7 +1631,8 @@ def TenantPayments():
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -1638,7 +1673,8 @@ def TenantPayments():
 
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=lease['property_uid'],
+                                            pur_property_id=json.dumps(
+                                                [lease['property_uid']]),
                                             payer=payer,
                                             receiver=lease['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -1694,7 +1730,8 @@ def TenantPayments():
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -1712,7 +1749,8 @@ def TenantPayments():
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -1762,7 +1800,8 @@ def TenantPayments():
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -1780,7 +1819,8 @@ def TenantPayments():
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -1830,7 +1870,8 @@ def TenantPayments():
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -1848,7 +1889,8 @@ def TenantPayments():
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
@@ -1892,7 +1934,8 @@ def TenantPayments():
                                                 int(payment['charge']) * int(rent))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
@@ -1910,7 +1953,8 @@ def TenantPayments():
                                                 int(payment['charge']) * (int(rent)))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
@@ -1952,7 +1996,8 @@ def TenantPayments():
                                             'enter the fee to purchases')
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
-                                            pur_property_id=lease['property_uid'],
+                                            pur_property_id=json.dumps(
+                                                [lease['property_uid']]),
                                             payer=payer,
                                             receiver=lease['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
@@ -2011,7 +2056,8 @@ def TenantPayments():
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -2029,7 +2075,8 @@ def TenantPayments():
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -2079,7 +2126,8 @@ def TenantPayments():
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -2097,7 +2145,8 @@ def TenantPayments():
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -2147,7 +2196,8 @@ def TenantPayments():
                                                     int(payment['charge']) * int(rent))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -2165,7 +2215,8 @@ def TenantPayments():
                                                     int(payment['charge']) * (int(rent)))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
-                                                    pur_property_id=lease['property_uid'],
+                                                    pur_property_id=json.dumps(
+                                                        [lease['property_uid']]),
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='EXTRA CHARGES',
@@ -2209,7 +2260,8 @@ def TenantPayments():
                                                 int(payment['charge']) * int(rent))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',
@@ -2227,7 +2279,8 @@ def TenantPayments():
                                                 int(payment['charge']) * (int(rent)))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
-                                                pur_property_id=lease['property_uid'],
+                                                pur_property_id=json.dumps(
+                                                    [lease['property_uid']]),
                                                 payer=payer,
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='EXTRA CHARGES',

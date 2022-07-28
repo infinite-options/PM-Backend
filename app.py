@@ -20,7 +20,7 @@ from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, Exten
 from purchases import Purchases, CreateExpenses
 from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, TenantPayments
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills, OwnerDocuments
-from managerProperties import ManagerProperties, ManagerContractFees_CLASS
+from managerProperties import ManagerProperties
 from tenantProperties import TenantProperties
 from refresh import Refresh
 from businesses import Businesses
@@ -245,7 +245,7 @@ api.add_resource(OwnerPropertyBills, '/ownerPropertyBills')
 api.add_resource(OwnerDocuments, '/ownerDocuments')
 
 api.add_resource(ManagerProperties, '/managerProperties')
-api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
+# api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
 
 api.add_resource(TenantPayments_CLASS, '/TenantPayments_CLASS')
 

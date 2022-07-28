@@ -96,7 +96,7 @@ class Purchases(Resource):
                         FROM pm.rentals r
                         LEFT JOIN pm.properties p
                         ON p.property_uid = r.rental_property_id
-                        WHERE r.rental_property_id = \'""" + (pur_property_id).split("\"")[1] + """\'
+                        WHERE r.rental_property_id = \'""" + pur_property_id + """\'
                         AND r.rental_status = 'ACTIVE';"""
                 print('rentalRes',  sql)
 
@@ -104,12 +104,12 @@ class Purchases(Resource):
                                             FROM pm.rentals r
                                             LEFT JOIN pm.properties p
                                             ON p.property_uid = r.rental_property_id
-                                            WHERE r.rental_property_id = \'""" + (pur_property_id).split("\"")[1] + """\'
+                                            WHERE r.rental_property_id = \'""" + pur_property_id + """\'
                                             AND r.rental_status = 'ACTIVE';""")
 
                 propertyRes = db.execute("""SELECT * 
                                         FROM properties 
-                                        WHERE property_uid  = \'""" + (pur_property_id).split("\"")[1] + """\' """)
+                                        WHERE property_uid  = \'""" + pur_property_id + """\' """)
                 print('rentalRes', (propertyRes['result']))
                 def days_in_month(dt): return monthrange(
                     dt.year, dt.month)[1]
@@ -142,35 +142,20 @@ class Purchases(Resource):
                     print(first_day)
                     next_payment = datetime.strftime(
                         first_day, '%Y-%m-%d %H:%M:%S')
-            if len((pur_property_id).split("\"")) == 3:
 
-                newPurchase = {
-                    "linked_bill_id": linked_bill_id,
-                    "pur_property_id": (pur_property_id).split("\"")[1],
-                    "payer": payer,
-                    "receiver": receiver,
-                    "purchase_type": purchase_type,
-                    "description": description,
-                    "amount_due": amount_due,
-                    "purchase_notes": purchase_notes,
-                    "purchase_date": purchase_date,
-                    "purchase_frequency": purchase_frequency,
-                    "next_payment": next_payment
-                }
-            else:
-                newPurchase = {
-                    "linked_bill_id": linked_bill_id,
-                    "pur_property_id": pur_property_id,
-                    "payer": payer,
-                    "receiver": receiver,
-                    "purchase_type": purchase_type,
-                    "description": description,
-                    "amount_due": amount_due,
-                    "purchase_notes": purchase_notes,
-                    "purchase_date": purchase_date,
-                    "purchase_frequency": purchase_frequency,
-                    "next_payment": next_payment
-                }
+            newPurchase = {
+                "linked_bill_id": linked_bill_id,
+                "pur_property_id": pur_property_id,
+                "payer": payer,
+                "receiver": receiver,
+                "purchase_type": purchase_type,
+                "description": description,
+                "amount_due": amount_due,
+                "purchase_notes": purchase_notes,
+                "purchase_date": purchase_date,
+                "purchase_frequency": purchase_frequency,
+                "next_payment": next_payment
+            }
             print(newPurchase)
             newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
             newPurchase['amount_paid'] = 0
@@ -200,7 +185,7 @@ class CreateExpenses(Resource):
                     print('in new purchase')
                     newPurchase = {
                         "linked_bill_id": None,
-                        "pur_property_id": data['pur_property_id'],
+                        "pur_property_id": json.dumps([data['pur_property_id']]),
                         "payer": json.dumps([data.get('payer')]),
                         "receiver": data['receiver'],
                         "purchase_type": data['purchase_type'].upper(),
@@ -233,7 +218,7 @@ class CreateExpenses(Resource):
                     print('in new purchase')
                     newPurchase = {
                         "linked_bill_id": None,
-                        "pur_property_id": data['pur_property_id'],
+                        "pur_property_id": json.dumps([data['pur_property_id']]),
                         "payer": json.dumps([data.get('payer')]),
                         "receiver": data['receiver'],
                         "purchase_type": data['purchase_type'].upper(),
@@ -262,7 +247,7 @@ class CreateExpenses(Resource):
                 print('in new purchase')
                 newPurchase = {
                     "linked_bill_id": None,
-                    "pur_property_id": data['pur_property_id'],
+                    "pur_property_id": json.dumps([data['pur_property_id']]),
                     "payer": json.dumps([data.get('payer')]),
                     "receiver": data['receiver'],
                     "purchase_type": data['purchase_type'].upper(),

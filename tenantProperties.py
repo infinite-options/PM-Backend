@@ -82,8 +82,8 @@ class TenantProperties(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id = \'""" + property_id + """\'
-                                                        AND p.payer LIKE '%%\"""" + user['user_uid'] + """\"%%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                        AND p.payer LIKE '%""" + user['user_uid'] + """%'
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= "UTILITY")""")
                 response['result'][i]['tenantExpenses'] = []
                 if len(tenant_expenses['result']) > 0:
