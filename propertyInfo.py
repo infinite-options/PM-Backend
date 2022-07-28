@@ -101,7 +101,8 @@ class PropertyInfo(Resource):
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND p.receiver = \'""" + filterValue + """\'
                                                         AND p.purchase_status = 'PAID' """)
                         response['result'][i]['manager_revenue'] = list(
                             manager_revenue['result'])
@@ -206,8 +207,9 @@ class PropertyInfo(Resource):
                                                     WHERE p.pur_property_id  LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                    AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
+                                                   AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = "UTILITY")
                                                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                    AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
                                                     AND p.purchase_status = 'PAID'""")
 
                         response['result'][i]['manager_expense'] = (list(
@@ -391,7 +393,7 @@ class PropertyInfo(Resource):
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
-                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') AND receiver = \'""" + filterValue + """\'  """)
                         response['result'][i]['manager_expected_revenue'] = list(
                             manager_expected_revenue['result'])
 
@@ -494,8 +496,9 @@ class PropertyInfo(Resource):
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                         AND c.contract_status = 'ACTIVE'
                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                        AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
-                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
+                        AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = 'UTILITY' )
+                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') 
+                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')""")
                         response['result'][i]['manager_expected_expense'] = list(
                             manager_expected_expense['result'])
 
@@ -1040,8 +1043,9 @@ class PropertiesManagerDetail(Resource):
                     WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                     AND c.contract_status = 'ACTIVE'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                    AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
+                    AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = "UTILITY")
                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                    AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
                     AND p.purchase_status ='PAID' """)
 
                     response['result'][i]['maintenance_expenses'] = round(
@@ -1347,8 +1351,9 @@ class PropertiesManagerDetail(Resource):
                     WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                     AND c.contract_status = 'ACTIVE'
                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                    AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' )
-                    AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+                    AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type='UTILITY' )
+                    AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                    AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%') """)
 
                     response['result'][i]['maintenance_expected_expenses'] = round(
                         maintenance_expected_expenses, 2)

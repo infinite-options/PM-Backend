@@ -177,7 +177,7 @@ class PropertiesOwner(Resource):
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                         AND p.purchase_status = 'PAID' """)
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
@@ -291,7 +291,7 @@ class PropertiesOwner(Resource):
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                         AND p.purchase_status = 'PAID' """)
 
                         response['result'][i]['owner_revenue'] = response['result'][i]['owner_revenue'] + (list(
@@ -350,7 +350,8 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" OR p.purchase_type='UTILITY')
+                                                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
                                                         AND p.purchase_status = 'PAID' """)
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
@@ -828,7 +829,7 @@ class PropertiesOwner(Resource):
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
                         response['result'][i]['owner_expected_revenue'] = list(
                             owner_expected_revenue['result'])
 
@@ -937,7 +938,7 @@ class PropertiesOwner(Resource):
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
                         response['result'][i]['owner_expected_revenue'] = response['result'][i]['owner_expected_revenue'] + (list(
                             owner_utility_expected_revenue['result']))
@@ -995,7 +996,8 @@ class PropertiesOwner(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES") """)
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" OR p.purchase_type='UTILITY')
+                                                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%') """)
                         response['result'][i]['owner_expected_expense'] = list(
                             owner_expected_expense['result'])
 
@@ -1971,7 +1973,8 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
+                                                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')""")
 
                         response['result'][i]['year_expense'] = 0
                         response['result'][i]['mortgage_year_expense'] = 0
@@ -2144,7 +2147,7 @@ class PropertiesOwnerDetail(Resource):
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
                         response['result'][i]['owner_expected_revenue'] = list(
                             owner_expected_revenue['result'])
 
@@ -2253,7 +2256,7 @@ class PropertiesOwnerDetail(Resource):
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
                         response['result'][i]['owner_expected_revenue'] = response['result'][i]['owner_expected_revenue'] + (list(
                             owner_utility_expected_revenue['result']))
@@ -2311,7 +2314,8 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES") """)
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" OR p.purchase_type = 'UTILITY')
+                                                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%') """)
                         response['result'][i]['owner_expected_expense'] = list(
                             owner_expected_expense['result'])
 
