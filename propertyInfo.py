@@ -71,6 +71,7 @@ class PropertyInfo(Resource):
                         maintenance_expenses = 0
                         management_expenses = 0
                         repairs_expenses = 0
+                        utility_expenses = 0
 
                         rental_expected_revenue = 0
                         extraCharges_expected_revenue = 0
@@ -79,6 +80,7 @@ class PropertyInfo(Resource):
                         maintenance_expected_expenses = 0
                         management_expected_expenses = 0
                         repairs_expected_expenses = 0
+                        utility_expected_expenses = 0
 
                         yearCal = today.month - \
                             (datetime.strptime(
@@ -108,84 +110,84 @@ class PropertyInfo(Resource):
                             manager_revenue['result'])
 
                         if len(manager_revenue['result']) > 0:
-                            for ore in range(len(manager_revenue['result'])):
+                            for mre in range(len(manager_revenue['result'])):
 
                                 weeks_current_month = len(calendar.monthcalendar(
                                     2022, int(today.strftime("%m"))))
 
-                                if manager_revenue['result'][ore]['purchase_type'] == 'RENT':
-                                    if manager_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
+                                if manager_revenue['result'][mre]['purchase_type'] == 'RENT':
+                                    if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
 
                                         rental_revenue = rental_revenue + \
                                             weeks_current_month*int(manager_revenue['result']
-                                                                    [ore]['amount_paid'])
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
+                                                                    [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
 
                                         rental_revenue = rental_revenue + \
                                             weeks_current_month/2 * \
                                             int(manager_revenue['result']
-                                                [ore]['amount_paid'])
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
+                                                [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
 
                                         rental_revenue = rental_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
+                                            manager_revenue['result'][mre]['amount_paid']
 
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Annually':
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
 
                                         rental_revenue = rental_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
+                                            manager_revenue['result'][mre]['amount_paid']
                                     else:
 
                                         rental_revenue = rental_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
+                                            manager_revenue['result'][mre]['amount_paid']
 
-                                if manager_revenue['result'][ore]['purchase_type'] == 'EXTRA CHARGES':
-                                    if manager_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
+                                if manager_revenue['result'][mre]['purchase_type'] == 'EXTRA CHARGES':
+                                    if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
 
                                         extraCharges_revenue = extraCharges_revenue + \
                                             weeks_current_month*int(manager_revenue['result']
-                                                                    [ore]['amount_paid'])
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
+                                                                    [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
 
                                         extraCharges_revenue = extraCharges_revenue + \
                                             weeks_current_month/2 * \
                                             int(manager_revenue['result']
-                                                [ore]['amount_paid'])
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
+                                                [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
 
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Annually':
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
 
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
+                                            manager_revenue['result'][mre]['amount_paid']
                                     else:
 
                                         extraCharges_revenue = extraCharges_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
-                                if manager_revenue['result'][ore]['purchase_type'] == 'UTILITY':
-                                    if manager_revenue['result'][ore]['purchase_frequency'] == 'Weekly':
+                                            manager_revenue['result'][mre]['amount_paid']
+                                if manager_revenue['result'][mre]['purchase_type'] == 'UTILITY':
+                                    if manager_revenue['result'][mre]['purchase_frequency'] == 'Weekly':
 
                                         utility_revenue = utility_revenue + \
                                             float(manager_revenue['result']
-                                                  [ore]['amount_paid'])
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Biweekly':
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Biweekly':
 
                                         utility_revenue = utility_revenue + \
                                             float(manager_revenue['result']
-                                                  [ore]['amount_paid'])
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
+                                                  [mre]['amount_paid'])
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Monthly':
 
                                         utility_revenue = utility_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
-                                    elif manager_revenue['result'][ore]['purchase_frequency'] == 'Annually':
+                                            manager_revenue['result'][mre]['amount_paid']
+                                    elif manager_revenue['result'][mre]['purchase_frequency'] == 'Annually':
 
                                         utility_revenue = utility_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
+                                            manager_revenue['result'][mre]['amount_paid']
                                     else:
 
                                         utility_revenue = utility_revenue + \
-                                            manager_revenue['result'][ore]['amount_paid']
+                                            manager_revenue['result'][mre]['amount_paid']
 
                         response['result'][i]['rental_revenue'] = round(
                             rental_revenue, 2)
@@ -294,6 +296,30 @@ class PropertyInfo(Resource):
                                     else:
                                         repairs_expenses = repairs_expenses + \
                                             manager_expense['result'][mex]['amount_paid']
+
+                                if manager_expense['result'][mex]['purchase_type'] == 'UTILITY':
+                                    if manager_expense['result'][mex]['purchase_frequency'] == 'Weekly':
+
+                                        utility_expenses = utility_expenses + \
+                                            float(manager_expense['result']
+                                                  [mex]['amount_paid'])
+                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Biweekly':
+
+                                        utility_expenses = utility_expenses + \
+                                            float(manager_expense['result']
+                                                  [mex]['amount_paid'])
+                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
+
+                                        utility_expenses = utility_expenses + \
+                                            manager_expense['result'][mex]['amount_paid']
+                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Annually':
+
+                                        utility_expenses = utility_expenses + \
+                                            manager_expense['result'][mex]['amount_paid']
+                                    else:
+
+                                        utility_expenses = utility_expenses + \
+                                            manager_expense['result'][mex]['amount_paid']
                                 # if management
                                 if manager_expense['result'][mex]['purchase_type'] == 'RENT':
                                     managementPayments = json.loads(
@@ -377,10 +403,12 @@ class PropertyInfo(Resource):
 
                             response['result'][i]['maintenance_expenses'] = round(
                                 maintenance_expenses, 2)
-                            response['result'][i]['management_expenses'] = round((float(manager_expense['result'][mex]['amount_paid']) -
-                                                                                  management_expenses), 2)
+                            response['result'][i]['management_expenses'] = abs(round((float(manager_expense['result'][mex]['amount_paid']) -
+                                                                                     management_expenses), 2))
                             response['result'][i]['repairs_expenses'] = round(
                                 repairs_expenses, 2)
+                            response['result'][i]['utility_expenses'] = round(
+                                utility_expenses, 2)
 
                         # monthly revenue for the property
                         manager_expected_revenue = db.execute("""SELECT *
@@ -658,13 +686,38 @@ class PropertyInfo(Resource):
                                     else:
                                         repairs_expected_expenses = repairs_expected_expenses + \
                                             manager_expected_expense['result'][mee]['amount_due']
+                                # calculate revenue from UTILITY payments
+                                if manager_expected_expense['result'][mee]['purchase_type'] == 'UTILITY':
+                                    if manager_expected_expense['result'][mee]['purchase_frequency'] == 'Weekly':
 
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            float(manager_expected_expense['result']
+                                                  [mee]['amount_due'])
+                                    elif manager_expected_expense['result'][mee]['purchase_frequency'] == 'Biweekly':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            float(manager_expected_expense['result']
+                                                  [mee]['amount_due'])
+                                    elif manager_expected_expense['result'][mee]['purchase_frequency'] == 'Monthly':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            manager_expected_expense['result'][mee]['amount_due']
+                                    elif manager_expected_expense['result'][mee]['purchase_frequency'] == 'Annually':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            manager_expected_expense['result'][mee]['amount_due']
+                                    else:
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            manager_expected_expense['result'][mee]['amount_due']
                                 response['result'][i]['maintenance_expected_expenses'] = round(
                                     maintenance_expected_expenses, 2)
-                                response['result'][i]['management_expected_expenses'] = round((float(manager_expected_expense['result'][mee]['amount_due']) -
-                                                                                               management_expected_expenses), 2)
+                                response['result'][i]['management_expected_expenses'] = abs(round((float(manager_expected_expense['result'][mee]['amount_due']) -
+                                                                                                   management_expected_expenses), 2))
                                 response['result'][i]['repairs_expected_expenses'] = round(
                                     repairs_expected_expenses, 2)
+                                response['result'][i]['utility_expected_expenses'] = round(
+                                    utility_expected_expenses, 2)
                         # get utilities or maintenance/repair expenses
                         expense_res = db.execute("""SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
                             FROM pm.purchases p
@@ -1218,8 +1271,8 @@ class PropertiesManagerDetail(Resource):
 
                         response['result'][i]['maintenance_expenses'] = round(
                             maintenance_expenses, 2)
-                        response['result'][i]['management_expenses'] = round((float(manager_expense['result'][mex]['amount_paid']) -
-                                                                              management_expenses), 2)
+                        response['result'][i]['management_expenses'] = abs(round((float(manager_expense['result'][mex]['amount_paid']) -
+                                                                                  management_expenses), 2))
                         response['result'][i]['repairs_expenses'] = round(
                             repairs_expenses, 2)
 
@@ -1524,8 +1577,8 @@ class PropertiesManagerDetail(Resource):
 
                         response['result'][i]['maintenance_expected_expenses'] = round(
                             maintenance_expected_expenses, 2)
-                        response['result'][i]['management_expected_expenses'] = round((float(manager_expected_expense['result'][mex]['amount_due']) -
-                                                                                       management_expected_expenses), 2)
+                        response['result'][i]['management_expected_expenses'] = abs(round((float(manager_expected_expense['result'][mex]['amount_due']) -
+                                                                                           management_expected_expenses), 2))
                         response['result'][i]['repairs_expected_expenses'] = round(
                             repairs_expected_expenses, 2)
 

@@ -135,6 +135,7 @@ class PropertiesOwner(Resource):
                         extraCharges_revenue = 0
                         utility_revenue = 0
 
+                        utility_expenses = 0
                         maintenance_expenses = 0
                         management_expenses = 0
                         repairs_expenses = 0
@@ -146,7 +147,7 @@ class PropertiesOwner(Resource):
                         maintenance_expected_expenses = 0
                         management_expected_expenses = 0
                         repairs_expected_expenses = 0
-
+                        utility_expected_expenses = 0
                         mortgage_expenses = 0
                         insurance_expenses = 0
                         taxes_expenses = 0
@@ -363,6 +364,29 @@ class PropertiesOwner(Resource):
                         if len(owner_expense['result']) > 0:
                             for ore in range(len(owner_expense['result'])):
                                 print('ore', owner_expense['result'][ore])
+                                if owner_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                                    if owner_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+
+                                        utility_expenses = utility_expenses + \
+                                            float(owner_expense['result']
+                                                  [ore]['amount_paid'])
+                                    elif owner_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+
+                                        utility_expenses = utility_expenses + \
+                                            float(owner_expense['result']
+                                                  [ore]['amount_paid'])
+                                    elif owner_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+
+                                        utility_expenses = utility_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+                                    elif owner_expense['result'][ore]['purchase_frequency'] == 'Annually':
+
+                                        utility_expenses = utility_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
+                                    else:
+
+                                        utility_expenses = utility_expenses + \
+                                            owner_expense['result'][ore]['amount_paid']
                                 # if maintenance
                                 if owner_expense['result'][ore]['purchase_type'] == 'MAINTENANCE':
                                     print('in maintenance')
@@ -641,6 +665,8 @@ class PropertiesOwner(Resource):
                             management_expenses, 2)
                         response['result'][i]['repairs_expenses'] = round(
                             repairs_expenses, 2)
+                        response['result'][i]['utility_expenses'] = round(
+                            utility_expenses, 2)
                         response['result'][i]['maintenance_year_expense'] = round(
                             maintenance_year_expenses, 2)
                         response['result'][i]['management_year_expense'] = round(
@@ -1009,6 +1035,31 @@ class PropertiesOwner(Resource):
                             for ore in range(len(owner_expected_expense['result'])):
                                 print(
                                     'ore', owner_expected_expense['result'][ore])
+
+                                # calculate revenue from UTILITY payments
+                                if owner_expected_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                                    if owner_expected_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            float(owner_expected_expense['result']
+                                                  [ore]['amount_due'])
+                                    elif owner_expected_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            float(owner_expected_expense['result']
+                                                  [ore]['amount_due'])
+                                    elif owner_expected_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            owner_expected_expense['result'][ore]['amount_due']
+                                    elif owner_expected_expense['result'][ore]['purchase_frequency'] == 'Annually':
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            owner_expected_expense['result'][ore]['amount_due']
+                                    else:
+
+                                        utility_expected_expenses = utility_expected_expenses + \
+                                            owner_expected_expense['result'][ore]['amount_due']
                                 # if maintenance
                                 if owner_expected_expense['result'][ore]['purchase_type'] == 'MAINTENANCE':
                                     print('in maintenance')
@@ -1166,31 +1217,33 @@ class PropertiesOwner(Resource):
                                                     ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
                                                     ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    WHERE p.pur_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT")
                                                     AND r.rental_status = 'ACTIVE'""")
 
+                        print(
+                            'mex', manager_expected_expense['result'])
                         response['result'][i]['owner_expected_expense'] = response['result'][i]['owner_expected_expense'] + (list(
                             manager_expected_expense['result']))
                         if len(manager_expected_expense['result']) > 0:
                             for mex in range(len(manager_expected_expense['result'])):
-                                # print('mex', manager_expected_expense['result'][mex])
 
                                 # if management
                                 if manager_expected_expense['result'][mex]['purchase_type'] == 'RENT':
                                     managementPayments = json.loads(
                                         manager_expected_expense['result'][mex]['contract_fees'])
-
+                                    print('management_expected_expenses',
+                                          management_expected_expenses)
                                     for payment in managementPayments:
-                                        # print('amount paid to owner', payment)
+
                                         if payment['fee_type'] == '%':
-                                            print(management_expected_expenses)
+
                                             if payment['of'] == 'Gross Rent':
 
                                                 if payment['frequency'] == 'Weekly':
-                                                    print('amount weekly %',
+                                                    print('amount weekly expected %',
                                                           management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'], weeks_current_month)
                                                     management_expected_expenses = management_expected_expenses +  \
                                                         weeks_current_month*float((
@@ -1286,6 +1339,8 @@ class PropertiesOwner(Resource):
                             management_expected_expenses, 2)
                         response['result'][i]['repairs_expected_expenses'] = round(
                             repairs_expected_expenses, 2)
+                        response['result'][i]['utility_expected_expenses'] = round(
+                            utility_expected_expenses, 2)
                         # print(response)
 
                         # get utilities or maintenance/repair expenses
