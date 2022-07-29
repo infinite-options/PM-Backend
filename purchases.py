@@ -92,11 +92,12 @@ class Purchases(Resource):
             if next_payment != "0000-00-00 00:00:00":
                 print('do nothing date provided')
             else:
+                print((pur_property_id.split("\"")))
                 sql = """SELECT * 
                         FROM pm.rentals r
                         LEFT JOIN pm.properties p
                         ON p.property_uid = r.rental_property_id
-                        WHERE r.rental_property_id LIKE '%""" + 'pur_property_id' + """%'
+                        WHERE r.rental_property_id LIKE '%""" + pur_property_id.split("\"")[1] + """%'
                         AND r.rental_status = 'ACTIVE';"""
                 print('rentalRes',  sql)
 
@@ -104,12 +105,12 @@ class Purchases(Resource):
                                             FROM pm.rentals r
                                             LEFT JOIN pm.properties p
                                             ON p.property_uid = r.rental_property_id
-                                            WHERE r.rental_property_id LIKE '%""" + 'pur_property_id' + """%'
+                                            WHERE r.rental_property_id LIKE '%""" + pur_property_id.split("\"")[1] + """%'
                                             AND r.rental_status = 'ACTIVE';""")
 
                 propertyRes = db.execute("""SELECT * 
                                         FROM properties 
-                                        WHERE property_uid  LIKE '%""" + 'pur_property_id' + """%' """)
+                                        WHERE property_uid  LIKE '%""" + pur_property_id.split("\"")[1] + """%' """)
                 print('rentalRes', (propertyRes['result']))
                 def days_in_month(dt): return monthrange(
                     dt.year, dt.month)[1]
@@ -145,7 +146,7 @@ class Purchases(Resource):
 
             newPurchase = {
                 "linked_bill_id": linked_bill_id,
-                "pur_property_id": pur_property_id,
+                "pur_property_id": (pur_property_id),
                 "payer": payer,
                 "receiver": receiver,
                 "purchase_type": purchase_type,
