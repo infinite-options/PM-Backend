@@ -36,19 +36,6 @@ class PropertyInfo(Resource):
                         property_id = response['result'][i]['property_uid']
                         print(property_id)
 
-                        # rental_revenue = 0
-                        # extraCharges_revenue = 0
-                        # utility_revenue = 0
-                        # maintenance_expenses = 0
-                        # management_expenses = 0
-                        # repairs_expenses = 0
-                        # rental_expected_revenue = 0
-                        # extraCharges_expected_revenue = 0
-                        # utility_expected_revenue = 0
-                        # maintenance_expected_expenses = 0
-                        # management_expected_expenses = 0
-                        # repairs_expected_expenses = 0
-                        # get tenant applications
                         application_res = db.execute("""SELECT
                                                             *
                                                             FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
@@ -82,15 +69,8 @@ class PropertyInfo(Resource):
                         repairs_expected_expenses = 0
                         utility_expected_expenses = 0
 
-                        yearCal = today.month - \
-                            (datetime.strptime(
-                                response['result'][i]['active_date'], '%Y-%m-%d')).month
-
                         weeks_current_month = len(
                             calendar.monthcalendar(2022, int(today.strftime("%m"))))
-
-                        weeks_active = round((abs(today - datetime.strptime(
-                            response['result'][i]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
 
                         # monthly revenue for the property
                         manager_revenue = db.execute("""SELECT *
@@ -209,9 +189,9 @@ class PropertyInfo(Resource):
                                                     WHERE p.pur_property_id  LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                                                   AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = "UTILITY")
+                                                   AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' AND p.purchase_type <> "UTILITY")
                                                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-                                                    AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
+                                                    AND (payer LIKE '%""" + filterValue + """%')
                                                     AND p.purchase_status = 'PAID'""")
 
                         response['result'][i]['manager_expense'] = (list(
@@ -297,29 +277,6 @@ class PropertyInfo(Resource):
                                         repairs_expenses = repairs_expenses + \
                                             manager_expense['result'][mex]['amount_paid']
 
-                                if manager_expense['result'][mex]['purchase_type'] == 'UTILITY':
-                                    if manager_expense['result'][mex]['purchase_frequency'] == 'Weekly':
-
-                                        utility_expenses = utility_expenses + \
-                                            float(manager_expense['result']
-                                                  [mex]['amount_paid'])
-                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Biweekly':
-
-                                        utility_expenses = utility_expenses + \
-                                            float(manager_expense['result']
-                                                  [mex]['amount_paid'])
-                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Monthly':
-
-                                        utility_expenses = utility_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                    elif manager_expense['result'][mex]['purchase_frequency'] == 'Annually':
-
-                                        utility_expenses = utility_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
-                                    else:
-
-                                        utility_expenses = utility_expenses + \
-                                            manager_expense['result'][mex]['amount_paid']
                                 # if management
                                 if manager_expense['result'][mex]['purchase_type'] == 'RENT':
                                     managementPayments = json.loads(
@@ -407,8 +364,50 @@ class PropertyInfo(Resource):
                                                                                      management_expenses), 2))
                             response['result'][i]['repairs_expenses'] = round(
                                 repairs_expenses, 2)
-                            response['result'][i]['utility_expenses'] = round(
-                                utility_expenses, 2)
+
+                        manager_utility_expense = db.execute("""SELECT *
+                                                        FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
+                                                        LEFT JOIN rentals r
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                        AND (p.purchase_type="UTILITY")
+                                                        AND p.payer LIKE '%""" + filterValue + """%'
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND p.purchase_status = 'PAID' """)
+
+                        response['result'][i]['manager_expense'] = response['result'][i]['manager_expense'] + (list(
+                            manager_utility_expense['result']))
+
+                        if len(manager_utility_expense['result']) > 0:
+                            for ore in range(len(manager_utility_expense['result'])):
+                                if manager_utility_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+
+                                    utility_expenses = utility_expenses + \
+                                        float(manager_utility_expense['result']
+                                              [ore]['amount_paid'])
+                                elif manager_utility_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+
+                                    utility_expenses = utility_expenses + \
+                                        float(manager_utility_expense['result']
+                                              [ore]['amount_paid'])
+                                elif manager_utility_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+
+                                    utility_expenses = utility_expenses + \
+                                        manager_utility_expense['result'][ore]['amount_paid']
+                                elif manager_utility_expense['result'][ore]['purchase_frequency'] == 'Annually':
+
+                                    utility_expenses = utility_expenses + \
+                                        manager_utility_expense['result'][ore]['amount_paid']
+                                else:
+
+                                    utility_expenses = utility_expenses + \
+                                        manager_utility_expense['result'][ore]['amount_paid']
+                        response['result'][i]['utility_expenses'] = round(
+                            utility_expenses, 2)
 
                         # monthly revenue for the property
                         manager_expected_revenue = db.execute("""SELECT *
@@ -524,9 +523,9 @@ class PropertyInfo(Resource):
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                         AND c.contract_status = 'ACTIVE'
                         AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
-                        AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = 'UTILITY' )
+                        AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' AND p.purchase_type <>'UTILITY' )
                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') 
-                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')""")
+                        AND (payer LIKE '%""" + filterValue + """%')""")
                         response['result'][i]['manager_expected_expense'] = list(
                             manager_expected_expense['result'])
 
@@ -579,7 +578,6 @@ class PropertyInfo(Resource):
                                         manager_expected_expense['result'][mee]['contract_fees'])
 
                                     for payment in managementPayments:
-                                        # print('amount paid to owner', payment)
                                         if payment['fee_type'] == '%':
                                             if payment['of'] == 'Gross Rent':
 
@@ -686,38 +684,57 @@ class PropertyInfo(Resource):
                                     else:
                                         repairs_expected_expenses = repairs_expected_expenses + \
                                             manager_expected_expense['result'][mee]['amount_due']
-                                # calculate revenue from UTILITY payments
-                                if manager_expected_expense['result'][mee]['purchase_type'] == 'UTILITY':
-                                    if manager_expected_expense['result'][mee]['purchase_frequency'] == 'Weekly':
 
-                                        utility_expected_expenses = utility_expected_expenses + \
-                                            float(manager_expected_expense['result']
-                                                  [mee]['amount_due'])
-                                    elif manager_expected_expense['result'][mee]['purchase_frequency'] == 'Biweekly':
-
-                                        utility_expected_expenses = utility_expected_expenses + \
-                                            float(manager_expected_expense['result']
-                                                  [mee]['amount_due'])
-                                    elif manager_expected_expense['result'][mee]['purchase_frequency'] == 'Monthly':
-
-                                        utility_expected_expenses = utility_expected_expenses + \
-                                            manager_expected_expense['result'][mee]['amount_due']
-                                    elif manager_expected_expense['result'][mee]['purchase_frequency'] == 'Annually':
-
-                                        utility_expected_expenses = utility_expected_expenses + \
-                                            manager_expected_expense['result'][mee]['amount_due']
-                                    else:
-
-                                        utility_expected_expenses = utility_expected_expenses + \
-                                            manager_expected_expense['result'][mee]['amount_due']
                                 response['result'][i]['maintenance_expected_expenses'] = round(
                                     maintenance_expected_expenses, 2)
                                 response['result'][i]['management_expected_expenses'] = abs(round((float(manager_expected_expense['result'][mee]['amount_due']) -
                                                                                                    management_expected_expenses), 2))
                                 response['result'][i]['repairs_expected_expenses'] = round(
                                     repairs_expected_expenses, 2)
-                                response['result'][i]['utility_expected_expenses'] = round(
-                                    utility_expected_expenses, 2)
+
+                        manager_utility_expected_expenses = db.execute("""SELECT *
+                                                        FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
+                                                        LEFT JOIN rentals r
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                        AND (p.purchase_type="UTILITY")
+                                                        AND payer LIKE '%""" + filterValue + """%'
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
+
+                        response['result'][i]['manager_expected_expense'] = response['result'][i]['manager_expected_expense'] + (list(
+                            manager_utility_expected_expenses['result']))
+
+                        if len(manager_utility_expected_expenses['result']) > 0:
+                            for ore in range(len(manager_utility_expected_expenses['result'])):
+                                if manager_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Weekly':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        float(manager_utility_expected_expenses['result']
+                                              [ore]['amount_due'])
+                                elif manager_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Biweekly':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        float(manager_utility_expected_expenses['result']
+                                              [ore]['amount_due'])
+                                elif manager_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Monthly':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        manager_utility_expected_expenses['result'][ore]['amount_due']
+                                elif manager_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Annually':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        manager_utility_expected_expenses['result'][ore]['amount_due']
+                                else:
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        manager_utility_expected_expenses['result'][ore]['amount_due']
+                        response['result'][i]['utility_expected_expenses'] = round(
+                            utility_expected_expenses, 2)
+
                         # get utilities or maintenance/repair expenses
                         expense_res = db.execute("""SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
                             FROM pm.purchases p
