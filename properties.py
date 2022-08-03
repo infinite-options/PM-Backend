@@ -7,6 +7,7 @@ from data import connect, uploadImage, s3
 from datetime import date, timedelta, datetime
 from calendar import monthrange
 import json
+import ast
 from dateutil.relativedelta import relativedelta
 from purchases import newPurchase
 
@@ -32,6 +33,32 @@ def updateImages(imageFiles, property_uid):
         key = f'properties/{property_uid}/{filename}'
         image = uploadImage(imageFiles[filename], key)
         images.append(image)
+    return images
+
+
+def updateImagesAppliances(imageFiles, property_uid):
+    for filename in imageFiles:
+        if type(imageFiles[filename]) == str:
+            print('here')
+            bucket = 'io-pm'
+            key = imageFiles[filename].split('/io-pm/')[1]
+            data = s3.get_object(
+                Bucket=bucket,
+                Key=key
+            )
+            imageFiles[filename] = data['Body']
+    s3Resource = boto3.resource('s3')
+    bucket = s3Resource.Bucket('io-pm')
+    bucket.objects.filter(Prefix=f'appliances/{property_uid}/').delete()
+    images = []
+    for i in range(len(imageFiles.keys())):
+        filename = f'img_{i-1}'
+        if i == 0:
+            filename = 'img_cover'
+        key = f'appliances/{property_uid}/{filename}'
+        image = uploadImage(imageFiles[filename], key)
+        images.append(image)
+        print(images)
     return images
 
 
@@ -790,3 +817,48 @@ def ManagerContractEnd_CRON():
                     propertyManagerresponse = db.update(
                         'propertyManager', propertyManagerPK, propertyManagerUpdate)
     return propertyManagerresponse
+
+
+class Appliances(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            property_uid = data.get('property_uid')
+            appliances = eval(data.get('appliances'))
+            images = []
+            i = -1
+            imageFiles = {}
+            for key in appliances:
+                # print(key, '->', appliances[key])
+                for key2 in appliances[key]:
+                    # print(key2)
+                    if key2 == 'images':
+                        # print('images')
+                        while True:
+                            print('if true')
+                            filename = f'img_{i}'
+                            print(filename)
+                            if i == -1:
+                                filename = 'img_cover'
+                            file = request.files.get(filename)
+                            s3Link = data.get(filename)
+                            print(file)
+                            print(s3Link)
+                            if file:
+                                imageFiles[filename] = file
+                                images = updateImagesAppliances(
+                                    imageFiles, property_uid)
+                                print('images', images)
+                                appliances[key]['images'] = json.dumps(images)
+                            elif s3Link:
+                                imageFiles[filename] = s3Link
+                                images = updateImagesAppliances(
+                                    imageFiles, property_uid)
+                                print('images', images)
+                                appliances[key]['images'] = json.dumps(images)
+                            else:
+                                break
+                            i += 1
+
+                            ##Image uploading stuff ends here###

@@ -10,7 +10,7 @@ from flask_restful import Resource
 from data import connect
 import os
 
-from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON, Appliances
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
@@ -62,17 +62,14 @@ mail = Mail(app)
 
 
 def sendEmail(recipient, subject, body):
-
-    msg = Message(
-        sender=app.config["MAIL_USERNAME"],
-        recipients=[recipient],
-        subject=subject,
-        body=body
-    )
-    mail.send(msg)
-
-
-app.sendEmail = sendEmail
+    with app.app_context():
+        msg = Message(
+            sender=app.config["MAIL_USERNAME"],
+            recipients=[recipient],
+            subject=subject,
+            body=body
+        )
+        mail.send(msg)
 
 
 class LeaseExpiringNotify_CLASS(Resource):
@@ -276,6 +273,9 @@ api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
 api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
 api.add_resource(UserToken, "/UserToken/<string:user_email_id>")
+
+api.add_resource(Appliances, "/appliances")
+
 api.add_resource(UpdateAccessToken, "/UpdateAccessToken/<string:user_id>")
 api.add_resource(
     AvailableAppointmentsTenant,
