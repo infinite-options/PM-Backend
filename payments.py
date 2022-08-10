@@ -170,17 +170,10 @@ class TenantPayments_CLASS(Resource):
                     response['result'][i]['expense_amount'] = 0
                     purRes = db.execute("""SELECT * FROM purchases pur
                                            WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                           AND pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' """)
-                    print('purRes', purRes['result'])
+                                           AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                    # print('purRes', purRes['result'])
                     response['result'][i]['prevPurchases'] = list(
                         purRes['result'])
-            if len(response['result']) > 0:
-                # creating purchases
-                rentPayments = json.loads(
-                    response['result'][0]['rent_payments'])
-                for payment in rentPayments:
-                    if(payment['fee_name'] == 'Rent'):
-                        rent = payment['charge']
 
             if len(response['result']) > 0:
                 # today's date
@@ -190,8 +183,10 @@ class TenantPayments_CLASS(Resource):
                     tenantPayments = json.loads(lease['rent_payments'])
                     payer = response['result'][0]['tenants'].split(',')
                     payer = json.dumps(payer)
+                    print(lease['listed_rent'])
                     for payment in tenantPayments:
                         # if fee_type is $, put the charge amount directly
+                        print(lease['property_uid'], payment)
                         if payment['fee_type'] == '$':
                             print('payment fee type $')
                             if(payment['fee_name'] == 'Rent'):
@@ -206,8 +201,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday of every week
                                             due_date = next_weekday(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -250,8 +247,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday of every 2 week
                                             due_date = next_weekday_biweekly(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -294,8 +293,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
                                             print(
                                                 (payment['available_topay']))
@@ -407,8 +408,10 @@ class TenantPayments_CLASS(Resource):
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         charge_month = (
                                             lease_end).strftime('%B')
 
@@ -455,8 +458,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday of every week
                                             due_date = next_weekday(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -499,8 +504,9 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday of every 2 week
                                             due_date = next_weekday_biweekly(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -543,8 +549,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
@@ -636,8 +644,11 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+
                                             # set charge date as friday of every week
                                             due_date = next_weekday(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -661,7 +672,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if gross rent (listed rent)
                                                 if payment['of'] == 'Gross Rent':
                                                     print('payment of gross rent', (
-                                                        int(payment['charge']) * int(rent))/100)
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -671,7 +682,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * int(rent))/100,
+                                                            int(payment['charge']) * int(lease['listed_rent']))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -680,7 +691,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if net rent (listed rent-expenses)
                                                 else:
                                                     print('payment of net rent', (
-                                                        int(payment['charge']) * (int(rent)))/100)
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -690,7 +701,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * (int(rent)))/100,
+                                                            int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -706,8 +717,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as friday every two weeks
                                             due_date = next_weekday_biweekly(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -731,7 +744,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if gross rent (listed rent)
                                                 if payment['of'] == 'Gross Rent':
                                                     print('payment of gross rent', (
-                                                        int(payment['charge']) * int(rent))/100)
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -741,7 +754,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * int(rent))/100,
+                                                            int(payment['charge']) * int(lease['listed_rent']))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -750,7 +763,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if net rent (listed rent-expenses)
                                                 else:
                                                     print('payment of net rent', (
-                                                        int(payment['charge']) * (int(rent)))/100)
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -760,7 +773,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * (int(rent)))/100,
+                                                            int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -776,8 +789,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
@@ -801,7 +816,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if gross rent (listed rent)
                                                 if payment['of'] == 'Gross Rent':
                                                     print('payment of gross rent', (
-                                                        int(payment['charge']) * int(rent))/100)
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -811,7 +826,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * int(rent))/100,
+                                                            int(payment['charge']) * int(lease['listed_rent']))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -820,7 +835,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if net rent (listed rent-expenses)
                                                 else:
                                                     print('payment of net rent', (
-                                                        int(payment['charge']) * (int(rent)))/100)
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -830,7 +845,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * (int(rent)))/100,
+                                                            int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -865,7 +880,7 @@ class TenantPayments_CLASS(Resource):
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -875,7 +890,7 @@ class TenantPayments_CLASS(Resource):
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -884,7 +899,7 @@ class TenantPayments_CLASS(Resource):
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -894,7 +909,7 @@ class TenantPayments_CLASS(Resource):
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -911,8 +926,10 @@ class TenantPayments_CLASS(Resource):
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         charge_month = (
                                             lease_end).strftime('%B')
                                         # due_date = lease_start.replace(
@@ -937,7 +954,7 @@ class TenantPayments_CLASS(Resource):
                                                 purchase_type='EXTRA CHARGES',
                                                 description=payment['fee_name'],
                                                 amount_due=(
-                                                    int(payment['charge']) * (int(rent)))/100,
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                 purchase_notes=charge_month,
                                                 purchase_date=lease_start,
                                                 purchase_frequency=payment['frequency'],
@@ -962,8 +979,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as friday of every week
                                             due_date = next_weekday(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -987,7 +1006,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if gross rent (listed rent)
                                                 if payment['of'] == 'Gross Rent':
                                                     print('payment of gross rent', (
-                                                        int(payment['charge']) * int(rent))/100)
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -997,7 +1016,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * int(rent))/100,
+                                                            int(payment['charge']) * int(lease['listed_rent']))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -1006,7 +1025,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if net rent (listed rent-expenses)
                                                 else:
                                                     print('payment of net rent', (
-                                                        int(payment['charge']) * (int(rent)))/100)
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -1016,7 +1035,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * (int(rent)))/100,
+                                                            int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -1032,8 +1051,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as friday every two weeks
                                             due_date = next_weekday_biweekly(
                                                 prevPurchaseDate,  int(payment['due_by']))
@@ -1057,7 +1078,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if gross rent (listed rent)
                                                 if payment['of'] == 'Gross Rent':
                                                     print('payment of gross rent', (
-                                                        int(payment['charge']) * int(rent))/100)
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -1067,7 +1088,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * int(rent))/100,
+                                                            int(payment['charge']) * int(lease['listed_rent']))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -1076,7 +1097,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if net rent (listed rent-expenses)
                                                 else:
                                                     print('payment of net rent', (
-                                                        int(payment['charge']) * (int(rent)))/100)
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -1086,7 +1107,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * (int(rent)))/100,
+                                                            int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -1102,8 +1123,10 @@ class TenantPayments_CLASS(Resource):
                                     if today < lease_end:
                                         # get previous purchases
                                         if lease['prevPurchases'] != []:
-                                            prevPurchaseDate = datetime.strptime(
-                                                lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                            for prev in lease['prevPurchases']:
+                                                if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                    prevPurchaseDate = datetime.strptime(
+                                                        prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
@@ -1127,7 +1150,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if gross rent (listed rent)
                                                 if payment['of'] == 'Gross Rent':
                                                     print('payment of gross rent', (
-                                                        int(payment['charge']) * int(rent))/100)
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -1137,7 +1160,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * int(rent))/100,
+                                                            int(payment['charge']) * int(lease['listed_rent']))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -1146,7 +1169,7 @@ class TenantPayments_CLASS(Resource):
                                                 # if net rent (listed rent-expenses)
                                                 else:
                                                     print('payment of net rent', (
-                                                        int(payment['charge']) * (int(rent)))/100)
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                     purchaseResponse = newPurchase(
                                                         linked_bill_id=None,
                                                         pur_property_id=json.dumps(
@@ -1156,7 +1179,7 @@ class TenantPayments_CLASS(Resource):
                                                         purchase_type='EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
-                                                            int(payment['charge']) * (int(rent)))/100,
+                                                            int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                         purchase_notes=charge_month,
                                                         purchase_date=lease['lease_start'],
                                                         purchase_frequency=payment['frequency'],
@@ -1191,7 +1214,7 @@ class TenantPayments_CLASS(Resource):
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1201,7 +1224,7 @@ class TenantPayments_CLASS(Resource):
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1210,7 +1233,7 @@ class TenantPayments_CLASS(Resource):
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1220,7 +1243,7 @@ class TenantPayments_CLASS(Resource):
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1262,17 +1285,10 @@ def TenantPayments():
                 response['result'][i]['expense_amount'] = 0
                 purRes = db.execute("""SELECT * FROM purchases pur
                                         WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                        AND pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' """)
+                                        AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
                 print('purRes', purRes['result'])
                 response['result'][i]['prevPurchases'] = list(
                     purRes['result'])
-        if len(response['result']) > 0:
-            # creating purchases
-            rentPayments = json.loads(
-                response['result'][0]['rent_payments'])
-            for payment in rentPayments:
-                if(payment['fee_name'] == 'Rent'):
-                    rent = payment['charge']
 
         if len(response['result']) > 0:
             # today's date
@@ -1298,8 +1314,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every week
                                         due_date = next_weekday(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -1342,8 +1360,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every 2 week
                                         due_date = next_weekday_biweekly(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -1386,8 +1406,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
@@ -1473,8 +1495,10 @@ def TenantPayments():
                             if today < lease_end:
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
-                                    prevPurchaseDate = datetime.strptime(
-                                        lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     charge_month = (
                                         lease_end).strftime('%B')
 
@@ -1521,8 +1545,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every week
                                         due_date = next_weekday(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -1565,8 +1591,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every 2 week
                                         due_date = next_weekday_biweekly(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -1609,8 +1637,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
@@ -1702,8 +1732,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday of every week
                                         due_date = next_weekday(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -1727,7 +1759,7 @@ def TenantPayments():
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1737,7 +1769,7 @@ def TenantPayments():
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1746,7 +1778,7 @@ def TenantPayments():
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1756,7 +1788,7 @@ def TenantPayments():
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1772,8 +1804,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday every two weeks
                                         due_date = next_weekday_biweekly(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -1797,7 +1831,7 @@ def TenantPayments():
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1807,7 +1841,7 @@ def TenantPayments():
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1816,7 +1850,7 @@ def TenantPayments():
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1826,7 +1860,7 @@ def TenantPayments():
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1842,8 +1876,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
@@ -1867,7 +1903,7 @@ def TenantPayments():
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1877,7 +1913,7 @@ def TenantPayments():
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1886,7 +1922,7 @@ def TenantPayments():
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -1896,7 +1932,7 @@ def TenantPayments():
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -1931,7 +1967,7 @@ def TenantPayments():
                                         # if gross rent (listed rent)
                                         if payment['of'] == 'Gross Rent':
                                             print('payment of gross rent', (
-                                                int(payment['charge']) * int(rent))/100)
+                                                int(payment['charge']) * int(lease['listed_rent']))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -1941,7 +1977,7 @@ def TenantPayments():
                                                 purchase_type='RENT',
                                                 description=payment['fee_name'],
                                                 amount_due=(
-                                                    int(payment['charge']) * int(rent))/100,
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100,
                                                 purchase_notes=charge_month,
                                                 purchase_date=lease['lease_start'],
                                                 purchase_frequency=payment['frequency'],
@@ -1950,7 +1986,7 @@ def TenantPayments():
                                         # if net rent (listed rent-expenses)
                                         else:
                                             print('payment of net rent', (
-                                                int(payment['charge']) * (int(rent)))/100)
+                                                int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -1960,7 +1996,7 @@ def TenantPayments():
                                                 purchase_type='RENT',
                                                 description=payment['fee_name'],
                                                 amount_due=(
-                                                    int(payment['charge']) * (int(rent)))/100,
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                 purchase_notes=charge_month,
                                                 purchase_date=lease['lease_start'],
                                                 purchase_frequency=payment['frequency'],
@@ -1977,8 +2013,10 @@ def TenantPayments():
                             if today < lease_end:
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
-                                    prevPurchaseDate = datetime.strptime(
-                                        lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     charge_month = (
                                         lease_end).strftime('%B')
                                     # due_date = lease_start.replace(
@@ -2003,7 +2041,7 @@ def TenantPayments():
                                             purchase_type='EXTRA CHARGES',
                                             description=payment['fee_name'],
                                             amount_due=(
-                                                int(payment['charge']) * (int(rent)))/100,
+                                                int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                             purchase_notes=charge_month,
                                             purchase_date=lease_start,
                                             purchase_frequency=payment['frequency'],
@@ -2028,8 +2066,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday of every week
                                         due_date = next_weekday(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -2053,7 +2093,7 @@ def TenantPayments():
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -2063,7 +2103,7 @@ def TenantPayments():
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -2072,7 +2112,7 @@ def TenantPayments():
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -2082,7 +2122,7 @@ def TenantPayments():
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -2098,8 +2138,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as friday every two weeks
                                         due_date = next_weekday_biweekly(
                                             prevPurchaseDate,  int(payment['due_by']))
@@ -2123,7 +2165,7 @@ def TenantPayments():
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -2133,7 +2175,7 @@ def TenantPayments():
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -2142,7 +2184,7 @@ def TenantPayments():
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -2152,7 +2194,7 @@ def TenantPayments():
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -2168,8 +2210,10 @@ def TenantPayments():
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        prevPurchaseDate = datetime.strptime(
-                                            lease['prevPurchases'][-1]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
@@ -2193,7 +2237,7 @@ def TenantPayments():
                                             # if gross rent (listed rent)
                                             if payment['of'] == 'Gross Rent':
                                                 print('payment of gross rent', (
-                                                    int(payment['charge']) * int(rent))/100)
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -2203,7 +2247,7 @@ def TenantPayments():
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * int(rent))/100,
+                                                        int(payment['charge']) * int(lease['listed_rent']))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -2212,7 +2256,7 @@ def TenantPayments():
                                             # if net rent (listed rent-expenses)
                                             else:
                                                 print('payment of net rent', (
-                                                    int(payment['charge']) * (int(rent)))/100)
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -2222,7 +2266,7 @@ def TenantPayments():
                                                     purchase_type='EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
-                                                        int(payment['charge']) * (int(rent)))/100,
+                                                        int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                     purchase_notes=charge_month,
                                                     purchase_date=lease['lease_start'],
                                                     purchase_frequency=payment['frequency'],
@@ -2257,7 +2301,7 @@ def TenantPayments():
                                         # if gross rent (listed rent)
                                         if payment['of'] == 'Gross Rent':
                                             print('payment of gross rent', (
-                                                int(payment['charge']) * int(rent))/100)
+                                                int(payment['charge']) * int(lease['listed_rent']))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -2267,7 +2311,7 @@ def TenantPayments():
                                                 purchase_type='EXTRA CHARGES',
                                                 description=payment['fee_name'],
                                                 amount_due=(
-                                                    int(payment['charge']) * int(rent))/100,
+                                                    int(payment['charge']) * int(lease['listed_rent']))/100,
                                                 purchase_notes=charge_month,
                                                 purchase_date=lease['lease_start'],
                                                 purchase_frequency=payment['frequency'],
@@ -2276,7 +2320,7 @@ def TenantPayments():
                                         # if net rent (listed rent-expenses)
                                         else:
                                             print('payment of net rent', (
-                                                int(payment['charge']) * (int(rent)))/100)
+                                                int(payment['charge']) * (int(lease['listed_rent'])))/100)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -2286,7 +2330,7 @@ def TenantPayments():
                                                 purchase_type='EXTRA CHARGES',
                                                 description=payment['fee_name'],
                                                 amount_due=(
-                                                    int(payment['charge']) * (int(rent)))/100,
+                                                    int(payment['charge']) * (int(lease['listed_rent'])))/100,
                                                 purchase_notes=charge_month,
                                                 purchase_date=lease['lease_start'],
                                                 purchase_frequency=payment['frequency'],

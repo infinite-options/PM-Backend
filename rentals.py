@@ -858,7 +858,7 @@ class LateFee_CLASS(Resource):
                     res = db.execute("""SELECT *
                                     FROM pm.purchases p
                                     WHERE p.purchase_status='UNPAID' 
-                                    AND p.purchase_type='RENT' 
+                                    AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES') 
                                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
                                     AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
 

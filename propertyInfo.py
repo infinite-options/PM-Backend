@@ -100,7 +100,7 @@ class PropertyInfo(Resource):
                                                         LEFT JOIN rentals r
                                                         ON r.rental_property_id LIKE '%""" + property_id + """%'
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                                                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                         AND p.receiver = \'""" + filterValue + """\'
@@ -207,7 +207,7 @@ class PropertyInfo(Resource):
                                                     ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     WHERE p.pur_property_id  LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
-                                                    AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                    AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                    AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = "UTILITY")
                                                     AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                     AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
@@ -418,7 +418,7 @@ class PropertyInfo(Resource):
                                                         LEFT JOIN rentals r
                                                         ON r.rental_property_id LIKE '%""" + property_id + """%'
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                                                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                                                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') AND receiver = \'""" + filterValue + """\'  """)
                         response['result'][i]['manager_expected_revenue'] = list(
@@ -522,7 +522,7 @@ class PropertyInfo(Resource):
                         ON c.property_uid LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                         AND c.contract_status = 'ACTIVE'
-                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                         AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS' OR p.purchase_type = 'UTILITY' )
                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') 
                         AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')""")
@@ -983,7 +983,7 @@ class PropertiesManagerDetail(Resource):
                         LEFT JOIN rentals r
                         ON r.rental_property_id LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                         AND p.purchase_status = 'PAID' """)
@@ -1098,7 +1098,7 @@ class PropertiesManagerDetail(Resource):
                         ON c.property_uid LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                         AND c.contract_status = 'ACTIVE'
-                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                         AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS')
                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                         AND p.purchase_status ='PAID' """)
@@ -1280,7 +1280,7 @@ class PropertiesManagerDetail(Resource):
                                                             LEFT JOIN rentals r
                                                             ON r.rental_property_id LIKE '%""" + property_id + """%'
                                                             WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                                                            AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                            AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                             AND (p.purchase_type="UTILITY")
                                                             AND p.payer LIKE '%""" + filterValue + """%'
                                                             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
@@ -1333,7 +1333,7 @@ class PropertiesManagerDetail(Resource):
                         LEFT JOIN rentals r
                         ON r.rental_property_id LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
@@ -1444,7 +1444,7 @@ class PropertiesManagerDetail(Resource):
                         ON c.property_uid LIKE '%""" + property_id + """%'
                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                         AND c.contract_status = 'ACTIVE'
-                        AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                         AND (p.purchase_type= "RENT" OR p.purchase_type = "MAINTENANCE" OR p.purchase_type = 'REPAIRS')
                         AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
@@ -1632,7 +1632,7 @@ class PropertiesManagerDetail(Resource):
                                                             LEFT JOIN rentals r
                                                             ON r.rental_property_id LIKE '%""" + property_id + """%'
                                                             WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                                                            AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(now())} AND YEAR(p.purchase_date) = YEAR(now()))
+                                                            AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                             AND (p.purchase_type="UTILITY")
                                                             AND payer LIKE '%""" + filterValue + """%'
                                                             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
