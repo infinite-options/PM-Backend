@@ -17,7 +17,7 @@ from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerProper
 from tenantProfileInfo import TenantProfileInfo
 from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee
-from purchases import Purchases, CreateExpenses
+from purchases import Purchases, CreateExpenses, CreateRevenues
 from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, TenantPayments
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills, OwnerDocuments
 from managerProperties import ManagerProperties
@@ -223,6 +223,7 @@ api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
+api.add_resource(CreateRevenues, '/createRevenues')
 api.add_resource(Payments, '/payments')
 api.add_resource(UserPayments, '/userPayments')
 api.add_resource(ManagerClients, '/managerClients')
