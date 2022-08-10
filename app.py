@@ -10,7 +10,8 @@ from flask_restful import Resource
 from data import connect
 import os
 
-from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON, Appliances
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
+from appliances import Appliances
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
