@@ -25,7 +25,7 @@ def updateImagesAppliances(imageFiles, property_uid, appliance):
             imageFiles[filename] = data['Body']
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
-    bucket.objects.filter(Prefix=f'appliances/{property_uid}/').delete()
+    # bucket.objects.filter(Prefix=f'appliances/{property_uid}/').delete()
     images = []
     for i in range(len(imageFiles.keys())):
         filename = f'img_{appliance}_{i}'
@@ -55,7 +55,11 @@ class Appliances(Resource):
             if getappLen == 0:
                 for key in appliances:
                     appliances[key]['images'] = []
-                    print(key, '->', appliances[key])
+                    print(key, '->', (appliances[key]['available']))
+                    if 'available' in appliances[key].keys():
+                        print('here')
+                        appliances[key]['available'] = appliances[key]['available'] == 'True'
+                        print(appliances[key]['available'])
                     # print('images')
                     while True:
                         print('if true')
@@ -97,37 +101,75 @@ class Appliances(Resource):
                         'properties', primaryKey, updatedProperty)
             else:
                 for key in appliances:
-                    appliances[key]['images'] = []
-                    print(key, '->', appliances[key])
-                    # print('images')
-                    while True:
-                        print('if true')
-                        filename = f'img_{key}_{i}'
-                        print(filename)
+                    if key in existingApp.keys():
+                        print(key, '->', existingApp.keys())
+                        # print('images')
+                        if 'available' in appliances[key].keys():
+                            print('here')
+                            appliances[key]['available'] = appliances[key]['available'] == 'True'
+                            appliances[key]['available']
+                        while True:
+                            print('if true')
+                            filename = f'img_{key}_{i}'
+                            print(filename)
 
-                        file = request.files.get(filename)
-                        s3Link = data.get(filename)
-                        print(file)
-                        print(s3Link)
+                            file = request.files.get(filename)
+                            s3Link = data.get(filename)
+                            print(file)
+                            print(s3Link)
 
-                        if file:
-                            imageFiles[filename] = file
-                            images = updateImagesAppliances(
-                                imageFiles, property_uid, key)
-                            print('images file', images)
-                            appliances[key]['images'] = list((images))
-                            print(appliances[key])
-                        elif s3Link:
-                            imageFiles[filename] = s3Link
-                            images = updateImagesAppliances(
-                                imageFiles, property_uid, key)
-                            print('images s3', images)
-                            appliances[key]['images'] = json.dumps(images)
-                        else:
-                            break
-                        i += 1
-                    existingApp[key] = appliances
-                    ##Image uploading stuff ends here###
+                            if file:
+                                imageFiles[filename] = file
+                                images = updateImagesAppliances(
+                                    imageFiles, property_uid, key)
+                                print('images file', images)
+                                appliances[key]['images'] = list((images))
+                                print(appliances[key])
+                            elif s3Link:
+                                imageFiles[filename] = s3Link
+                                images = updateImagesAppliances(
+                                    imageFiles, property_uid, key)
+                                print('images s3', images)
+                                appliances[key]['images'] = json.dumps(images)
+                            else:
+                                break
+                            i += 1
+                        print(appliances[key])
+                        existingApp[key] = appliances[key]
+                    else:
+                        # print('images')
+                        if 'available' in appliances[key].keys():
+                            print('here')
+                            appliances[key]['available'] = appliances[key]['available'] == 'True'
+                            appliances[key]['available']
+                        while True:
+                            print('if true')
+                            filename = f'img_{key}_{i}'
+                            print(filename)
+
+                            file = request.files.get(filename)
+                            s3Link = data.get(filename)
+                            print(file)
+                            print(s3Link)
+
+                            if file:
+                                imageFiles[filename] = file
+                                images = updateImagesAppliances(
+                                    imageFiles, property_uid, key)
+                                print('images file', images)
+                                appliances[key]['images'] = list((images))
+                                print(appliances[key])
+                            elif s3Link:
+                                imageFiles[filename] = s3Link
+                                images = updateImagesAppliances(
+                                    imageFiles, property_uid, key)
+                                print('images s3', images)
+                                appliances[key]['images'] = json.dumps(images)
+                            else:
+                                break
+                            i += 1
+                        existingApp[key] = appliances[key]
+                        ##Image uploading stuff ends here###
 
                 primaryKey = {
                     'property_uid': property_uid
