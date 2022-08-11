@@ -1465,6 +1465,7 @@ class PropertiesOwnerDetail(Resource):
                         property_id = response['result'][i]['property_uid']
                         print(property_id)
                         pid = {'linked_property_id': property_id}
+                        # property manager info for property
                         property_res = db.execute("""SELECT 
                                                         pm.*, 
                                                         b.business_uid AS manager_id, 
@@ -1480,19 +1481,21 @@ class PropertiesOwnerDetail(Resource):
                             property_res['result'])
                         response['result'][i]['management_status'] = ""
                         response['result'][i]['managerInfo'] = {}
+                        print(property_res)
+                        # management status for property
                         if len(property_res['result']) > 0:
-
                             for pr in range(len(property_res['result'])):
+                                print(property_res['result']
+                                      [pr]['management_status'])
                                 if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY' or property_res['result'][pr]['management_status'] == 'END EARLY':
                                     response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                                     response['result'][i]['managerInfo'] = property_res['result'][pr]
 
-                                else:
-                                    print('in else')
                         else:
                             response['result'][i]['management_status'] = ""
                             response['result'][i]['managerInfo'] = {}
                         owner_id = response['result'][i]['owner_id']
+                        # owner info for the property
                         owner_res = db.execute("""SELECT 
                                                         o.owner_first_name AS owner_first_name, 
                                                         o.owner_last_name AS owner_last_name, 
@@ -1502,6 +1505,7 @@ class PropertiesOwnerDetail(Resource):
                                                         WHERE o.owner_id = \'""" + owner_id + """\'""")
                         response['result'][i]['owner'] = list(
                             owner_res['result'])
+                        # rental info for the property
                         rental_res = db.execute("""SELECT 
                                                     r.*,
                                                     GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
@@ -1517,9 +1521,9 @@ class PropertiesOwnerDetail(Resource):
                                                     WHERE r.rental_property_id = \'""" + property_id + """\'
                                                     AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                     GROUP BY lt.linked_rental_uid""")
-                        print(rental_res['result'])
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
+                        # rental status for the property
                         if len(rental_res['result']) > 0:
                             response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
                         else:
@@ -1550,6 +1554,7 @@ class PropertiesOwnerDetail(Resource):
                         extraCharges_revenue = 0
                         utility_revenue = 0
 
+                        utility_expenses = 0
                         maintenance_expenses = 0
                         management_expenses = 0
                         repairs_expenses = 0
@@ -1561,7 +1566,7 @@ class PropertiesOwnerDetail(Resource):
                         maintenance_expected_expenses = 0
                         management_expected_expenses = 0
                         repairs_expected_expenses = 0
-
+                        utility_expected_expenses = 0
                         mortgage_expenses = 0
                         insurance_expenses = 0
                         taxes_expenses = 0
@@ -1592,7 +1597,7 @@ class PropertiesOwnerDetail(Resource):
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                         AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES")
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                         AND p.purchase_status = 'PAID' """)
                         response['result'][i]['owner_revenue'] = list(
                             owner_revenue['result'])
@@ -1629,12 +1634,16 @@ class PropertiesOwnerDetail(Resource):
                                             int(owner_revenue['result']
                                                 [ore]['amount_paid'])
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Monthly':
+                                        print('rental_year_revenue',
+                                              rental_year_revenue, rental_revenue)
                                         rental_year_revenue = rental_year_revenue + \
                                             yearCal_revenue * \
                                             int(owner_revenue['result']
                                                 [ore]['amount_paid'])
                                         rental_revenue = rental_revenue + \
                                             owner_revenue['result'][ore]['amount_paid']
+                                        print('rental_year_revenue', yearCal_revenue,
+                                              rental_year_revenue, rental_revenue)
                                     elif owner_revenue['result'][ore]['purchase_frequency'] == 'Annually':
                                         rental_year_revenue = rental_year_revenue + \
                                             owner_revenue['result'][ore]['amount_paid']
@@ -1690,7 +1699,7 @@ class PropertiesOwnerDetail(Resource):
                             rental_year_revenue, 2)
                         response['result'][i]['extraCharges_year_revenue'] = round(
                             extraCharges_year_revenue, 2)
-
+                        print('rental_year_revenue', rental_year_revenue)
                         owner_utility_revenue = db.execute("""SELECT *
                                                         FROM pm.purchases p
                                                         LEFT JOIN
@@ -1702,7 +1711,7 @@ class PropertiesOwnerDetail(Resource):
                                                         AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                         AND (p.purchase_type="UTILITY")
                                                         AND p.receiver = \'""" + filterValue + """\'
-                                                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                                                         AND p.purchase_status = 'PAID' """)
 
                         response['result'][i]['owner_revenue'] = response['result'][i]['owner_revenue'] + (list(
@@ -1761,7 +1770,7 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" AND p.purchase_type <> "UTILITY")
                                                         AND p.purchase_status = 'PAID' """)
                         response['result'][i]['owner_expense'] = list(
                             owner_expense['result'])
@@ -1773,6 +1782,7 @@ class PropertiesOwnerDetail(Resource):
                         if len(owner_expense['result']) > 0:
                             for ore in range(len(owner_expense['result'])):
                                 print('ore', owner_expense['result'][ore])
+
                                 # if maintenance
                                 if owner_expense['result'][ore]['purchase_type'] == 'MAINTENANCE':
                                     print('in maintenance')
@@ -1920,6 +1930,50 @@ class PropertiesOwnerDetail(Resource):
                                         repairs_expenses = repairs_expenses + \
                                             owner_expense['result'][ore]['amount_paid']
 
+                        owner_utility_expense = db.execute("""SELECT *
+                                                        FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
+                                                        LEFT JOIN rentals r
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                                                        AND (p.purchase_type="UTILITY")
+                                                        AND p.payer LIKE '%""" + filterValue + """%'
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                        AND p.purchase_status = 'PAID' """)
+
+                        response['result'][i]['owner_expense'] = response['result'][i]['owner_expense'] + (list(
+                            owner_utility_expense['result']))
+
+                        if len(owner_utility_expense['result']) > 0:
+                            for ore in range(len(owner_utility_expense['result'])):
+                                if owner_utility_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+
+                                    utility_expenses = utility_expenses + \
+                                        float(owner_utility_expense['result']
+                                              [ore]['amount_paid'])
+                                elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+
+                                    utility_expenses = utility_expenses + \
+                                        float(owner_utility_expense['result']
+                                              [ore]['amount_paid'])
+                                elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+
+                                    utility_expenses = utility_expenses + \
+                                        owner_utility_expense['result'][ore]['amount_paid']
+                                elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Annually':
+
+                                    utility_expenses = utility_expenses + \
+                                        owner_utility_expense['result'][ore]['amount_paid']
+                                else:
+
+                                    utility_expenses = utility_expenses + \
+                                        owner_utility_expense['result'][ore]['amount_paid']
+                        response['result'][i]['utility_expenses'] = round(
+                            utility_expenses, 2)
+
                         # monthly expenses for the property
                         manager_expense = db.execute("""SELECT *
                                                     FROM pm.purchases p
@@ -1930,7 +1984,7 @@ class PropertiesOwnerDetail(Resource):
                                                     ON r.rental_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     LEFT JOIN pm.contracts c
                                                     ON c.property_uid LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                                                    WHERE p.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                                                    WHERE p.pur_property_id  LIKE '%""" + response['result'][i]['property_uid'] + """%'
                                                     AND c.contract_status = 'ACTIVE'
                                                     AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
                                                     AND (p.purchase_type= "RENT")
@@ -2051,6 +2105,8 @@ class PropertiesOwnerDetail(Resource):
                             management_expenses, 2)
                         response['result'][i]['repairs_expenses'] = round(
                             repairs_expenses, 2)
+                        response['result'][i]['utility_expenses'] = round(
+                            utility_expenses, 2)
                         response['result'][i]['maintenance_year_expense'] = round(
                             maintenance_year_expenses, 2)
                         response['result'][i]['management_year_expense'] = round(
@@ -2064,10 +2120,9 @@ class PropertiesOwnerDetail(Resource):
                                                         LEFT JOIN
                                                         pm.payments pa
                                                         ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id  LIKE '%""" + property_id + """%'
                                                         AND (YEAR(p.next_payment) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" OR p.purchase_type= 'UTILITY')
-                                                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')""")
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES")""")
 
                         response['result'][i]['year_expense'] = 0
                         response['result'][i]['mortgage_year_expense'] = 0
@@ -2407,8 +2462,8 @@ class PropertiesOwnerDetail(Resource):
                                                         ON pa.pay_purchase_id = p.purchase_uid
                                                         WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                                                         AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
-                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" OR p.purchase_type = 'UTILITY')
-                                                        AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%') """)
+                                                        AND (p.purchase_type <> "RENT" AND p.purchase_type <> "EXTRA CHARGES" AND p.purchase_type<>'UTILITY')
+                                                        AND (payer LIKE '%""" + filterValue + """%') """)
                         response['result'][i]['owner_expected_expense'] = list(
                             owner_expected_expense['result'])
 
@@ -2420,6 +2475,7 @@ class PropertiesOwnerDetail(Resource):
                             for ore in range(len(owner_expected_expense['result'])):
                                 print(
                                     'ore', owner_expected_expense['result'][ore])
+
                                 # if maintenance
                                 if owner_expected_expense['result'][ore]['purchase_type'] == 'MAINTENANCE':
                                     print('in maintenance')
@@ -2566,7 +2622,48 @@ class PropertiesOwnerDetail(Resource):
                                             owner_expected_expense['result'][ore]['amount_due']
                                         repairs_expected_expenses = repairs_expected_expenses + \
                                             owner_expected_expense['result'][ore]['amount_due']
+                        owner_utility_expected_expenses = db.execute("""SELECT *
+                                                        FROM pm.purchases p
+                                                        LEFT JOIN
+                                                        pm.payments pa
+                                                        ON pa.pay_purchase_id = p.purchase_uid
+                                                        LEFT JOIN rentals r
+                                                        ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                        AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                                                        AND (p.purchase_type="UTILITY")
+                                                        AND payer LIKE '%""" + filterValue + """%'
+                                                        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
+                        response['result'][i]['owner_expected_expense'] = response['result'][i]['owner_expected_expense'] + (list(
+                            owner_utility_expected_expenses['result']))
+
+                        if len(owner_utility_expected_expenses['result']) > 0:
+                            for ore in range(len(owner_utility_expected_expenses['result'])):
+                                if owner_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Weekly':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        float(owner_utility_expected_expenses['result']
+                                              [ore]['amount_due'])
+                                elif owner_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Biweekly':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        float(owner_utility_expected_expenses['result']
+                                              [ore]['amount_due'])
+                                elif owner_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Monthly':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        owner_utility_expected_expenses['result'][ore]['amount_due']
+                                elif owner_utility_expected_expenses['result'][ore]['purchase_frequency'] == 'Annually':
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        owner_utility_expected_expenses['result'][ore]['amount_due']
+                                else:
+
+                                    utility_expected_expenses = utility_expected_expenses + \
+                                        owner_utility_expected_expenses['result'][ore]['amount_due']
+                        response['result'][i]['utility_expected_expenses'] = round(
+                            utility_expected_expenses, 2)
                         # monthly expenses for the property
                         manager_expected_expense = db.execute("""SELECT *
                                                     FROM pm.purchases p
@@ -2583,25 +2680,27 @@ class PropertiesOwnerDetail(Resource):
                                                     AND (p.purchase_type= "RENT")
                                                     AND r.rental_status = 'ACTIVE'""")
 
+                        print(
+                            'mex', manager_expected_expense['result'])
                         response['result'][i]['owner_expected_expense'] = response['result'][i]['owner_expected_expense'] + (list(
                             manager_expected_expense['result']))
                         if len(manager_expected_expense['result']) > 0:
                             for mex in range(len(manager_expected_expense['result'])):
-                                # print('mex', manager_expected_expense['result'][mex])
 
                                 # if management
                                 if manager_expected_expense['result'][mex]['purchase_type'] == 'RENT':
                                     managementPayments = json.loads(
                                         manager_expected_expense['result'][mex]['contract_fees'])
-
+                                    print('management_expected_expenses',
+                                          management_expected_expenses)
                                     for payment in managementPayments:
-                                        # print('amount paid to owner', payment)
+
                                         if payment['fee_type'] == '%':
-                                            print(management_expected_expenses)
+
                                             if payment['of'] == 'Gross Rent':
 
                                                 if payment['frequency'] == 'Weekly':
-                                                    print('amount weekly %',
+                                                    print('amount weekly expected %',
                                                           management_expected_expenses, float(manager_expected_expense['result'][mex]['amount_due']), payment['charge'], weeks_current_month)
                                                     management_expected_expenses = management_expected_expenses +  \
                                                         weeks_current_month*float((
@@ -2697,13 +2796,17 @@ class PropertiesOwnerDetail(Resource):
                             management_expected_expenses, 2)
                         response['result'][i]['repairs_expected_expenses'] = round(
                             repairs_expected_expenses, 2)
+                        response['result'][i]['utility_expected_expenses'] = round(
+                            utility_expected_expenses, 2)
                         # print(response)
 
                         # get utilities or maintenance/repair expenses
-                        expense_res = db.execute("""SELECT *
+                        expense_res = db.execute("""SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
                             FROM pm.purchases p
                             LEFT JOIN payments pa
                             ON pa.pay_purchase_id = p.purchase_uid
+                            LEFT JOIN pm.properties prop
+                            ON prop.property_uid LIKE '%""" + property_id + """%'
                             WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                             AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
                             AND (receiver = \'""" + filterValue + """\' OR payer LIKE '%""" + filterValue + """%')
@@ -2715,10 +2818,9 @@ class PropertiesOwnerDetail(Resource):
                                 # if utility return all the details related to the utility
                                 if expense_res['result'][i]['purchase_type'] == 'UTILITY':
                                     print('in utility')
-                                    billRes = db.execute("""SELECT b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
-                                                            FROM pm.bills b
-                                                            LEFT JOIN properties p
-                                                            ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
+
+                                    billRes = db.execute("""SELECT b.*
+                                                            FROM pm.bills b                
                                                             WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(billRes['result']) > 0):
@@ -2730,14 +2832,12 @@ class PropertiesOwnerDetail(Resource):
                                 # if maintainence return all the details related to the maintenance requests
                                 elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
                                     print('in maintenance')
-                                    maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                    maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*
                                                                     FROM maintenanceQuotes mq
                                                                     LEFT JOIN pm.maintenanceRequests mr
                                                                     ON mr.maintenance_request_uid = mq.linked_request_uid
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
-                                                                    LEFT JOIN properties p
-                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(maintenanceRes['result']) > 0):
@@ -2747,14 +2847,12 @@ class PropertiesOwnerDetail(Resource):
                                 # if repair return all the details related to the repair requests
                                 elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
                                     print('in maintenance')
-                                    repairRes = db.execute("""SELECT mq.*, mr.*, b.*, CONCAT(p.address," ", p.unit,", ", p.city, ", ", p.state," ", p.zip) AS address
+                                    repairRes = db.execute("""SELECT mq.*, mr.*, b.*
                                                                     FROM maintenanceQuotes mq
                                                                     LEFT JOIN pm.maintenanceRequests mr
                                                                     ON mr.maintenance_request_uid = mq.linked_request_uid
                                                                     LEFT JOIN pm.businesses b
                                                                     ON b.business_uid = mq.quote_business_uid
-                                                                    LEFT JOIN properties p
-                                                                    ON p.property_uid LIKE '%""" + expense_res['result'][i]['pur_property_id'] + """%'
                                                                     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                                     if(len(repairRes['result']) > 0):
@@ -2763,8 +2861,6 @@ class PropertiesOwnerDetail(Resource):
                                                 repairRes['result'][j])
                         else:
                             response['result'][i]['expenses'] = []
-
-                    # print(response)
 
         return response
 
