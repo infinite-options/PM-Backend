@@ -17,7 +17,7 @@ from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
 from tenantProfileInfo import TenantProfileInfo
 from businessProfileInfo import BusinessProfileInfo
-from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee
+from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee, LateFeeExtraCharges_CLASS, LateFeeExtraCharges, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges
 from purchases import Purchases, CreateExpenses, CreateRevenues
 from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, TenantPayments
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills, OwnerDocuments
@@ -220,7 +220,11 @@ api.add_resource(ExtendLease, '/extendLease')
 api.add_resource(ExtendLeaseCRON_CLASS, '/ExtendLeaseCRON_CLASS')
 api.add_resource(LeasetoMonth_CLASS, '/LeasetoMonth_CLASS')
 api.add_resource(LateFee_CLASS, '/LateFee_CLASS')
+api.add_resource(LateFeeExtraCharges_CLASS, '/LateFeeExtraCharges_CLASS')
 api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
+api.add_resource(PerDay_LateFeeExtraCharges_CLASS,
+                 '/PerDay_LateFeeExtraCharges_CLASS')
+
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
