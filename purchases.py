@@ -180,7 +180,7 @@ class CreateExpenses(Resource):
             charge_date = date.today()
             next_payment = date.fromisoformat(data['next_payment'])
             print('here monthly', next_payment)
-            while charge_date < next_payment:
+            while charge_date <= next_payment:
                 charge_month = charge_date.strftime('%B')
                 with connect() as db:
                     print('in new purchase')
@@ -212,7 +212,7 @@ class CreateExpenses(Resource):
             print('here annually')
             charge_date = date.today()
             next_payment = date.fromisoformat(data['next_payment'])
-            while charge_date < next_payment:
+            while charge_date <= next_payment:
                 charge_month = charge_date.strftime('%B')
 
                 with connect() as db:
@@ -281,7 +281,7 @@ class CreateRevenues(Resource):
             charge_date = date.today()
             next_payment = date.fromisoformat(data['next_payment'])
             print('here monthly', next_payment)
-            while charge_date < next_payment:
+            while charge_date <= next_payment:
                 charge_month = charge_date.strftime('%B')
                 with connect() as db:
                     print('in new purchase')
@@ -313,7 +313,7 @@ class CreateRevenues(Resource):
             print('here annually')
             charge_date = date.today()
             next_payment = date.fromisoformat(data['next_payment'])
-            while charge_date < next_payment:
+            while charge_date <= next_payment:
                 charge_month = charge_date.strftime('%B')
 
                 with connect() as db:
