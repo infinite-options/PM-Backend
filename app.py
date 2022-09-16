@@ -7,6 +7,7 @@ from flask_mail import Mail, Message
 
 from flask import request
 from flask_restful import Resource
+from dashboard import OwnerDashboard, TenantDashboard
 from data import connect
 import os
 
@@ -207,7 +208,9 @@ def LeaseExpiringNotify():
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
+api.add_resource(TenantDashboard, '/tenantDashboard')
 
+api.add_resource(OwnerDashboard, '/ownerDashboard')
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(OwnerProfileInfo, '/ownerProfileInfo')
