@@ -7,11 +7,11 @@ from flask_mail import Mail, Message
 
 from flask import request
 from flask_restful import Resource
-from dashboard import OwnerDashboard, TenantDashboard
 from data import connect
 import os
 
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
+from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from appliances import Appliances
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
@@ -209,7 +209,7 @@ api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
 api.add_resource(TenantDashboard, '/tenantDashboard')
-
+api.add_resource(ManagerDashboard, '/managerDashboard')
 api.add_resource(OwnerDashboard, '/ownerDashboard')
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
