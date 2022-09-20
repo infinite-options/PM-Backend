@@ -47,6 +47,7 @@
 - [/AvailableAppointmentsTenant](#AvailableAppointmentsTenant/{date_value}/{duration}/{user_id}/{start_time},{end_time})
 - [/AvailableAppointmentsMaintenance](#AvailableAppointmentsMaintenance/{date_value}/{duration}/{user_id}/{start_time},{end_time})
 - [/bills](#bills)
+- [/signUpForm](#signUpForm)
 
 ---
 
@@ -3319,4 +3320,39 @@ file_0: (upload doc)
     "message": "Successfully committed SQL query",
     "code": 200
 }
+```
+
+```
+
+### /signUpForm
+
+
+##### POST
+
+- sends an email
+- request JSON:
+
+```
+
+{
+"first_name": "Anu",
+"last_name": "Sandhu",
+"message": "Message check",
+"email" :"anureetksandhu7@gmail.com",
+"phone_no":"2138581344"
+}
+
+```
+
+- response JSON:
+
+```
+
+{
+"message": "Successfully committed SQL query",
+"code": 200
+}
+
+```
+
 ```

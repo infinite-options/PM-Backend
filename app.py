@@ -205,6 +205,50 @@ def LeaseExpiringNotify():
     return response
 
 
+class SignUpForm(Resource):
+
+    def post(self):
+        with connect() as db:
+            response = {
+                "message": "Successfully committed SQL query",
+                "code": 200
+            }
+            data = request.json
+            fields = ['first_name', 'last_name', 'message',
+                      'email', 'phone_no']
+            newEmail = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newEmail[field] = fieldValue
+
+            phone = newEmail['phone_no']
+            first_name = newEmail['first_name']
+            last_name = newEmail['last_name']
+            message = newEmail['message']
+            email = newEmail['email']
+            recipient = 'prashant3.potluri@gmail.com'
+            subject = "New Sign Up and Message"
+            body = (
+                "Hello," + "\n"
+                "\n"
+                + str(first_name) +
+                " just signed up for receiving emails from Manifest MySpace\n"
+                "Please see below for more information. \n"
+                "\n"
+                "Name: " + str(first_name) + ' ' + str(last_name) + "\n"
+                "Phone: " + str(phone) + "\n"
+                "Email: " + str(email) + "\n"
+                "Message: " + str(message) + "\n"
+                "\n"
+            )
+            # mail.send(msg)
+            sendEmail(recipient, subject, body)
+            print('sending')
+
+        return response
+
+
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
@@ -229,6 +273,8 @@ api.add_resource(PerDay_LateFeeExtraCharges_CLASS,
                  '/PerDay_LateFeeExtraCharges_CLASS')
 
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
+api.add_resource(SignUpForm, '/signUpForm')
+
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
 api.add_resource(CreateRevenues, '/createRevenues')
