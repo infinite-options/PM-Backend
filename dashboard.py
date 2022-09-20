@@ -6,6 +6,7 @@ from data import connect, uploadImage
 import boto3
 import json
 from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import calendar
 
 
@@ -1643,6 +1644,38 @@ class ManagerDashboard(Resource):
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
 
+                rent_status_result = db.execute("""SELECT *
+                                                FROM pm.purchases p
+                                                LEFT JOIN
+                                                pm.payments pa
+                                                ON pa.pay_purchase_id = p.purchase_uid
+                                                LEFT JOIN rentals r
+                                                ON r.rental_property_id LIKE '%""" + property_id + """%'
+                                                WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                                                AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                                                AND p.purchase_type= "RENT"
+                                                AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                                AND p.receiver = \'""" + buid + """\'""")
+                if len(rent_status_result['result']) > 0:
+                    response['result'][i]['rent_status'] = rent_status_result['result'][0]['purchase_status']
+                    rent_payments = json.loads(
+                        rent_status_result['result'][0]['rent_payments'])
+                    for r in range(len(rent_payments)):
+
+                        print(rent_payments[r])
+                        if rent_payments[r]['fee_name'] == 'Rent':
+                            charge_date = date.today()
+                            due_date = charge_date.replace(
+                                day=int(rent_payments[r]['due_by']))
+                            print(due_date)
+                            late_date = due_date + \
+                                relativedelta(
+                                    days=int(rent_payments[r]['late_by']))
+                            print(rent_payments[r]['late_by'], late_date)
+                            response['result'][i]['late_date'] = late_date.isoformat()
+                else:
+                    response['result'][i]['rent_status'] = 'NOT RENTED'
+                    response['result'][i]['late_date'] = ''
                 rental_revenue = 0
                 extraCharges_revenue = 0
                 utility_revenue = 0
