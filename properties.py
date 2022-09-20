@@ -79,8 +79,8 @@ class Properties(Resource):
             data = request.form
             fields = ['owner_id', 'active_date', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent']
-            boolFields = ['pets_allowed', 'deposit_for_rent', 'description']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description']
+            boolFields = ['pets_allowed', 'deposit_for_rent']
             newProperty = {}
             print(boolFields)
             for field in fields:
