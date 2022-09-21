@@ -1643,7 +1643,25 @@ class ManagerDashboard(Resource):
                                                     """)
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
+                if len(maintenance_res['result']) > 0:
+                    num_days = []
+                    for mr in maintenance_res['result']:
+                        num_days.append(datetime.strptime(
+                            mr['request_created_date'], '%Y-%m-%d %H:%M:%S'))
 
+                    for mr in maintenance_res['result']:
+                        if len(num_days) > 0:
+                            if datetime.strftime(max(
+                                    num_days, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == mr['request_created_date']:
+
+                                time_between_insertion = datetime.now() - \
+                                    datetime.strptime(
+                                    mr['request_created_date'], '%Y-%m-%d %H:%M:%S')
+
+                                response['result'][i]['oldestOpenMR'] = str(time_between_insertion).split(',')[
+                                    0]
+                else:
+                    response['result'][i]['oldestOpenMR'] = ''
                 rent_status_result = db.execute("""SELECT *
                                                 FROM pm.purchases p
                                                 LEFT JOIN
