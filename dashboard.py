@@ -1661,7 +1661,7 @@ class ManagerDashboard(Resource):
                                 response['result'][i]['oldestOpenMR'] = str(time_between_insertion).split(',')[
                                     0]
                 else:
-                    response['result'][i]['oldestOpenMR'] = ''
+                    response['result'][i]['oldestOpenMR'] = 'Not Applicable'
                 rent_status_result = db.execute("""SELECT *
                                                 FROM pm.purchases p
                                                 LEFT JOIN
