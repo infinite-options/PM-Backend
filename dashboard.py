@@ -1689,11 +1689,14 @@ class ManagerDashboard(Resource):
                             late_date = due_date + \
                                 relativedelta(
                                     days=int(rent_payments[r]['late_by']))
-                            print(rent_payments[r]['late_by'], late_date)
-                            response['result'][i]['late_date'] = late_date.isoformat()
+
+                            time_between_insertion = date.today() - late_date
+                            print(time_between_insertion, late_date)
+                            response['result'][i]['late_date'] = str(
+                                time_between_insertion).split(',')[0]
                 else:
                     response['result'][i]['rent_status'] = 'NOT RENTED'
-                    response['result'][i]['late_date'] = ''
+                    response['result'][i]['late_date'] = 'Not Applicable'
                 rental_revenue = 0
                 extraCharges_revenue = 0
                 utility_revenue = 0
