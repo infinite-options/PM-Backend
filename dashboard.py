@@ -1643,6 +1643,8 @@ class ManagerDashboard(Resource):
                                                     """)
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
+                response['result'][i]['num_maintenanceRequests'] = len(
+                    maintenance_res['result'])
                 if len(maintenance_res['result']) > 0:
                     num_days = []
                     for mr in maintenance_res['result']:
@@ -1658,8 +1660,8 @@ class ManagerDashboard(Resource):
                                     datetime.strptime(
                                     mr['request_created_date'], '%Y-%m-%d %H:%M:%S')
 
-                                response['result'][i]['oldestOpenMR'] = str(time_between_insertion).split(',')[
-                                    0]
+                                response['result'][i]['oldestOpenMR'] = int((str(time_between_insertion).split(',')[
+                                    0]).split(' ')[0])
                 else:
                     response['result'][i]['oldestOpenMR'] = 'Not Applicable'
                 rent_status_result = db.execute("""SELECT *
@@ -1692,8 +1694,8 @@ class ManagerDashboard(Resource):
 
                             time_between_insertion = date.today() - late_date
                             print(time_between_insertion, late_date)
-                            response['result'][i]['late_date'] = str(
-                                time_between_insertion).split(',')[0]
+                            response['result'][i]['late_date'] = int((str(
+                                time_between_insertion).split(',')[0]).split(' ')[0])
                 else:
                     response['result'][i]['rent_status'] = 'NOT RENTED'
                     response['result'][i]['late_date'] = 'Not Applicable'
