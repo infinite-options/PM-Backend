@@ -208,6 +208,12 @@ class MaintenanceRequestsandQuotes(Resource):
                     rid = {'linked_request_uid': req_id}  # rid
                     quotes_res = db.select(
                         ''' maintenanceQuotes quote ''', rid)
+                    time_between_insertion = datetime.now() - \
+                        datetime.strptime(
+                        response['result'][i]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                    response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
+                        0]).split(' ')[0])
+
                     # print(quotes_res)
                     # change the response variable here, don't know why
                     response['result'][i]['quotes'] = list(
@@ -243,6 +249,11 @@ class MaintenanceRequestsandQuotes(Resource):
                             ''' maintenanceQuotes quote ''', rid)
                         # print(quotes_res)
                         # change the response variable here, don't know why
+                        time_between_insertion = datetime.now() - \
+                            datetime.strptime(
+                            maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                        response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
+                            0]).split(' ')[0])
                         maintenance_res['result'][y]['quotes'] = list(
                             quotes_res['result'])
                         maintenance_res['result'][y]['total_quotes'] = len(
