@@ -1655,8 +1655,14 @@ class ManagerDashboard(Resource):
                                             ON tpi.tenant_id = lt.linked_tenant_id
                                             WHERE r.rental_property_id = \'""" + property_id + """\'
                                             AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
-                response['result'][i]['rentalInfo'] = list(
-                    rental_res['result'])
+
+                if len(rental_res['result']) > 0:
+
+                    response['result'][i]['rentalInfo'] = list(
+                        rental_res['result'])
+                else:
+                    response['result'][i]['rentalInfo'] = 'NOT RENTED'
+
                 if len(maintenance_res['result']) > 0:
                     num_days = []
                     for mr in maintenance_res['result']:
