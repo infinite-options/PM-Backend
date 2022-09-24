@@ -1616,18 +1616,6 @@ class ManagerDashboard(Resource):
                 property_id = response['result'][i]['property_uid']
                 print(property_id)
 
-                # rental_revenue = 0
-                # extraCharges_revenue = 0
-                # utility_revenue = 0
-                # maintenance_expenses = 0
-                # management_expenses = 0
-                # repairs_expenses = 0
-                # rental_expected_revenue = 0
-                # extraCharges_expected_revenue = 0
-                # utility_expected_revenue = 0
-                # maintenance_expected_expenses = 0
-                # management_expected_expenses = 0
-                # repairs_expected_expenses = 0
                 # get tenant applications
                 application_res = db.execute("""SELECT
                                                     *
@@ -1643,8 +1631,38 @@ class ManagerDashboard(Resource):
                                                     """)
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
-                response['result'][i]['num_maintenanceRequests'] = len(
-                    maintenance_res['result'])
+                new_mr = 0
+                process_mr = 0
+                quote_received_mr = 0
+                quote_accepted_mr = 0
+                response['result'][i]['new_mr'] = new_mr
+                response['result'][i]['process_mr'] = process_mr
+                response['result'][i]['quote_received_mr'] = quote_received_mr
+                response['result'][i]['quote_accepted_mr'] = quote_accepted_mr
+                if len(maintenance_res['result']) > 0:
+                    for mr in maintenance_res['result']:
+                        req_id = mr['maintenance_request_uid']
+                        rid = {'linked_request_uid': req_id}  # rid
+                        quotes_res = db.select(
+                            ''' maintenanceQuotes quote ''', rid)
+                        if len(quotes_res['result']) > 0:
+                            for mq in quotes_res['result']:
+                                if mq['quote_status'] == 'SENT':
+                                    quote_received_mr = quote_received_mr + 1
+                                elif mr['request_status'] == 'ACCEPTED':
+                                    quote_accepted_mr = quote_accepted_mr + 1
+                        if mr['request_status'] == 'NEW':
+                            new_mr = new_mr + 1
+                        elif mr['request_status'] == 'PROCESSING':
+                            process_mr = process_mr + 1
+                        else:
+                            print('do nothing')
+
+                response['result'][i]['new_mr'] = new_mr
+                response['result'][i]['process_mr'] = process_mr
+                response['result'][i]['quote_received_mr'] = quote_received_mr
+                response['result'][i]['quote_accepted_mr'] = quote_accepted_mr
+
                 # rental info for the property
                 rental_res = db.execute("""SELECT 
                                             r.*, lt.*,tpi.*
