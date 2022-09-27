@@ -1695,9 +1695,13 @@ class ManagerDashboard(Resource):
                                 time_between_insertion = datetime.now() - \
                                     datetime.strptime(
                                     mr['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                                print(time_between_insertion)
+                                if ',' in str(time_between_insertion):
+                                    response['result'][i]['oldestOpenMR'] = int(
+                                        (str(time_between_insertion).split(',')[0]).split(' ')[0])
+                                else:
+                                    response['result'][i]['oldestOpenMR'] = 0
 
-                                response['result'][i]['oldestOpenMR'] = int((str(time_between_insertion).split(',')[
-                                    0]).split(' ')[0])
                 else:
                     response['result'][i]['oldestOpenMR'] = 'Not Applicable'
                 rent_status_result = db.execute("""SELECT *

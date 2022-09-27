@@ -211,8 +211,11 @@ class MaintenanceRequestsandQuotes(Resource):
                     time_between_insertion = datetime.now() - \
                         datetime.strptime(
                         response['result'][i]['request_created_date'], '%Y-%m-%d %H:%M:%S')
-                    response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
-                        0]).split(' ')[0])
+                    if ',' in str(time_between_insertion):
+                        response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
+                            0]).split(' ')[0])
+                    else:
+                        response['result'][i]['days_open'] = 0
 
                     # print(quotes_res)
                     # change the response variable here, don't know why
