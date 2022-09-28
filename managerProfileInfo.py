@@ -138,6 +138,16 @@ class ManagerPropertyTenants(Resource):
                                                             """)
                         response['result'][i]['user_repairRequests'] = list(
                             user_repairRequests['result'])
+                        if len(user_repairRequests['result']) > 0:
+                            for y in range(len(user_repairRequests['result'])):
+                                time_between_insertion = datetime.now() - \
+                                    datetime.strptime(
+                                        user_repairRequests['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                                if ',' in str(time_between_insertion):
+                                    user_repairRequests['result'][y]['days_open'] = int(
+                                        (str(time_between_insertion).split(',')[0]).split(' ')[0])
+                                else:
+                                    user_repairRequests['result'][y]['days_open'] = 0
 
         return response
 
