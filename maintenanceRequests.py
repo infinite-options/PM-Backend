@@ -255,8 +255,12 @@ class MaintenanceRequestsandQuotes(Resource):
                         time_between_insertion = datetime.now() - \
                             datetime.strptime(
                             maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
-                        response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
-                            0]).split(' ')[0])
+                        if ',' in str(time_between_insertion):
+                            maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                                0]).split(' ')[0])
+                        else:
+                            maintenance_res['result'][y]['days_open'] = 0
+
                         maintenance_res['result'][y]['quotes'] = list(
                             quotes_res['result'])
                         maintenance_res['result'][y]['total_quotes'] = len(
