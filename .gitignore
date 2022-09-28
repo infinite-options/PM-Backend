@@ -18,7 +18,7 @@ zappa*
 .log
 .vscode
 .idea
-
+.env
 
 # py files
 api_key.py

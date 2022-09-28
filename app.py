@@ -9,6 +9,8 @@ from flask import request
 from flask_restful import Resource
 from data import connect
 import os
+from os import environ
+import stripe
 
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
@@ -48,19 +50,32 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 jwt = JWTManager(app)
 
 
-app.config["MAIL_USERNAME"] = "support@nityaayurveda.com"
-app.config["MAIL_PASSWORD"] = "SupportNitya1"
-app.config["MAIL_DEFAULT_SENDER"] = "support@nityaayurveda.com"
+app.config['MAIL_USERNAME'] = os.environ.get('SUPPORT_EMAIL')
+app.config['MAIL_PASSWORD'] = os.environ.get('SUPPORT_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
 
 app.config["MAIL_SERVER"] = "smtp.mydomain.com"
 app.config["MAIL_PORT"] = 465
 
 app.config["MAIL_USE_TLS"] = False
 app.config["MAIL_USE_SSL"] = True
+
+# STRIPE KEYS
+
+stripe_public_test_key = os.environ.get("stripe_public_test_key")
+stripe_secret_test_key = os.environ.get("stripe_secret_test_key")
+
+stripe_public_live_key = os.environ.get("stripe_public_live_key")
+stripe_secret_live_key = os.environ.get("stripe_secret_live_key")
+
+stripe.api_key = stripe_secret_test_key
+
 # app.config["MAIL_USERNAME"] = "support@skedul.online"
 # # app.config["MAIL_PASSWORD"] = "SupportSkedul1"
 # app.config["MAIL_SUPPRESS_SEND"] = False
 mail = Mail(app)
+
+app.config["STRIPE_SECRET_KEY"] = os.environ.get("STRIPE_SECRET_KEY")
 
 
 def sendEmail(recipient, subject, body):
@@ -72,6 +87,15 @@ def sendEmail(recipient, subject, body):
             body=body
         )
         mail.send(msg)
+
+
+class stripe_key(Resource):
+    def get(self, desc):
+        print(desc)
+        if desc == "PMTEST":
+            return {"publicKey": stripe_public_test_key}
+        else:
+            return {"publicKey": stripe_public_live_key}
 
 
 class LeaseExpiringNotify_CLASS(Resource):
@@ -271,6 +295,7 @@ api.add_resource(LateFeeExtraCharges_CLASS, '/LateFeeExtraCharges_CLASS')
 api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
 api.add_resource(PerDay_LateFeeExtraCharges_CLASS,
                  '/PerDay_LateFeeExtraCharges_CLASS')
+api.add_resource(stripe_key, "/stripe_key/<string:desc>")
 
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
