@@ -265,6 +265,10 @@ class MaintenanceRequestsandQuotes(Resource):
                             quotes_res['result'])
                         maintenance_res['result'][y]['total_quotes'] = len(
                             quotes_res['result'])
+                        maintenance_res['result'][y]['address'] = response['result'][i]['address'] + ' ' + response['result'][i]['unit'] + ', ' + \
+                            response['result'][i]['city'] + ', ' + \
+                            response['result'][i]['state'] + ' ' + \
+                            response['result'][i]['zip']
                 sorted_props = []
                 for prop in response['result']:
                     print("all", prop['property_uid'])
