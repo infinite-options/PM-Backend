@@ -1623,6 +1623,12 @@ class ManagerDashboard(Resource):
 
                 response['result'][i]['applications'] = list(
                     application_res['result'])
+                num_apps = 0
+                if len(application_res['result']) > 0:
+                    for apps in application_res['result']:
+                        if apps['application_status'] == 'NEW':
+                            num_apps = num_apps+1
+                response['result'][i]['num_apps'] = num_apps
 
                 # get maintenance requests
                 maintenance_res = db.execute("""SELECT *

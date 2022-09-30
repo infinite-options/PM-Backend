@@ -18,7 +18,7 @@ from appliances import Appliances
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
-from tenantProfileInfo import TenantProfileInfo
+from tenantProfileInfo import TenantProfileInfo, TenantDetails
 from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee, LateFeeExtraCharges_CLASS, LateFeeExtraCharges, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges
 from purchases import Purchases, CreateExpenses, CreateRevenues
@@ -277,6 +277,8 @@ api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
 api.add_resource(TenantDashboard, '/tenantDashboard')
+api.add_resource(TenantDetails, '/tenantDetails')
+
 api.add_resource(ManagerDashboard, '/managerDashboard')
 api.add_resource(OwnerDashboard, '/ownerDashboard')
 api.add_resource(Users, '/users')
