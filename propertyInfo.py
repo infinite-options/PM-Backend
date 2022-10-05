@@ -799,7 +799,7 @@ class AvailableProperties(Resource):
                                         ON r.rental_property_id = p.property_uid
                                         LEFT JOIN pm.propertyManager pM
                                         ON pM.linked_property_id = p.property_uid
-                                        WHERE (management_status = 'ACCEPTED' OR management_status = 'END EARLY' OR management_status = 'PM END EARLY' OR management_status = 'OWNER END EARLY' ) """)
+                                        WHERE (management_status = 'ACCEPTED' OR management_status = 'END EARLY' OR management_status = 'PM END EARLY' OR management_status = 'OWNER END EARLY' ) AND p.available_to_rent=1 """)
 
             # print(response['result'])
             availableProperties = []

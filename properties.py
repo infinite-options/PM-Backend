@@ -59,7 +59,7 @@ class Properties(Resource):
         response = {}
         filters = ['property_uid', 'active_date', 'owner_id', 'manager_id', 'address', 'city',
                    'state', 'zip', 'type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                   'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description']
+                   'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description', 'available_to_rent']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -79,8 +79,9 @@ class Properties(Resource):
             data = request.form
             fields = ['owner_id', 'active_date', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description']
-            boolFields = ['pets_allowed', 'deposit_for_rent']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description', 'available_to_rent']
+            boolFields = ['pets_allowed',
+                          'deposit_for_rent', 'available_to_rent']
             newProperty = {}
             print(boolFields)
             for field in fields:
@@ -123,7 +124,7 @@ class Properties(Resource):
             property_uid = data.get('property_uid')
             fields = ['owner_id', 'active_date', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'insurance', 'description']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'insurance', 'description', 'available_to_rent']
             newProperty = {}
             for field in fields:
 
@@ -514,7 +515,7 @@ class Property(Resource):
             data = request.form
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'description']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'description', 'available_to_rent']
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)

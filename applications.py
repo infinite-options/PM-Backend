@@ -2,8 +2,8 @@ import resource
 from flask import request, current_app
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-from data import connect
+import boto3
+from data import connect, uploadImage, s3
 import json
 
 from text_to_num import alpha2digit
@@ -11,6 +11,28 @@ from purchases import newPurchase
 from datetime import date, timedelta, datetime
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
+
+
+def updateDocuments(documents, application_uid):
+    for i, doc in enumerate(documents):
+        if 'link' in doc:
+            bucket = 'io-pm'
+            key = doc['link'].split('/io-pm/')[1]
+            data = s3.get_object(
+                Bucket=bucket,
+                Key=key
+            )
+            doc['file'] = data['Body']
+    s3Resource = boto3.resource('s3')
+    bucket = s3Resource.Bucket('io-pm')
+    bucket.objects.filter(Prefix=f'applications/{application_uid}/').delete()
+    for i, doc in enumerate(documents):
+        filename = f'doc_{i}'
+        key = f'applications/{application_uid}/{filename}'
+        link = uploadImage(doc['file'], key)
+        doc['link'] = link
+        del doc['file']
+    return documents
 
 
 def days_in_month(dt): return monthrange(
@@ -57,7 +79,7 @@ class Applications(Resource):
             if not user:
                 return 401, response
             fields = ['property_uid', 'message',
-                      'adult_occupants', 'children_occupants']
+                      'adult_occupants', 'children_occupants', 'documents']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -66,6 +88,18 @@ class Applications(Resource):
             newApplicationID = db.call('new_application_id')[
                 'result'][0]['new_id']
             newApplication['application_uid'] = newApplicationID
+            documents = json.loads(data.get('documents'))
+            for i in range(len(documents)):
+                filename = f'doc_{i}'
+                file = request.files.get(filename)
+                if file:
+                    key = f'rentals/{newApplicationID}/{filename}'
+                    doc = uploadImage(file, key)
+                    documents[i]['link'] = doc
+                else:
+                    break
+            newApplication['documents'] = json.dumps(documents)
+            print('newApplication', newApplication)
             newApplication['tenant_id'] = user['user_uid']
             newApplication['application_status'] = 'NEW'
             response = db.insert('applications', newApplication)
@@ -75,6 +109,7 @@ class Applications(Resource):
         response = {}
         with connect() as db:
             data = request.json
+            application_uid = data.get('application_uid')
             fields = ['message', 'application_status',
                       'property_uid', 'adult_occupants', 'children_occupants', "application_uid"]
             newApplication = {}
@@ -82,6 +117,20 @@ class Applications(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newApplication[field] = fieldValue
+                if field == 'documents':
+                    documents = json.loads(data.get('documents'))
+                    for i, doc in enumerate(documents):
+                        filename = f'doc_{i}'
+                        file = request.files.get(filename)
+                        s3Link = doc.get('link')
+                        if file:
+                            doc['file'] = file
+                        elif s3Link:
+                            doc['link'] = s3Link
+                        else:
+                            break
+                    documents = updateDocuments(documents, application_uid)
+                    newRental['documents'] = json.dumps(documents)
             # tenant approves lease aggreement
             if newApplication['application_status'] == 'RENTED':
                 response = db.execute(
