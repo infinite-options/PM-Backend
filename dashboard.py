@@ -1701,7 +1701,7 @@ class ManagerDashboard(Resource):
                                 time_between_insertion = datetime.now() - \
                                     datetime.strptime(
                                     mr['request_created_date'], '%Y-%m-%d %H:%M:%S')
-                                print(time_between_insertion)
+                                print('mr', time_between_insertion)
                                 if ',' in str(time_between_insertion):
                                     response['result'][i]['oldestOpenMR'] = int(
                                         (str(time_between_insertion).split(',')[0]).split(' ')[0])
@@ -1737,11 +1737,22 @@ class ManagerDashboard(Resource):
                             late_date = due_date + \
                                 relativedelta(
                                     days=int(rent_payments[r]['late_by']))
+                            time_between_insertion = (
+                                date.today() - late_date)
+                            if ',' in str(time_between_insertion):
 
-                            time_between_insertion = date.today() - late_date
-                            print(time_between_insertion, late_date)
-                            response['result'][i]['late_date'] = int((str(
-                                time_between_insertion).split(',')[0]).split(' ')[0])
+                                print('time', due_date, time_between_insertion,
+                                      'late_date', late_date)
+                                response['result'][i]['late_date'] = int((str(
+                                    time_between_insertion).split(',')[0]).split(' ')[0])
+                                print(int((str(
+                                    time_between_insertion).split(',')[0]).split(' ')[0]))
+                            else:
+                                time_between_insertion = 0
+                                print('time', due_date, time_between_insertion,
+                                      'late_date', late_date)
+                                response['result'][i]['late_date'] = 0
+
                 else:
                     response['result'][i]['rent_status'] = 'NOT RENTED'
                     response['result'][i]['late_date'] = 'Not Applicable'

@@ -88,16 +88,7 @@ class Applications(Resource):
             newApplicationID = db.call('new_application_id')[
                 'result'][0]['new_id']
             newApplication['application_uid'] = newApplicationID
-            documents = json.loads(data.get('documents'))
-            for i in range(len(documents)):
-                filename = f'doc_{i}'
-                file = request.files.get(filename)
-                if file:
-                    key = f'rentals/{newApplicationID}/{filename}'
-                    doc = uploadImage(file, key)
-                    documents[i]['link'] = doc
-                else:
-                    break
+            documents = (data.get('documents'))
             newApplication['documents'] = json.dumps(documents)
             print('newApplication', newApplication)
             newApplication['tenant_id'] = user['user_uid']
@@ -111,26 +102,13 @@ class Applications(Resource):
             data = request.json
             application_uid = data.get('application_uid')
             fields = ['message', 'application_status',
-                      'property_uid', 'adult_occupants', 'children_occupants', "application_uid"]
+                      'property_uid', 'adult_occupants', 'children_occupants', "application_uid", "documents"]
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     newApplication[field] = fieldValue
-                if field == 'documents':
-                    documents = json.loads(data.get('documents'))
-                    for i, doc in enumerate(documents):
-                        filename = f'doc_{i}'
-                        file = request.files.get(filename)
-                        s3Link = doc.get('link')
-                        if file:
-                            doc['file'] = file
-                        elif s3Link:
-                            doc['link'] = s3Link
-                        else:
-                            break
-                    documents = updateDocuments(documents, application_uid)
-                    newRental['documents'] = json.dumps(documents)
+
             # tenant approves lease aggreement
             if newApplication['application_status'] == 'RENTED':
                 response = db.execute(
