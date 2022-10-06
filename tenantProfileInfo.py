@@ -53,18 +53,35 @@ class TenantProfileInfo(Resource):
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
-                    newProfileInfo['tenant_'+field] = fieldValue
-            documents = json.loads(data.get('documents'))
-            for i in range(len(documents)):
-                filename = f'doc_{i}'
-                file = request.files.get(filename)
-                if file:
-                    key = f"tenants/{user['user_uid']}/{filename}"
-                    doc = uploadImage(file, key)
-                    documents[i]['link'] = doc
-                else:
-                    break
-            newProfileInfo['documents'] = json.dumps(documents)
+                    newProfileInfo[field] = fieldValue
+                if field == 'documents':
+                    documents = json.loads(data.get('documents'))
+                    for i, doc in enumerate(documents):
+                        filename = f'doc_{i}'
+                        file = request.files.get(filename)
+                        s3Link = doc.get('link')
+                        if file:
+                            doc['file'] = file
+                        elif s3Link:
+                            doc['link'] = s3Link
+                        else:
+                            break
+                    documents = updateDocuments(documents, user['user_uid'])
+                    newProfileInfo['documents'] = json.dumps(documents)
+            #     fieldValue = data.get(field)
+            #     if fieldValue:
+            #         newProfileInfo['tenant_'+field] = fieldValue
+            # documents = json.loads(data.get('documents'))
+            # for i in range(len(documents)):
+            #     filename = f'doc_{i}'
+            #     file = request.files.get(filename)
+            #     if file:
+            #         key = f"tenants/{user['user_uid']}/{filename}"
+            #         doc = uploadImage(file, key)
+            #         documents[i]['link'] = doc
+            #     else:
+            #         break
+            # newProfileInfo['documents'] = json.dumps(documents)
             response = db.insert('tenantProfileInfo', newProfileInfo)
         return response
 
