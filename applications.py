@@ -65,8 +65,8 @@ class Applications(Resource):
             if filterValue is not None:
                 where[f'a.{filter}'] = filterValue
         with connect() as db:
-            sql = 'SELECT  FROM applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.property_uid = r.rental_property_id'
-            cols = 'application_uid, message, application_status, t.*, p.*, r.*'
+
+            cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*'
             tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id'
             response = db.select(cols=cols, tables=tables, where=where)
         return response
