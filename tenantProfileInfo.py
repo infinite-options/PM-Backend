@@ -47,8 +47,8 @@ class TenantProfileInfo(Resource):
         user = get_jwt_identity()
         with connect() as db:
             data = request.form
-            fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
+            fields = ['tenant_first_name', 'tenant_last_name', 'tenant_phone_number', 'tenant_email', 'tenant_ssn', 'tenant_current_salary', 'tenant_salary_frequency', 'tenant_current_job_title',
+                      'tenant_current_job_company', 'tenant_drivers_license_number', 'tenant_drivers_license_state', 'tenant_current_address', 'tenant_previous_address']
             newProfileInfo = {'tenant_id': user['user_uid']}
             for field in fields:
                 fieldValue = data.get(field)

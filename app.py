@@ -12,6 +12,7 @@ import os
 from os import environ
 import stripe
 
+
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from appliances import Appliances
@@ -80,6 +81,7 @@ app.config["STRIPE_SECRET_KEY"] = os.environ.get("STRIPE_SECRET_KEY")
 
 def sendEmail(recipient, subject, body):
     with app.app_context():
+        print(recipient, subject, body)
         msg = Message(
             sender=app.config["MAIL_USERNAME"],
             recipients=[recipient],
@@ -87,6 +89,23 @@ def sendEmail(recipient, subject, body):
             body=body
         )
         mail.send(msg)
+
+
+def sendEmail2(recipient, subject, body):
+    print('in sendemail2')
+    with app.app_context():
+        msg = Message(
+            sender="support@nityaayurveda.com",
+            recipients=recipient,
+            subject=subject,
+            body=body
+        )
+        print(msg)
+        mail.send(msg)
+        print('after mail send')
+
+
+app.sendEmail2 = sendEmail2
 
 
 class stripe_key(Resource):
@@ -273,6 +292,58 @@ class SignUpForm(Resource):
         return response
 
 
+class Message(Resource):
+
+    def get(self):
+        response = {}
+        filters = ['message_uid', 'message_created_at',
+                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[f'a.{filter}'] = filterValue
+        with connect() as db:
+            sql = 'SELECT  FROM messages c'
+            cols = 'c.*'
+            tables = 'messages c '
+            response = db.select(cols=cols, tables=tables, where=where)
+        return response
+
+    def post(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            fields = ['sender_name', 'sender_email', 'sender_phone', 'message_subject',
+                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+            newMessage = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                print(fields, fieldValue)
+                if fieldValue:
+                    newMessage[field] = fieldValue
+            newMessageID = db.call('new_message_uid')['result'][0]['new_id']
+            newMessage['message_uid'] = newMessageID
+
+            print('newMessage', newMessage)
+            response = db.insert('messages', newMessage)
+            response['message_uid'] = newMessageID
+            # body = ("Hello,")
+
+            # msg = Message(
+            #     data['message_subject'],
+            #     sender="support@nityaayurveda.com",
+            #     recipients=["anureetksandhu7@gmail.com"],
+            # )
+            # msg.body = (
+            #     "Hi !\n\n"
+
+            # )
+            # # print('msg-bd----', msg.body)
+            # mail.send(msg)
+        return response
+
+
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
@@ -322,7 +393,7 @@ api.add_resource(OwnerProperties, '/ownerProperties')
 api.add_resource(OwnerPropertyBills, '/ownerPropertyBills')
 
 api.add_resource(OwnerDocuments, '/ownerDocuments')
-
+api.add_resource(Message, '/message')
 api.add_resource(ManagerProperties, '/managerProperties')
 # api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
 
