@@ -1,4 +1,5 @@
 
+from email import message
 from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
@@ -11,6 +12,7 @@ from data import connect
 import os
 from os import environ
 import stripe
+import json
 
 
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
@@ -89,23 +91,6 @@ def sendEmail(recipient, subject, body):
             body=body
         )
         mail.send(msg)
-
-
-def sendEmail2(recipient, subject, body):
-    print('in sendemail2')
-    with app.app_context():
-        msg = Message(
-            sender="support@nityaayurveda.com",
-            recipients=recipient,
-            subject=subject,
-            body=body
-        )
-        print(msg)
-        mail.send(msg)
-        print('after mail send')
-
-
-app.sendEmail2 = sendEmail2
 
 
 class stripe_key(Resource):
@@ -292,7 +277,7 @@ class SignUpForm(Resource):
         return response
 
 
-class Message(Resource):
+class MessageEmail(Resource):
 
     def get(self):
         response = {}
@@ -328,19 +313,85 @@ class Message(Resource):
             print('newMessage', newMessage)
             response = db.insert('messages', newMessage)
             response['message_uid'] = newMessageID
-            # body = ("Hello,")
 
-            # msg = Message(
-            #     data['message_subject'],
-            #     sender="support@nityaayurveda.com",
-            #     recipients=["anureetksandhu7@gmail.com"],
-            # )
-            # msg.body = (
-            #     "Hi !\n\n"
-
-            # )
-            # # print('msg-bd----', msg.body)
+            subject = data['message_subject']
+            message = data['message_details']
+            recipient = data['receiver_email']
+            body = (
+                "Hello," + "\n"
+                "Name: " + data['sender_name'] + "\n"
+                "Phone: " + data['sender_phone'] + "\n"
+                "Email: " + data['sender_email'] + "\n"
+                "Message: " + str(message) + "\n"
+                "\n"
+            )
             # mail.send(msg)
+            sendEmail(recipient, subject, body)
+        return response
+
+
+class Announcement(Resource):
+
+    def get(self):
+        response = {}
+        filters = ['announcement_uid', 'pm_id',
+                   'announcement_msg', 'receiver']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[f'a.{filter}'] = filterValue
+        with connect() as db:
+            sql = 'SELECT  FROM announcements a'
+            cols = 'a.*'
+            tables = 'announcements a '
+            response = db.select(cols=cols, tables=tables, where=where)
+        return response
+
+    def post(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            fields = ['pm_id', 'announcement_msg', 'receiver']
+            newAnnouncement = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                print(fields, fieldValue)
+                if fieldValue:
+                    newAnnouncement[field] = fieldValue
+            newAnnouncementID = db.call('new_announcement_id')[
+                'result'][0]['new_id']
+            newAnnouncement['announcement_uid'] = newAnnouncementID
+
+            newAnnouncement['receiver'] = json.dumps(data['receiver'])
+            print('newAnnouncement', newAnnouncement)
+            response = db.insert('announcements', newAnnouncement)
+            print(response)
+            response['announcement_uid'] = newAnnouncementID
+            if len(data['receiver']) > 0:
+                for info in data['receiver']:
+                    print(info)
+                    tenantResponse = db.execute("""SELECT tenant_id, 
+                                                    tenant_first_name,
+                                                    tenant_last_name,
+                                                    tenant_email,
+                                                    tenant_phone_number
+                                                    FROM pm.tenantProfileInfo
+                                                    WHERE
+                                                    tenant_id =  \'""" + info + """\'; """)
+                    subject = 'New announcement'
+                    message = data['announcement_msg']
+                    recipient = tenantResponse['result'][0]['tenant_email']
+                    body = (
+                        "Hello " + tenantResponse['result'][0]['tenant_first_name'] +
+                        ' ' +
+                        tenantResponse['result'][0]['tenant_last_name'] + "\n"
+                        "\n" + str(message) + "\n"
+                        "\n"
+                    )
+                    # mail.send(msg)
+                    sendEmail(recipient, subject, body)
+
         return response
 
 
@@ -393,7 +444,10 @@ api.add_resource(OwnerProperties, '/ownerProperties')
 api.add_resource(OwnerPropertyBills, '/ownerPropertyBills')
 
 api.add_resource(OwnerDocuments, '/ownerDocuments')
-api.add_resource(Message, '/message')
+api.add_resource(MessageEmail, '/message')
+
+api.add_resource(Announcement, '/announcement')
+
 api.add_resource(ManagerProperties, '/managerProperties')
 # api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
 
