@@ -334,8 +334,7 @@ class Announcement(Resource):
 
     def get(self):
         response = {}
-        filters = ['announcement_uid', 'pm_id',
-                   'announcement_msg', 'receiver']
+        filters = ['announcement_uid', 'pm_id', 'receiver']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -346,6 +345,35 @@ class Announcement(Resource):
             cols = 'a.*'
             tables = 'announcements a '
             response = db.select(cols=cols, tables=tables, where=where)
+
+            if len(response['result']) > 0:
+                for res in response['result']:
+                    manager_response = db.execute(
+                        """SELECT * FROM businesses WHERE business_uid = \'""" + res['pm_id'] + """\'; """)
+
+                    res['pm_details'] = list(
+                        manager_response['result'])
+                    tenantInfo = []
+                    if len(json.loads(res['receiver'])) > 0:
+                        for info in json.loads(res['receiver']):
+                            print(info)
+                            tenantResponse = db.execute("""SELECT tenant_id, 
+                                                            t.tenant_first_name,
+                                                            t.tenant_last_name,
+                                                            t.tenant_email,
+                                                            t.tenant_phone_number, p.*
+                                                            FROM pm.tenantProfileInfo t
+                                                            LEFT JOIN leaseTenants lt
+                                                            ON t.tenant_id = lt.linked_tenant_id
+                                                            LEFT JOIN rentals r
+                                                            ON lt.linked_rental_uid = r.rental_uid
+                                                            LEFT JOIN properties p
+                                                            ON r.rental_property_id = p.property_uid
+                                                            WHERE
+                                                            tenant_id =  \'""" + info + """\'; """)
+                            tenantInfo.append((tenantResponse['result'][0]))
+                    res['receiver_details'] = (tenantInfo)
+
         return response
 
     def post(self):
