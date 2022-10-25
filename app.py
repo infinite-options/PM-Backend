@@ -1,4 +1,5 @@
 
+from twilio.rest import Client
 from email import message
 from flask import Flask
 from flask_restful import Api
@@ -52,6 +53,10 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
 app.config['PROPAGATE_EXCEPTIONS'] = True
 jwt = JWTManager(app)
 
+# Twilio settings
+
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 
 app.config['MAIL_USERNAME'] = os.environ.get('SUPPORT_EMAIL')
 app.config['MAIL_PASSWORD'] = os.environ.get('SUPPORT_PASSWORD')
@@ -330,6 +335,57 @@ class MessageEmail(Resource):
         return response
 
 
+class Send_Twilio_SMS(Resource):
+
+    def post(self):
+        items = {}
+        data = request.get_json(force=True)
+        numbers = data['numbers']
+        message = data['message']
+        # if not numbers:
+        #     raise BadRequest('Request failed. Please provide the recipients field.')
+        # if not message:
+        #     raise BadRequest('Request failed. Please provide the message field.')
+        #print('IN SMS----')
+        # print(numbers)
+        numbers = list(set(numbers.split(',')))
+        # print(numbers)
+        ##print(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        for destination in numbers:
+            try:
+                client.messages.create(
+                    body=message,
+                    from_='+19254815757',
+                    to="+1" + destination
+                )
+            except:
+                continue
+        items['code'] = 200
+        items['Message'] = 'SMS sent successfully to all recipients'
+        return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
+
+
+def Send_Twilio_SMS2(message, phone_number):
+    items = {}
+    numbers = phone_number
+    message = message
+    numbers = list(set(numbers.split(',')))
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    for destination in numbers:
+        try:
+            client.messages.create(
+                body=message,
+                from_='+19254815757',
+                to="+1" + destination
+            )
+        except:
+            continue
+    items['code'] = 200
+    items['Message'] = 'SMS sent successfully to all recipients'
+    return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
+
+
 class Announcement(Resource):
 
     def get(self):
@@ -341,38 +397,84 @@ class Announcement(Resource):
             if filterValue is not None:
                 where[f'a.{filter}'] = filterValue
         with connect() as db:
-            sql = 'SELECT  FROM announcements a'
-            cols = 'a.*'
-            tables = 'announcements a '
-            response = db.select(cols=cols, tables=tables, where=where)
+            print('filter', filter, filterValue)
+            if(filter == 'receiver' and filterValue is not None):
+                print('do this if receiver')
+                response = db.execute(
+                    """SELECT * FROM announcements WHERE receiver LIKE '%""" + filterValue + """%'; """)
+                if len(response['result']) > 0:
+                    for res in response['result']:
+                        manager_response = db.execute(
+                            """SELECT * FROM businesses WHERE business_uid = \'""" + res['pm_id'] + """\'; """)
 
-            if len(response['result']) > 0:
-                for res in response['result']:
-                    manager_response = db.execute(
-                        """SELECT * FROM businesses WHERE business_uid = \'""" + res['pm_id'] + """\'; """)
+                        res['pm_details'] = list(
+                            manager_response['result'])
+                        tenantInfo = []
+                        if len(res['receiver_properties']) > 0:
+                            for prop in json.loads(res['receiver_properties']):
+                                print(prop)
+                                tenantResponse = db.execute("""SELECT tenant_id,
+                                                                t.tenant_first_name,
+                                                                t.tenant_last_name,
+                                                                t.tenant_email,
+                                                                t.tenant_phone_number, p.*
+                                                                FROM pm.tenantProfileInfo t
+                                                                LEFT JOIN leaseTenants lt
+                                                                ON t.tenant_id = lt.linked_tenant_id
+                                                                LEFT JOIN rentals r
+                                                                ON lt.linked_rental_uid = r.rental_uid
+                                                                LEFT JOIN properties p
+                                                                ON r.rental_property_id = p.property_uid
+                                                                WHERE
+                                                                tenant_id LIKE '%""" + filterValue + """%' AND p.property_uid = \'""" + prop + """\' ; """)
+                                print(tenantResponse)
+                                if(len(tenantResponse['result'])) > 0:
+                                    tenantInfo.append(
+                                        (tenantResponse['result'][0]))
+                                res['receiver_details'] = (tenantInfo)
 
-                    res['pm_details'] = list(
-                        manager_response['result'])
-                    tenantInfo = []
-                    if len(json.loads(res['receiver'])) > 0:
-                        for info in json.loads(res['receiver']):
-                            print(info)
-                            tenantResponse = db.execute("""SELECT tenant_id, 
-                                                            t.tenant_first_name,
-                                                            t.tenant_last_name,
-                                                            t.tenant_email,
-                                                            t.tenant_phone_number, p.*
-                                                            FROM pm.tenantProfileInfo t
-                                                            LEFT JOIN leaseTenants lt
-                                                            ON t.tenant_id = lt.linked_tenant_id
-                                                            LEFT JOIN rentals r
-                                                            ON lt.linked_rental_uid = r.rental_uid
-                                                            LEFT JOIN properties p
-                                                            ON r.rental_property_id = p.property_uid
-                                                            WHERE
-                                                            tenant_id =  \'""" + info + """\'; """)
-                            tenantInfo.append((tenantResponse['result'][0]))
-                    res['receiver_details'] = (tenantInfo)
+            else:
+                sql = 'SELECT  FROM announcements a'
+                cols = 'a.*'
+                tables = 'announcements a '
+                response = db.select(cols=cols, tables=tables, where=where)
+
+                if len(response['result']) > 0:
+
+                    for res in response['result']:
+                        print(res)
+                        manager_response = db.execute(
+                            """SELECT * FROM businesses WHERE business_uid = \'""" + res['pm_id'] + """\'; """)
+
+                        res['pm_details'] = list(
+                            manager_response['result'])
+                        tenantInfo = []
+                        if len(json.loads(res['receiver'])) > 0:
+                            for info in json.loads(res['receiver']):
+                                print(info)
+                                print(res['receiver_properties'])
+                                if len(res['receiver_properties']) > 0:
+                                    for prop in json.loads(res['receiver_properties']):
+                                        print(prop)
+                                        tenantResponse = db.execute("""SELECT tenant_id, 
+                                                                        t.tenant_first_name,
+                                                                        t.tenant_last_name,
+                                                                        t.tenant_email,
+                                                                        t.tenant_phone_number, p.*
+                                                                        FROM pm.tenantProfileInfo t
+                                                                        LEFT JOIN leaseTenants lt
+                                                                        ON t.tenant_id = lt.linked_tenant_id
+                                                                        LEFT JOIN rentals r
+                                                                        ON lt.linked_rental_uid = r.rental_uid
+                                                                        LEFT JOIN properties p
+                                                                        ON r.rental_property_id = p.property_uid
+                                                                        WHERE
+                                                                        tenant_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
+                                        print(tenantResponse)
+                                        if(len(tenantResponse['result'])) > 0:
+                                            tenantInfo.append(
+                                                (tenantResponse['result'][0]))
+                                res['receiver_details'] = (tenantInfo)
 
         return response
 
@@ -380,7 +482,8 @@ class Announcement(Resource):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['pm_id', 'announcement_msg', 'receiver']
+            fields = ['pm_id', 'announcement_msg',
+                      'receiver', 'receiver_properties']
             newAnnouncement = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -392,6 +495,8 @@ class Announcement(Resource):
             newAnnouncement['announcement_uid'] = newAnnouncementID
 
             newAnnouncement['receiver'] = json.dumps(data['receiver'])
+            newAnnouncement['receiver_properties'] = json.dumps(
+                data['receiver_properties'])
             print('newAnnouncement', newAnnouncement)
             response = db.insert('announcements', newAnnouncement)
             print(response)
@@ -419,10 +524,13 @@ class Announcement(Resource):
                     )
                     # mail.send(msg)
                     sendEmail(recipient, subject, body)
+                    Send_Twilio_SMS2(
+                        message, tenantResponse['result'][0]['tenant_phone_number'])
 
         return response
 
 
+api.add_resource(Send_Twilio_SMS, '/Send_Twilio_SMS')
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
