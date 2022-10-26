@@ -342,15 +342,7 @@ class Send_Twilio_SMS(Resource):
         data = request.get_json(force=True)
         numbers = data['numbers']
         message = data['message']
-        # if not numbers:
-        #     raise BadRequest('Request failed. Please provide the recipients field.')
-        # if not message:
-        #     raise BadRequest('Request failed. Please provide the message field.')
-        #print('IN SMS----')
-        # print(numbers)
         numbers = list(set(numbers.split(',')))
-        # print(numbers)
-        ##print(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         for destination in numbers:
             try:
@@ -448,33 +440,61 @@ class Announcement(Resource):
 
                         res['pm_details'] = list(
                             manager_response['result'])
-                        tenantInfo = []
-                        if len(json.loads(res['receiver'])) > 0:
-                            for info in json.loads(res['receiver']):
-                                print(info)
-                                print(res['receiver_properties'])
-                                if len(res['receiver_properties']) > 0:
-                                    for prop in json.loads(res['receiver_properties']):
-                                        print(prop)
-                                        tenantResponse = db.execute("""SELECT tenant_id, 
-                                                                        t.tenant_first_name,
-                                                                        t.tenant_last_name,
-                                                                        t.tenant_email,
-                                                                        t.tenant_phone_number, p.*
-                                                                        FROM pm.tenantProfileInfo t
-                                                                        LEFT JOIN leaseTenants lt
-                                                                        ON t.tenant_id = lt.linked_tenant_id
-                                                                        LEFT JOIN rentals r
-                                                                        ON lt.linked_rental_uid = r.rental_uid
-                                                                        LEFT JOIN properties p
-                                                                        ON r.rental_property_id = p.property_uid
-                                                                        WHERE
-                                                                        tenant_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
-                                        print(tenantResponse)
-                                        if(len(tenantResponse['result'])) > 0:
-                                            tenantInfo.append(
-                                                (tenantResponse['result'][0]))
-                                res['receiver_details'] = (tenantInfo)
+                        if res['announcement_mode'] == 'Tenants':
+                            tenantInfo = []
+                            if len(json.loads(res['receiver'])) > 0:
+                                for info in json.loads(res['receiver']):
+                                    print(info)
+                                    print(res['receiver_properties'])
+                                    if len(json.loads(res['receiver_properties'])) > 0:
+                                        for prop in json.loads(res['receiver_properties']):
+                                            print(prop)
+                                            tenantResponse = db.execute("""SELECT tenant_id, 
+                                                                            t.tenant_first_name,
+                                                                            t.tenant_last_name,
+                                                                            t.tenant_email,
+                                                                            t.tenant_phone_number, p.*
+                                                                            FROM pm.tenantProfileInfo t
+                                                                            LEFT JOIN leaseTenants lt
+                                                                            ON t.tenant_id = lt.linked_tenant_id
+                                                                            LEFT JOIN rentals r
+                                                                            ON lt.linked_rental_uid = r.rental_uid
+                                                                            LEFT JOIN properties p
+                                                                            ON r.rental_property_id = p.property_uid
+                                                                            WHERE
+                                                                            tenant_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
+                                            print(tenantResponse)
+                                            if(len(tenantResponse['result'])) > 0:
+                                                tenantInfo.append(
+                                                    (tenantResponse['result'][0]))
+                                    res['receiver_details'] = (tenantInfo)
+                        else:
+                            tenantInfo = []
+                            # if len(json.loads(res['receiver'])) > 0:
+                            #     for info in json.loads(res['receiver']):
+                            #         print(info)
+                            #         print(res['receiver_properties'])
+                            if len(json.loads(res['receiver_properties'])) > 0:
+                                for prop in json.loads(res['receiver_properties']):
+                                    print(prop)
+                                    tenantResponse = db.execute("""SELECT tenant_id, 
+                                                                    t.tenant_first_name,
+                                                                    t.tenant_last_name,
+                                                                    t.tenant_email,
+                                                                    t.tenant_phone_number, p.*
+                                                                    FROM pm.tenantProfileInfo t
+                                                                    LEFT JOIN leaseTenants lt
+                                                                    ON t.tenant_id = lt.linked_tenant_id
+                                                                    LEFT JOIN rentals r
+                                                                    ON lt.linked_rental_uid = r.rental_uid
+                                                                    LEFT JOIN properties p
+                                                                    ON r.rental_property_id = p.property_uid
+                                                                    WHERE p.property_uid = \'""" + prop + """\' ; """)
+                                    print(tenantResponse['result'])
+                                    if(len(tenantResponse['result'])) > 0:
+                                        for tenant in tenantResponse['result']:
+                                            tenantInfo.append(tenant)
+                            res['receiver_details'] = (tenantInfo)
 
         return response
 
@@ -482,7 +502,7 @@ class Announcement(Resource):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['pm_id', 'announcement_msg',
+            fields = ['pm_id', 'announcement_msg', 'announcement_title', 'announcement_mode',
                       'receiver', 'receiver_properties']
             newAnnouncement = {}
             for field in fields:
@@ -501,6 +521,9 @@ class Announcement(Resource):
             response = db.insert('announcements', newAnnouncement)
             print(response)
             response['announcement_uid'] = newAnnouncementID
+            tenant_pno = []
+            tenant_email = []
+            tenant_name = []
             if len(data['receiver']) > 0:
                 for info in data['receiver']:
                     print(info)
@@ -512,25 +535,63 @@ class Announcement(Resource):
                                                     FROM pm.tenantProfileInfo
                                                     WHERE
                                                     tenant_id =  \'""" + info + """\'; """)
-                    subject = 'New announcement'
-                    message = data['announcement_msg']
-                    recipient = tenantResponse['result'][0]['tenant_email']
-                    body = (
-                        "Hello " + tenantResponse['result'][0]['tenant_first_name'] +
-                        ' ' +
-                        tenantResponse['result'][0]['tenant_last_name'] + "\n"
-                        "\n" + str(message) + "\n"
-                        "\n"
-                    )
-                    # mail.send(msg)
-                    sendEmail(recipient, subject, body)
-                    Send_Twilio_SMS2(
-                        message, tenantResponse['result'][0]['tenant_phone_number'])
-
+                    tenant_pno.append(
+                        tenantResponse['result'][0]['tenant_phone_number'])
+                    tenant_email.append(
+                        tenantResponse['result'][0]['tenant_email'])
+                    tenant_name.append(
+                        tenantResponse['result'][0]['tenant_first_name'] + ' ' + tenantResponse['result'][0]['tenant_last_name'])
+                    # subject = data['announcement_title']
+                    # message = data['announcement_msg']
+                    # recipient = tenantResponse['result'][0]['tenant_email']
+                    # body = (
+                    #     "Hello " + tenantResponse['result'][0]['tenant_first_name'] +
+                    #     ' ' +
+                    #     tenantResponse['result'][0]['tenant_last_name'] + "\n"
+                    #     "\n" + str(message) + "\n"
+                    #     "\n"
+                    # )
+                    # # mail.send(msg)
+                    # sendEmail(recipient, subject, body)
+                    # text_msg = (data['announcement_title'] + "\n" +
+                    #             data['announcement_msg'])
+                    # Send_Twilio_SMS2(
+                    #     text_msg, tenantResponse['result'][0]['tenant_phone_number'])
+            print(tenant_email, tenant_pno, tenant_name)
+            response['tenant_name'] = tenant_name
+            response['tenant_pno'] = tenant_pno
+            response['tenant_email'] = tenant_email
         return response
 
 
+class SendAnnouncement(Resource):
+
+    def post(self):
+        data = request.get_json(force=True)
+        subject = data['announcement_title']
+        message = data['announcement_msg']
+        tenant_email = data['tenant_email']
+        tenant_pno = data['tenant_pno']
+        tenant_name = data['tenant_name']
+        for e in range(len(tenant_email)):
+            recipient = tenant_email[e]
+            body = (
+                "Hello " + tenant_name[e] + "\n"
+                "\n" + str(message) + "\n"
+                "\n"
+            )
+
+            sendEmail(recipient, subject, body)
+            text_msg = (subject + "\n" +
+                        message)
+            Send_Twilio_SMS2(
+                text_msg, tenant_pno[e])
+        return 'Email and Text Sent'
+
+
 api.add_resource(Send_Twilio_SMS, '/Send_Twilio_SMS')
+api.add_resource(SendAnnouncement, '/SendAnnouncement')
+
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
