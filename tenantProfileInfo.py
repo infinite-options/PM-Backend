@@ -166,6 +166,6 @@ class TenantDetails(Resource):
                                     user_repairRequests['result'][y]['days_open'] = int(
                                         (str(time_between_insertion).split(',')[0]).split(' ')[0])
                                 else:
-                                    user_repairRequests['result'][y]['days_open'] = 0
+                                    user_repairRequests['result'][y]['days_open'] = 1
 
         return response

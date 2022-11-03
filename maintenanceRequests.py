@@ -215,7 +215,7 @@ class MaintenanceRequestsandQuotes(Resource):
                         response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
                             0]).split(' ')[0])
                     else:
-                        response['result'][i]['days_open'] = 0
+                        response['result'][i]['days_open'] = 1
 
                     # print(quotes_res)
                     # change the response variable here, don't know why
@@ -259,7 +259,7 @@ class MaintenanceRequestsandQuotes(Resource):
                             maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
                                 0]).split(' ')[0])
                         else:
-                            maintenance_res['result'][y]['days_open'] = 0
+                            maintenance_res['result'][y]['days_open'] = 1
 
                         maintenance_res['result'][y]['quotes'] = list(
                             quotes_res['result'])

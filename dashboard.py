@@ -251,8 +251,10 @@ class OwnerDashboard(Resource):
                 else:
                     response['result'][i]['rental_status'] = ""
 
-                maintenance_res = db.execute("""SELECT *
+                maintenance_res = db.execute("""SELECT mr.*, p.address, p.unit, p.city, p.state, p.zip
                                                 FROM pm.maintenanceRequests mr
+                                                LEFT JOIN pm.properties p
+                                                ON mr.property_uid = p.property_uid
                                                 WHERE mr.property_uid = \'""" + property_id + """\'
                                                 """)
                 response['result'][i]['maintenanceRequests'] = list(
@@ -266,7 +268,15 @@ class OwnerDashboard(Resource):
                     quotes_res = db.select(
                         ''' maintenanceQuotes quote ''', rid)
                     # print(quotes_res)
-                    # change the response variable here, don't know why
+                    time_between_insertion = datetime.now() - \
+                        datetime.strptime(
+                        maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                    if ',' in str(time_between_insertion):
+                        maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                            0]).split(' ')[0])
+                    else:
+                        maintenance_res['result'][y]['days_open'] = 1
+
                     maintenance_res['result'][y]['quotes'] = list(
                         quotes_res['result'])
                     maintenance_res['result'][y]['total_quotes'] = len(
@@ -1706,7 +1716,7 @@ class ManagerDashboard(Resource):
                                     response['result'][i]['oldestOpenMR'] = int(
                                         (str(time_between_insertion).split(',')[0]).split(' ')[0])
                                 else:
-                                    response['result'][i]['oldestOpenMR'] = 0
+                                    response['result'][i]['oldestOpenMR'] = 1
 
                 else:
                     response['result'][i]['oldestOpenMR'] = 'Not Applicable'
