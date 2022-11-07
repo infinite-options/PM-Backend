@@ -16,6 +16,7 @@ import stripe
 import json
 
 
+from cashflow import OwnerCashflow, OwnerCashflowProperty
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from appliances import Appliances
@@ -692,5 +693,8 @@ api.add_resource(
 
 api.add_resource(LeaseTenants, "/leaseTenants")
 api.add_resource(Bills, "/bills")
+
+api.add_resource(OwnerCashflow, "/ownerCashflow")
+api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
 if __name__ == '__main__':
     app.run(debug=True)
