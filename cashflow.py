@@ -1339,7 +1339,7 @@ class OwnerCashflow(Resource):
                                             insurance_year_expense = insurance_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                            ['insurance'])[te]['amount'])))
                                             owner_property_expenses['result'][ope]['insurance_year_expense'] = owner_property_expenses['result'][ope]['insurance_year_expense'] + 2*(int(eval(owner_property_expenses['result'][ope]
-                                                                                                                                                                                            ['insurance'])[te]['amount']))
+                                                                                                                                                                                              ['insurance'])[te]['amount']))
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
                                             insurance_expense = insurance_expense + \
                                                 (int(eval(owner_property_expenses['result'][ope]['insurance'])[
@@ -2496,9 +2496,9 @@ class OwnerCashflowProperty(Resource):
             response['result']['utility_year_expected_expense'] = round(
                 utility_year_expected_expense, 2)
             owner_property_expenses = db.execute("""
-                        SELECT pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
+                        SELECT pr.property_uid,pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
                         WHERE pr.property_uid = \'""" + filterValue + """\'
-                        AND pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null
+                        AND (pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null)
                         """)
             # monthly expense for the property to include mortgage
             if len(owner_property_expenses['result']) > 0:
