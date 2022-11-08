@@ -1150,12 +1150,17 @@ class OwnerCashflow(Resource):
                 utility_year_expected_expense, 2)
 
             owner_property_expenses = db.execute("""
-                        SELECT pr.address, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
+                        SELECT  pr.property_uid, pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
                         WHERE pr.owner_id = \'""" + filterValue + """\'
+                        AND pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null
                         """)
+            response['result']['owner_property_expense'] = list(
+                owner_property_expenses['result'])
             # monthly expense for the property to include mortgage
             if len(owner_property_expenses['result']) > 0:
                 for ope in range(len(owner_property_expenses['result'])):
+                    print(
+                        ope, owner_property_expenses['result'][ope]['property_uid'])
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
                         owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d')), datetime.now())
@@ -1185,7 +1190,7 @@ class OwnerCashflow(Resource):
                                 mortgage_expense = mortgage_expense + 2 * \
                                     (int(json.loads(
                                         owner_property_expenses['result'][ope]['mortgages'])['amount']))
-                    # if mortgage weekly
+                        # if mortgage weekly
                         elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency'] == 'Weekly':
                             # if mortgage weekly and once a week
                             if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Once a week':
@@ -1201,13 +1206,12 @@ class OwnerCashflow(Resource):
                                 mortgage_expense = mortgage_expense + (weeks_current_month/2) * \
                                     (int(json.loads(
                                         owner_property_expenses['result'][ope]['mortgages'])['amount']))
+
                     # monthly expense for the property to include taxes
                     if owner_property_expenses['result'][ope]['taxes'] is not None:
-
                         if len(eval(owner_property_expenses['result'][ope]['taxes'])) > 0:
                             for te in range(len(eval(owner_property_expenses['result'][ope]['taxes']))):
-                                print(
-                                    eval(owner_property_expenses['result'][ope]['taxes'])[te])
+
                                 # if tax monthly
                                 if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency'] == 'Monthly':
                                     # if taxes monthly and once a month
@@ -1229,22 +1233,23 @@ class OwnerCashflow(Resource):
 
                                     # if taxes annually and once a year
                                     if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).year == today.year:
                                             taxes_year_expense = taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
                                                                                                 ['taxes'])[te]['amount']))
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month:
                                             taxes_expense = taxes_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                     te]['amount'])
                                     # if taxes annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
                                         print('in twice a year')
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).year == today.year:
                                             taxes_year_expense = taxes_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                    ['taxes'])[te]['amount'])))
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
 
-                                            print(date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[
+                                            print(date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                   te]['next_date']) + relativedelta(months=6))
                                             taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
@@ -2440,9 +2445,12 @@ class OwnerCashflowProperty(Resource):
             response['result']['utility_year_expected_expense'] = round(
                 utility_year_expected_expense, 2)
             owner_property_expenses = db.execute("""
-                        SELECT pr.address, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
+                        SELECT pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
                         WHERE pr.property_uid = \'""" + filterValue + """\'
+                        AND pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null
                         """)
+            response['result']['owner_property_expense'] = list(
+                owner_property_expenses['result'])
             # monthly expense for the property to include mortgage
             if len(owner_property_expenses['result']) > 0:
                 for ope in range(len(owner_property_expenses['result'])):
@@ -2519,23 +2527,21 @@ class OwnerCashflowProperty(Resource):
 
                                     # if taxes annually and once a year
                                     if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).year == today.year:
                                             taxes_year_expense = taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
                                                                                                 ['taxes'])[te]['amount']))
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month:
                                             taxes_expense = taxes_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                     te]['amount'])
                                     # if taxes annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
                                         print('in twice a year')
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).year == today.year:
                                             taxes_year_expense = taxes_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                    ['taxes'])[te]['amount'])))
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
 
-                                            print(date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[
-                                                  te]['next_date']) + relativedelta(months=6))
                                             taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
                         # monthly expense for the property to include insurance
