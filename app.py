@@ -696,7 +696,7 @@ api.add_resource(Bills, "/bills")
 api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
 
-api.add_resource(ApplePay, "/applepaySession")
+api.add_resource(ApplePay, "/applepay")
 
 if __name__ == '__main__':
     app.run(debug=True)
