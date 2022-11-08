@@ -49,7 +49,7 @@ class OwnerCashflow(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.owner_id = \'""" + filterValue + """\' 
+            WHERE pr.owner_id = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -66,7 +66,7 @@ class OwnerCashflow(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.owner_id = \'""" + filterValue + """\' 
+            WHERE pr.owner_id = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
@@ -203,7 +203,7 @@ class OwnerCashflow(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.owner_id = \'""" + filterValue + """\' 
+            WHERE pr.owner_id = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -220,7 +220,7 @@ class OwnerCashflow(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.owner_id = \'""" + filterValue + """\' 
+            WHERE pr.owner_id = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
@@ -418,7 +418,7 @@ class OwnerCashflow(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.owner_id = \'""" + filterValue + """\' 
+            WHERE pr.owner_id = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -784,7 +784,7 @@ class OwnerCashflow(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.owner_id = \'""" + filterValue + """\' 
+            WHERE pr.owner_id = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -1148,6 +1148,156 @@ class OwnerCashflow(Resource):
                 repairs_year_expected_expense, 2)
             response['result']['utility_year_expected_expense'] = round(
                 utility_year_expected_expense, 2)
+
+            owner_property_expenses = db.execute("""
+                        SELECT pr.address, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
+                        WHERE pr.owner_id = \'""" + filterValue + """\'
+                        """)
+            # monthly expense for the property to include mortgage
+            if len(owner_property_expenses['result']) > 0:
+                for ope in range(len(owner_property_expenses['result'])):
+                    # number of months a property has been active
+                    delta_active = relativedelta((datetime.strptime(
+                        owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d')), datetime.now())
+                    months_active = abs(delta_active.months +
+                                        (delta_active.years * 12))
+                    # number of weeks in the current month
+                    weeks_current_month = len(
+                        calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                    # number of weeks a property has been active
+                    weeks_active = round((abs(today - datetime.strptime(
+                        owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+
+                    if owner_property_expenses['result'][ope]['mortgages'] is not None:
+                        # if mortgage monthly
+                        if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency'] == 'Monthly':
+                            # if mortgage monthly and once a month
+                            if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Once a month':
+                                mortgage_year_expense = mortgage_year_expense + (months_active*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + \
+                                    int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount'])
+                        # if mortgage monthly and twice a month
+                            elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Twice a month':
+                                mortgage_year_expense = mortgage_year_expense + (2*months_active*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + 2 * \
+                                    (int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount']))
+                    # if mortgage weekly
+                        elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency'] == 'Weekly':
+                            # if mortgage weekly and once a week
+                            if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Once a week':
+                                mortgage_year_expense = mortgage_year_expense + (weeks_active*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + \
+                                    weeks_current_month*(int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount']))
+                            # if mortgage weekly and every other week
+                            elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Every other week':
+                                mortgage_year_expense = mortgage_year_expense + ((weeks_active/2)*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + (weeks_current_month/2) * \
+                                    (int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount']))
+                    # monthly expense for the property to include taxes
+                    if owner_property_expenses['result'][ope]['taxes'] is not None:
+
+                        if len(eval(owner_property_expenses['result'][ope]['taxes'])) > 0:
+                            for te in range(len(eval(owner_property_expenses['result'][ope]['taxes']))):
+                                print(
+                                    eval(owner_property_expenses['result'][ope]['taxes'])[te])
+                                # if tax monthly
+                                if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency'] == 'Monthly':
+                                    # if taxes monthly and once a month
+                                    if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Once a month':
+                                        taxes_year_expense = taxes_year_expense + (months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                            ['taxes'])[te]['amount']))
+                                        taxes_expense = taxes_expense + \
+                                            int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount'])
+                                # if taxes monthly and once a month
+                                    elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a month':
+                                        taxes_year_expense = taxes_year_expense + (2*months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                              ['taxes'])[te]['amount']))
+                                        taxes_expense = taxes_expense + \
+                                            2*(int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))
+                                    # if tax Annually
+                                elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency'] == 'Annually':
+
+                                    # if taxes annually and once a year
+                                    if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                            taxes_year_expense = taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                ['taxes'])[te]['amount']))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month:
+                                            taxes_expense = taxes_expense + \
+                                                int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount'])
+                                    # if taxes annually and twice a year
+                                    elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
+                                        print('in twice a year')
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                            taxes_year_expense = taxes_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
+                                                                                                   ['taxes'])[te]['amount'])))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+
+                                            print(date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[
+                                                  te]['next_date']) + relativedelta(months=6))
+                                            taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))
+                        # monthly expense for the property to include insurance
+                    if owner_property_expenses['result'][ope]['insurance'] is not None:
+                        if len(eval(owner_property_expenses['result'][ope]['insurance'])) > 0:
+                            for te in range(len(eval(owner_property_expenses['result'][ope]['insurance']))):
+
+                                # if insurance monthly
+                                if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency'] == 'Monthly':
+
+                                    # if insurance monthly and once a month
+                                    if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Once a month':
+                                        insurance_year_expense = insurance_year_expense + (months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                                    ['insurance'])[te]['amount']))
+                                        insurance_expense = insurance_expense + \
+                                            int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                te]['amount'])
+                                # if insurance monthly and once a month
+                                    elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Twice a month':
+                                        insurance_year_expense = insurance_year_expense + (2*months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                                      ['insurance'])[te]['amount']))
+                                        insurance_expense = insurance_expense + \
+                                            2*(int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                te]['amount']))
+                                    # if insurance Annually
+                                elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency'] == 'Annually':
+
+                                    # if insurance annually and once a year
+                                    if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
+                                            insurance_year_expense = insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                        ['insurance'])[te]['amount']))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month:
+                                            insurance_expense = insurance_expense + \
+                                                int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                    te]['amount'])
+                                    # if insurance annually and twice a year
+                                    elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Twice a year':
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
+                                            insurance_year_expense = insurance_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
+                                                                                                           ['insurance'])[te]['amount'])))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+                                            insurance_expense = insurance_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                    te]['amount']))
+            response['result']['mortgage_expense'] = mortgage_expense
+            response['result']['mortgage_year_expense'] = mortgage_year_expense
+            response['result']['taxes_expense'] = taxes_expense
+            response['result']['taxes_year_expense'] = taxes_year_expense
+            response['result']['insurance_expense'] = insurance_expense
+            response['result']['insurance_year_expense'] = insurance_year_expense
+
         return response
 
 
@@ -1190,7 +1340,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\' 
+            WHERE pr.property_uid = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -1207,7 +1357,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\' 
+            WHERE pr.property_uid = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
@@ -2289,4 +2439,152 @@ class OwnerCashflowProperty(Resource):
                 repairs_year_expected_expense, 2)
             response['result']['utility_year_expected_expense'] = round(
                 utility_year_expected_expense, 2)
+            owner_property_expenses = db.execute("""
+                        SELECT pr.address, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
+                        WHERE pr.property_uid = \'""" + filterValue + """\'
+                        """)
+            # monthly expense for the property to include mortgage
+            if len(owner_property_expenses['result']) > 0:
+                for ope in range(len(owner_property_expenses['result'])):
+                    # number of months a property has been active
+                    delta_active = relativedelta((datetime.strptime(
+                        owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d')), datetime.now())
+                    months_active = abs(delta_active.months +
+                                        (delta_active.years * 12))
+                    # number of weeks in the current month
+                    weeks_current_month = len(
+                        calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                    # number of weeks a property has been active
+                    weeks_active = round((abs(today - datetime.strptime(
+                        owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+
+                    if owner_property_expenses['result'][ope]['mortgages'] is not None:
+                        # if mortgage monthly
+                        if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency'] == 'Monthly':
+                            # if mortgage monthly and once a month
+                            if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Once a month':
+                                mortgage_year_expense = mortgage_year_expense + (months_active*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + \
+                                    int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount'])
+                        # if mortgage monthly and twice a month
+                            elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Twice a month':
+                                mortgage_year_expense = mortgage_year_expense + (2*months_active*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + 2 * \
+                                    (int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount']))
+                    # if mortgage weekly
+                        elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency'] == 'Weekly':
+                            # if mortgage weekly and once a week
+                            if json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Once a week':
+                                mortgage_year_expense = mortgage_year_expense + (weeks_active*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + \
+                                    weeks_current_month*(int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount']))
+                            # if mortgage weekly and every other week
+                            elif json.loads(owner_property_expenses['result'][ope]['mortgages'])['frequency_of_payment'] == 'Every other week':
+                                mortgage_year_expense = mortgage_year_expense + ((weeks_active/2)*(int(json.loads(owner_property_expenses['result'][ope]['mortgages'])[
+                                    'amount'])))
+                                mortgage_expense = mortgage_expense + (weeks_current_month/2) * \
+                                    (int(json.loads(
+                                        owner_property_expenses['result'][ope]['mortgages'])['amount']))
+                    # monthly expense for the property to include taxes
+                    if owner_property_expenses['result'][ope]['taxes'] is not None:
+
+                        if len(eval(owner_property_expenses['result'][ope]['taxes'])) > 0:
+                            for te in range(len(eval(owner_property_expenses['result'][ope]['taxes']))):
+                                print(
+                                    eval(owner_property_expenses['result'][ope]['taxes'])[te])
+                                # if tax monthly
+                                if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency'] == 'Monthly':
+                                    # if taxes monthly and once a month
+                                    if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Once a month':
+                                        taxes_year_expense = taxes_year_expense + (months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                            ['taxes'])[te]['amount']))
+                                        taxes_expense = taxes_expense + \
+                                            int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount'])
+                                # if taxes monthly and once a month
+                                    elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a month':
+                                        taxes_year_expense = taxes_year_expense + (2*months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                              ['taxes'])[te]['amount']))
+                                        taxes_expense = taxes_expense + \
+                                            2*(int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))
+                                    # if tax Annually
+                                elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency'] == 'Annually':
+
+                                    # if taxes annually and once a year
+                                    if eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Once a year':
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                            taxes_year_expense = taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                ['taxes'])[te]['amount']))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month:
+                                            taxes_expense = taxes_expense + \
+                                                int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount'])
+                                    # if taxes annually and twice a year
+                                    elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
+                                        print('in twice a year')
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).year == today.year:
+                                            taxes_year_expense = taxes_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
+                                                                                                   ['taxes'])[te]['amount'])))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+
+                                            print(date.fromisoformat(eval(owner_management_expense['result'][ope]['taxes'])[
+                                                  te]['next_date']) + relativedelta(months=6))
+                                            taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))
+                        # monthly expense for the property to include insurance
+                    if owner_property_expenses['result'][ope]['insurance'] is not None:
+                        if len(eval(owner_property_expenses['result'][ope]['insurance'])) > 0:
+                            for te in range(len(eval(owner_property_expenses['result'][ope]['insurance']))):
+
+                                # if insurance monthly
+                                if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency'] == 'Monthly':
+
+                                    # if insurance monthly and once a month
+                                    if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Once a month':
+                                        insurance_year_expense = insurance_year_expense + (months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                                    ['insurance'])[te]['amount']))
+                                        insurance_expense = insurance_expense + \
+                                            int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                te]['amount'])
+                                # if insurance monthly and once a month
+                                    elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Twice a month':
+                                        insurance_year_expense = insurance_year_expense + (2*months_active * int(eval(owner_property_expenses['result'][ope]
+                                                                                                                      ['insurance'])[te]['amount']))
+                                        insurance_expense = insurance_expense + \
+                                            2*(int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                te]['amount']))
+                                    # if insurance Annually
+                                elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency'] == 'Annually':
+
+                                    # if insurance annually and once a year
+                                    if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
+                                            insurance_year_expense = insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                        ['insurance'])[te]['amount']))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month:
+                                            insurance_expense = insurance_expense + \
+                                                int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                    te]['amount'])
+                                    # if insurance annually and twice a year
+                                    elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Twice a year':
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
+                                            insurance_year_expense = insurance_year_expense + (2*(int(eval(owner_property_expenses['result'][ope]
+                                                                                                           ['insurance'])[te]['amount'])))
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+                                            insurance_expense = insurance_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                    te]['amount']))
+            response['result']['mortgage_expense'] = mortgage_expense
+            response['result']['mortgage_year_expense'] = mortgage_year_expense
+            response['result']['taxes_expense'] = taxes_expense
+            response['result']['taxes_year_expense'] = taxes_year_expense
+            response['result']['insurance_expense'] = insurance_expense
+            response['result']['insurance_year_expense'] = insurance_year_expense
         return response
