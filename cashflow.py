@@ -776,7 +776,7 @@ class OwnerCashflow(Resource):
                 utility_expense, 2)
 
             # owner all expenses monthly except mortgage, taxes, insurance
-            owner_year_expense = db.execute("""
+            owner_expense_yearly = db.execute("""
             SELECT * FROM purchases pu
             LEFT JOIN payments pa
             ON pa.pay_purchase_id = pu.purchase_uid
@@ -789,8 +789,8 @@ class OwnerCashflow(Resource):
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
-            response['result']['owner_year_expense'] = list(
-                owner_year_expense['result'])
+            response['result']['owner_expense_yearly'] = list(
+                owner_expense_yearly['result'])
 
             owner_utility_year_expense = db.execute("""
             SELECT * FROM purchases pu
@@ -806,7 +806,7 @@ class OwnerCashflow(Resource):
             AND pu.payer LIKE '%""" + filterValue + """%'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
-            response['result']['owner_year_expense'] = response['result']['owner_year_expense'] + (list(
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
                 owner_utility_year_expense['result']))
 
             # monthly expenses for the property
@@ -827,7 +827,7 @@ class OwnerCashflow(Resource):
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
 
-            response['result']['owner_year_expense'] = response['result']['owner_year_expense'] + (list(
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
                 owner_management_year_expense['result']))
             if len(owner_management_year_expense['result']) > 0:
                 for mex in range(len(owner_management_year_expense['result'])):
@@ -933,8 +933,8 @@ class OwnerCashflow(Resource):
                                     print('do nothing')
                             else:
                                 print('do nothing')
-            if len(response['result']['owner_year_expense']) > 0:
-                for ore in range(len(response['result']['owner_year_expense'])):
+            if len(response['result']['owner_expense_yearly']) > 0:
+                for ore in range(len(response['result']['owner_expense_yearly'])):
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
                         response['result']['owner_revenue_yearly'][ore]['active_date'], '%Y-%m-%d')), datetime.now())
@@ -957,181 +957,181 @@ class OwnerCashflow(Resource):
                         response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
 
                     # if expenses type is MAINTAINENCE
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'MAINTENANCE':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MAINTENANCE':
                         # if maintenance monthly
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             # if maintenance monthly once a month
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_year_expense'][ore]['payment_frequency'] is None:
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense_yearly'][ore]['payment_frequency'] is None:
 
                                 maintenance_year_expense = maintenance_year_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                                 # if maintenance monthly twice a month
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a month':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
 
                                 maintenance_year_expense = maintenance_year_expense + 2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
                             # if maintenance annually
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             print('in maintenance annually')
                             # if maintenance annually once a year
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
                                 maintenance_year_expense = maintenance_year_expense + \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             # if maintenance annually twice a year
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a year':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 maintenance_year_expense = maintenance_year_expense + 2 * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
-                                    2*response['result']['owner_year_expense'][ore]['amount_due']
+                                    2*response['result']['owner_expense_yearly'][ore]['amount_due']
                             else:
                                 print('do nothing')
                         # if maintenance one-time
                         else:
                             maintenance_year_expense = maintenance_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                             maintenance_year_expected_expense = maintenance_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                     # if management
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT':
                         print("MANAGEMENT")
                         # if management monthly
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_year_expense'][ore]['payment_frequency'] is None:
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense_yearly'][ore]['payment_frequency'] is None:
                                 print('here')
                                 management_year_expense = management_year_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     months_active * \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                                 # if management monthly twice a month
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a month':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
                                 management_year_expense = management_year_expense + 2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
                             # if management annually
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             # if management annually once a year
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
                                 management_year_expense = management_year_expense +  \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             # if management annually twice a year
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a year':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 management_year_expense = management_year_expense + 2 * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
-                                    2*response['result']['owner_year_expense'][ore]['amount_due']
+                                    2*response['result']['owner_expense_yearly'][ore]['amount_due']
                             else:
                                 print('do nothing')
                         # if management one-time
                         else:
                             management_year_expense = management_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                             management_year_expected_expense = management_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
 
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'REPAIRS':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             # if repairs monthly once a month
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_year_expense'][ore]['payment_frequency'] is None:
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense_yearly'][ore]['payment_frequency'] is None:
                                 repairs_year_expense = repairs_year_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + months_active * \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                                 # if repairs monthly twice a month
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a month':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
                                 repairs_year_expense = repairs_year_expense + 2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
                             # if repairs annually
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a year':
-                                repairs_year_expense = repairs_year_expense + (response['result']['owner_year_expense']
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
+                                repairs_year_expense = repairs_year_expense + (response['result']['owner_expense_yearly']
                                                                                [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             # if repairs annually twice a year
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a year':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 repairs_year_expense = repairs_year_expense + 2 * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + 2 * \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             else:
                                 print('do nothing')
                         # if repairs one-time
                         else:
                             repairs_year_expense = repairs_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                             repairs_year_expected_expense = repairs_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Weekly':
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'UTILITY':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Weekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
-                                weeks_leased*int(response['result']['owner_year_expense']
+                                weeks_leased*int(response['result']['owner_expense_yearly']
                                                  [ore]['amount_due'])
                             utility_year_expense = utility_year_expense + \
-                                weeks_leased*int(response['result']['owner_year_expense']
+                                weeks_leased*int(response['result']['owner_expense_yearly']
                                                  [ore]['amount_paid'])
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Biweekly':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Biweekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
                                 weeks_leased/2 * \
-                                int(response['result']['owner_year_expense']
+                                int(response['result']['owner_expense_yearly']
                                     [ore]['amount_due'])
                             utility_year_expense = utility_year_expense + \
                                 weeks_leased/2 * \
-                                int(response['result']['owner_year_expense']
+                                int(response['result']['owner_expense_yearly']
                                     [ore]['amount_paid'])
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             utility_year_expected_expense = utility_year_expected_expense + months_leased * \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + months_leased * \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                         else:
                             utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
             response['result']['maintenance_year_expense'] = round(
                 maintenance_year_expense, 2)
             response['result']['management_year_expense'] = round(
@@ -2072,7 +2072,7 @@ class OwnerCashflowProperty(Resource):
                 utility_expense, 2)
 
             # owner all expenses monthly except mortgage, taxes, insurance
-            owner_year_expense = db.execute("""
+            owner_expense_yearly = db.execute("""
             SELECT * FROM purchases pu
             LEFT JOIN payments pa
             ON pa.pay_purchase_id = pu.purchase_uid
@@ -2085,8 +2085,8 @@ class OwnerCashflowProperty(Resource):
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
-            response['result']['owner_year_expense'] = list(
-                owner_year_expense['result'])
+            response['result']['owner_expense_yearly'] = list(
+                owner_expense_yearly['result'])
 
             owner_utility_year_expense = db.execute("""
             SELECT * FROM purchases pu
@@ -2102,7 +2102,7 @@ class OwnerCashflowProperty(Resource):
             AND pu.payer LIKE '%""" + filterValue + """%'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
-            response['result']['owner_year_expense'] = response['result']['owner_year_expense'] + (list(
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
                 owner_utility_year_expense['result']))
 
             # monthly expenses for the property
@@ -2123,7 +2123,7 @@ class OwnerCashflowProperty(Resource):
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
 
-            response['result']['owner_year_expense'] = response['result']['owner_year_expense'] + (list(
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
                 owner_management_year_expense['result']))
             if len(owner_management_year_expense['result']) > 0:
                 for mex in range(len(owner_management_year_expense['result'])):
@@ -2229,8 +2229,8 @@ class OwnerCashflowProperty(Resource):
                                     print('do nothing')
                             else:
                                 print('do nothing')
-            if len(response['result']['owner_year_expense']) > 0:
-                for ore in range(len(response['result']['owner_year_expense'])):
+            if len(response['result']['owner_expense_yearly']) > 0:
+                for ore in range(len(response['result']['owner_expense_yearly'])):
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
                         response['result']['owner_revenue_yearly'][ore]['active_date'], '%Y-%m-%d')), datetime.now())
@@ -2253,181 +2253,181 @@ class OwnerCashflowProperty(Resource):
                         response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
 
                     # if expenses type is MAINTAINENCE
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'MAINTENANCE':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MAINTENANCE':
                         # if maintenance monthly
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             # if maintenance monthly once a month
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_year_expense'][ore]['payment_frequency'] is None:
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense_yearly'][ore]['payment_frequency'] is None:
 
                                 maintenance_year_expense = maintenance_year_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                                 # if maintenance monthly twice a month
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a month':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
 
                                 maintenance_year_expense = maintenance_year_expense + 2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
                             # if maintenance annually
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             print('in maintenance annually')
                             # if maintenance annually once a year
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
                                 maintenance_year_expense = maintenance_year_expense + \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             # if maintenance annually twice a year
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a year':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 maintenance_year_expense = maintenance_year_expense + 2 * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
-                                    2*response['result']['owner_year_expense'][ore]['amount_due']
+                                    2*response['result']['owner_expense_yearly'][ore]['amount_due']
                             else:
                                 print('do nothing')
                         # if maintenance one-time
                         else:
                             maintenance_year_expense = maintenance_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                             maintenance_year_expected_expense = maintenance_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                     # if management
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT':
                         print("MANAGEMENT")
                         # if management monthly
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_year_expense'][ore]['payment_frequency'] is None:
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense_yearly'][ore]['payment_frequency'] is None:
                                 print('here')
                                 management_year_expense = management_year_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     months_active * \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                                 # if management monthly twice a month
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a month':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
                                 management_year_expense = management_year_expense + 2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
                             # if management annually
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             # if management annually once a year
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
                                 management_year_expense = management_year_expense +  \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             # if management annually twice a year
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a year':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 management_year_expense = management_year_expense + 2 * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
-                                    2*response['result']['owner_year_expense'][ore]['amount_due']
+                                    2*response['result']['owner_expense_yearly'][ore]['amount_due']
                             else:
                                 print('do nothing')
                         # if management one-time
                         else:
                             management_year_expense = management_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                             management_year_expected_expense = management_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
 
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'REPAIRS':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             # if repairs monthly once a month
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_year_expense'][ore]['payment_frequency'] is None:
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense_yearly'][ore]['payment_frequency'] is None:
                                 repairs_year_expense = repairs_year_expense + months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + months_active * \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                                 # if repairs monthly twice a month
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a month':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
                                 repairs_year_expense = repairs_year_expense + 2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
                             # if repairs annually
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Once a year':
-                                repairs_year_expense = repairs_year_expense + (response['result']['owner_year_expense']
+                            if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
+                                repairs_year_expense = repairs_year_expense + (response['result']['owner_expense_yearly']
                                                                                [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             # if repairs annually twice a year
-                            elif response['result']['owner_year_expense'][ore]['payment_frequency'] == 'Twice a year':
+                            elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 repairs_year_expense = repairs_year_expense + 2 * \
-                                    (response['result']['owner_year_expense']
+                                    (response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + 2 * \
-                                    response['result']['owner_year_expense'][ore]['amount_due']
+                                    response['result']['owner_expense_yearly'][ore]['amount_due']
                             else:
                                 print('do nothing')
                         # if repairs one-time
                         else:
                             repairs_year_expense = repairs_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                             repairs_year_expected_expense = repairs_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
-                    if response['result']['owner_year_expense'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Weekly':
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'UTILITY':
+                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Weekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
-                                weeks_leased*int(response['result']['owner_year_expense']
+                                weeks_leased*int(response['result']['owner_expense_yearly']
                                                  [ore]['amount_due'])
                             utility_year_expense = utility_year_expense + \
-                                weeks_leased*int(response['result']['owner_year_expense']
+                                weeks_leased*int(response['result']['owner_expense_yearly']
                                                  [ore]['amount_paid'])
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Biweekly':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Biweekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
                                 weeks_leased/2 * \
-                                int(response['result']['owner_year_expense']
+                                int(response['result']['owner_expense_yearly']
                                     [ore]['amount_due'])
                             utility_year_expense = utility_year_expense + \
                                 weeks_leased/2 * \
-                                int(response['result']['owner_year_expense']
+                                int(response['result']['owner_expense_yearly']
                                     [ore]['amount_paid'])
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
                             utility_year_expected_expense = utility_year_expected_expense + months_leased * \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + months_leased * \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
-                        elif response['result']['owner_year_expense'][ore]['purchase_frequency'] == 'Annually':
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
+                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
                             utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
                         else:
                             utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_due']
+                                response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
-                                response['result']['owner_year_expense'][ore]['amount_paid']
+                                response['result']['owner_expense_yearly'][ore]['amount_paid']
             response['result']['maintenance_year_expense'] = round(
                 maintenance_year_expense, 2)
             response['result']['management_year_expense'] = round(
