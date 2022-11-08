@@ -40,6 +40,20 @@ class OwnerCashflow(Resource):
             extra_year_expected_revenue = 0
             utility_year_expected_revenue = 0
 
+            amortized_rental_revenue = 0
+            amortized_extra_revenue = 0
+            amortized_utility_revenue = 0
+            amortized_rental_expected_revenue = 0
+            amortized_extra_expected_revenue = 0
+            amortized_utility_expected_revenue = 0
+
+            amortized_rental_year_revenue = 0
+            amortized_extra_year_revenue = 0
+            amortized_utility_year_revenue = 0
+            amortized_rental_year_expected_revenue = 0
+            amortized_extra_year_expected_revenue = 0
+            amortized_utility_year_expected_revenue = 0
+
             # owner rental and extra charges revenue monthly
             owner_rental_revenue = db.execute("""
             SELECT * FROM purchases pu
@@ -110,11 +124,23 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue'][ore]['amount_due']
                             rental_revenue = rental_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_rental_revenue = amortized_rental_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_rental_expected_revenue = amortized_rental_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
                         else:
                             rental_expected_revenue = rental_expected_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_due']
                             rental_revenue = rental_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_rental_revenue = amortized_rental_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_rental_expected_revenue = amortized_rental_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
 
                     if response['result']['owner_revenue'][ore]['purchase_type'] == 'EXTRA CHARGES':
                         if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -144,11 +170,23 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue'][ore]['amount_due']
                             extra_revenue = extra_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_extra_revenue = amortized_extra_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
                         else:
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_due']
                             extra_revenue = extra_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_extra_revenue = amortized_extra_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
 
                     if response['result']['owner_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -177,23 +215,47 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue'][ore]['amount_due']
                             utility_revenue = utility_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_utility_revenue = amortized_utility_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expected_revenue = amortized_utility_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
                         else:
                             utility_expected_revenue = utility_expected_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_due']
                             utility_revenue = utility_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_utility_revenue = amortized_utility_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expected_revenue = amortized_utility_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
             response['result']['rental_revenue'] = round(
                 rental_revenue, 2)
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
+            response['result']['amortized_rental_revenue'] = round(
+                amortized_rental_revenue, 2)
+            response['result']['amortized_rental_expected_revenue'] = round(
+                amortized_rental_expected_revenue, 2)
             response['result']['extra_revenue'] = round(
                 extra_revenue, 2)
             response['result']['extra_expected_revenue'] = round(
                 extra_expected_revenue, 2)
+            response['result']['amortized_extra_revenue'] = round(
+                amortized_extra_revenue, 2)
+            response['result']['amortized_extra_expected_revenue'] = round(
+                amortized_extra_expected_revenue, 2)
             response['result']['utility_revenue'] = round(
                 utility_revenue, 2)
             response['result']['utility_expected_revenue'] = round(
                 utility_expected_revenue, 2)
+            response['result']['amortized_utility_revenue'] = round(
+                amortized_utility_revenue, 2)
+            response['result']['amortized_utility_expected_revenue'] = round(
+                amortized_utility_expected_revenue, 2)
             # owner rental and extra charged revenue yearly
             owner_rental_revenue_yearly = db.execute("""
             SELECT * FROM purchases pu
@@ -287,11 +349,23 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             rental_year_revenue = rental_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_rental_year_expected_revenue = amortized_rental_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_rental_year_revenue = amortized_rental_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
                         else:
                             rental_year_expected_revenue = rental_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             rental_year_revenue = rental_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_rental_year_expected_revenue = amortized_rental_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_rental_year_revenue = amortized_rental_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
 
                      # if revenue type is EXTRA CHARGES
                     if response['result']['owner_revenue_yearly'][ore]['purchase_type'] == 'EXTRA CHARGES':
@@ -326,11 +400,23 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
                         else:
                             extra_year_expected_revenue = extra_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
 
                      # if revenue type is UTILITY
                     if response['result']['owner_revenue_yearly'][ore]['purchase_type'] == 'UTILITY':
@@ -364,23 +450,47 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             utility_year_revenue = utility_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_revenue = amortized_utility_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_utility_year_revenue = amortized_utility_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
                         else:
                             utility_year_expected_revenue = utility_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             utility_year_revenue = utility_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_revenue = amortized_utility_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_utility_year_revenue = amortized_utility_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
             response['result']['rental_year_revenue'] = round(
                 rental_year_revenue, 2)
             response['result']['rental_year_expected_revenue'] = round(
                 rental_year_expected_revenue, 2)
+            response['result']['amortized_rental_year_revenue'] = round(
+                amortized_rental_year_revenue, 2)
+            response['result']['amortized_rental_year_expected_revenue'] = round(
+                amortized_rental_year_expected_revenue, 2)
             response['result']['extra_year_revenue'] = round(
                 extra_year_revenue, 2)
             response['result']['extra_year_expected_revenue'] = round(
                 extra_year_expected_revenue, 2)
+            response['result']['amortized_extra_year_revenue'] = round(
+                amortized_extra_year_revenue, 2)
+            response['result']['amortized_extra_year_expected_revenue'] = round(
+                amortized_extra_year_expected_revenue, 2)
             response['result']['utility_year_revenue'] = round(
                 utility_year_revenue, 2)
             response['result']['utility_year_expected_revenue'] = round(
                 utility_year_expected_revenue, 2)
+            response['result']['amortized_utility_year_revenue'] = round(
+                amortized_utility_year_revenue, 2)
+            response['result']['amortized_utility_year_expected_revenue'] = round(
+                amortized_utility_year_expected_revenue, 2)
 
             # intialize expense variables
             utility_expense = 0
@@ -409,6 +519,31 @@ class OwnerCashflow(Resource):
             insurance_year_expense = 0
             taxes_year_expense = 0
 
+            amortized_utility_expense = 0
+            amortized_maintenance_expense = 0
+            amortized_management_expense = 0
+            amortized_repairs_expense = 0
+            amortized_maintenance_expected_expense = 0
+            amortized_management_expected_expense = 0
+            amortized_repairs_expected_expense = 0
+            amortized_utility_expected_expense = 0
+
+            amortized_mortgage_expense = 0
+            amortized_insurance_expense = 0
+            amortized_taxes_expense = 0
+
+            amortized_maintenance_year_expense = 0
+            amortized_management_year_expense = 0
+            amortized_repairs_year_expense = 0
+            amortized_utility_year_expense = 0
+            amortized_utility_year_expected_expense = 0
+            amortized_maintenance_year_expected_expense = 0
+            amortized_management_year_expected_expense = 0
+            amortized_repairs_year_expected_expense = 0
+
+            amortized_mortgage_year_expense = 0
+            amortized_insurance_year_expense = 0
+            amortized_taxes_year_expense = 0
             # owner all expense monthly except mortgage, taxes, insurance
             owner_expense = db.execute("""
             SELECT * FROM purchases pu
@@ -523,6 +658,12 @@ class OwnerCashflow(Resource):
                                             management_expense = management_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
+                                            amortized_management_expense = amortized_management_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     elif payment['frequency'] == 'One-time':
                                         if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
                                             management_expected_expense = management_expected_expense +  \
@@ -531,6 +672,12 @@ class OwnerCashflow(Resource):
                                             management_expense = management_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
+                                            amortized_management_expense = amortized_management_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     else:
                                         print('do nothing')
                             elif payment['fee_type'] == '$':
@@ -557,6 +704,11 @@ class OwnerCashflow(Resource):
                                         management_expense = management_expense + \
                                             float(
                                                 payment['charge'])
+                                        amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                            (float(payment['charge'])) / \
+                                            (datetime.now().month-1)
+                                        amortized_management_expense = amortized_management_expense +  \
+                                            (float(payment['charge']))/12
                                 elif payment['frequency'] == 'One-time':
 
                                     if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
@@ -565,6 +717,11 @@ class OwnerCashflow(Resource):
                                         management_expense = management_expense + \
                                             float(
                                                 payment['charge'])
+                                        amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                            (float(payment['charge'])) / \
+                                            (datetime.now().month-1)
+                                        amortized_management_expense = amortized_management_expense +  \
+                                            (float(payment['charge']))/12
 
                                 else:
                                     print('do nothing')
@@ -619,6 +776,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_due'])
                                 maintenance_expense = maintenance_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                amortized_maintenance_expense = amortized_maintenance_expense + \
+                                    (response['result']['owner_expense']
+                                     [ore]['amount_paid'])/12
                             # if maintenance annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 maintenance_expected_expense = maintenance_expected_expense + \
@@ -626,6 +789,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_due'])
                                 maintenance_expense = maintenance_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                amortized_maintenance_expense = amortized_maintenance_expense + \
+                                    (response['result']['owner_expense']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -634,6 +803,12 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             maintenance_expense = maintenance_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_maintenance_expense = amortized_maintenance_expense + \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_paid'])/12
                     # if management
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'MANAGEMENT':
                         # if management monthly
@@ -664,6 +839,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_due'])
                                 management_expense = management_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                amortized_management_expense = amortized_management_expense + \
+                                    float(
+                                        response['result']['owner_expense'][ore]['amount_paid'])/12
                             # if management annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 management_expected_expense = management_expected_expense +  \
@@ -671,6 +852,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_due'])
                                 management_expense = management_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                amortized_management_expense = amortized_management_expense + \
+                                    (response['result']['owner_expense']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if management one-time
@@ -679,6 +866,12 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             management_expense = management_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_management_expense = amortized_management_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
 
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -710,6 +903,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_due'])
                                 repairs_expense = repairs_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                amortized_repairs_expense = amortized_repairs_expense + \
+                                    float(
+                                        response['result']['owner_expense'][ore]['amount_paid'])/12
                             # if repairs annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 repairs_expected_expense = repairs_expected_expense + \
@@ -717,6 +916,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_due'])
                                 repairs_expense = repairs_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                amortized_repairs_expense = amortized_repairs_expense + \
+                                    float(
+                                        response['result']['owner_expense'][ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if repairs one-time
@@ -725,6 +930,12 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             repairs_expense = repairs_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_repairs_expense = amortized_repairs_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['owner_expense'][ore]['purchase_frequency'] == 'Weekly':
                             utility_expected_expense = utility_expected_expense + \
@@ -752,11 +963,23 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             utility_expense = utility_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_utility_expected_expense = amortized_utility_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expense = amortized_utility_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
                         else:
                             utility_expected_expense = utility_expected_expense + \
                                 response['result']['owner_expense'][ore]['amount_due']
                             utility_expense = utility_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_utility_expected_expense = amortized_utility_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expense = amortized_utility_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
 
             response['result']['maintenance_expense'] = round(
                 maintenance_expense, 2)
@@ -774,6 +997,23 @@ class OwnerCashflow(Resource):
                 repairs_expected_expense, 2)
             response['result']['utility_expected_expense'] = round(
                 utility_expense, 2)
+
+            response['result']['amortized_maintenance_expense'] = round(
+                amortized_maintenance_expense, 2)
+            response['result']['amortized_management_expense'] = round(
+                amortized_management_expense, 2)
+            response['result']['amortized_repairs_expense'] = round(
+                amortized_repairs_expense, 2)
+            response['result']['amortized_utility_expense'] = round(
+                amortized_utility_expense, 2)
+            response['result']['amortized_maintenance_expected_expense'] = round(
+                amortized_maintenance_expected_expense, 2)
+            response['result']['amortized_management_expected_expense'] = round(
+                amortized_management_expected_expense, 2)
+            response['result']['amortized_repairs_expected_expense'] = round(
+                amortized_repairs_expected_expense, 2)
+            response['result']['amortized_utility_expected_expense'] = round(
+                amortized_utility_expense, 2)
 
             # owner all expenses monthly except mortgage, taxes, insurance
             owner_expense_yearly = db.execute("""
@@ -890,6 +1130,12 @@ class OwnerCashflow(Resource):
                                         management_year_expense = management_year_expense +  \
                                             (
                                                 float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                        amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/12
+                                        amortized_management_year_expense = amortized_management_year_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     elif payment['frequency'] == 'One-time':
 
                                         management_year_expected_expense = management_year_expected_expense +  \
@@ -898,6 +1144,12 @@ class OwnerCashflow(Resource):
                                         management_year_expense = management_year_expense +  \
                                             (
                                                 float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                        amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/12
+                                        amortized_management_year_expense = amortized_management_year_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     else:
                                         print('do nothing')
                             elif payment['fee_type'] == '$':
@@ -920,14 +1172,20 @@ class OwnerCashflow(Resource):
                                     management_year_expected_expense = management_year_expected_expense + \
                                         float(payment['charge'])
                                     management_year_expense = management_year_expense + \
-                                        float(
-                                            payment['charge'])
+                                        float(payment['charge'])
+                                    amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                        (float(payment['charge']))/12
+                                    amortized_management_year_expense = amortized_management_year_expense +  \
+                                        (float(payment['charge']))/12
                                 elif payment['frequency'] == 'One-time':
                                     management_year_expected_expense = management_year_expected_expense +  \
                                         float(payment['charge'])
                                     management_year_expense = management_year_expense + \
-                                        float(
-                                            payment['charge'])
+                                        float(payment['charge'])
+                                    amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                        (float(payment['charge']))/12
+                                    amortized_management_year_expense = amortized_management_year_expense +  \
+                                        (float(payment['charge']))/12
 
                                 else:
                                     print('do nothing')
@@ -991,6 +1249,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                        [ore]['amount_due'])/12
+                                amortized_maintenance_year_expense = amortized_maintenance_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/12
                             # if maintenance annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 maintenance_year_expense = maintenance_year_expense + 2 * \
@@ -998,6 +1262,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     2*response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                        [ore]['amount_due'])/6
+                                amortized_maintenance_year_expense = amortized_maintenance_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -1006,6 +1276,12 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+                            amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_maintenance_year_expense = amortized_maintenance_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
                     # if management
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT':
                         print("MANAGEMENT")
@@ -1040,6 +1316,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/12
+                                amortized_management_year_expense = amortized_management_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/12
                             # if management annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 management_year_expense = management_year_expense + 2 * \
@@ -1047,6 +1329,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     2*response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/6
+                                amortized_management_year_expense = amortized_management_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if management one-time
@@ -1055,6 +1343,12 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             management_year_expected_expense = management_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+                            amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_management_year_expense = amortized_management_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
 
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -1085,6 +1379,12 @@ class OwnerCashflow(Resource):
                                                                                [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/12
+                                amortized_repairs_year_expense = amortized_repairs_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/12
                             # if repairs annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 repairs_year_expense = repairs_year_expense + 2 * \
@@ -1092,6 +1392,12 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + 2 * \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/6
+                                amortized_repairs_year_expense = amortized_repairs_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if repairs one-time
@@ -1100,6 +1406,13 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             repairs_year_expected_expense = repairs_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+                            amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_repairs_year_expense = amortized_repairs_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
+
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Weekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
@@ -1127,11 +1440,23 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_utility_year_expense = amortized_utility_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
                         else:
                             utility_year_expected_expense = utility_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_utility_year_expense = amortized_utility_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
             response['result']['maintenance_year_expense'] = round(
                 maintenance_year_expense, 2)
             response['result']['management_year_expense'] = round(
@@ -1149,6 +1474,23 @@ class OwnerCashflow(Resource):
             response['result']['utility_year_expected_expense'] = round(
                 utility_year_expected_expense, 2)
 
+            response['result']['amortized_maintenance_year_expense'] = round(
+                amortized_maintenance_year_expense, 2)
+            response['result']['amortized_management_year_expense'] = round(
+                amortized_management_year_expense, 2)
+            response['result']['amortized_repairs_year_expense'] = round(
+                amortized_repairs_year_expense, 2)
+            response['result']['amortized_utility_year_expense'] = round(
+                amortized_utility_year_expense, 2)
+            response['result']['amortized_maintenance_year_expected_expense'] = round(
+                amortized_maintenance_year_expected_expense, 2)
+            response['result']['amortized_management_year_expected_expense'] = round(
+                amortized_management_year_expected_expense, 2)
+            response['result']['amortized_repairs_year_expected_expense'] = round(
+                amortized_repairs_year_expected_expense, 2)
+            response['result']['amortized_utility_year_expected_expense'] = round(
+                amortized_utility_year_expected_expense, 2)
+
             owner_property_expenses = db.execute("""
                         SELECT  pr.property_uid, pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
                         WHERE pr.owner_id = \'""" + filterValue + """\'
@@ -1164,6 +1506,13 @@ class OwnerCashflow(Resource):
                     owner_property_expenses['result'][ope]['taxes_expense'] = 0
                     owner_property_expenses['result'][ope]['insurance_year_expense'] = 0
                     owner_property_expenses['result'][ope]['insurance_expense'] = 0
+
+                    owner_property_expenses['result'][ope]['amortized_mortgage_year_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_mortgage_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_taxes_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_insurance_expense'] = 0
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
                         owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d')), datetime.now())
@@ -1267,13 +1616,21 @@ class OwnerCashflow(Resource):
                                                                                                 ['taxes'])[te]['amount']))
                                             owner_property_expenses['result'][ope]['taxes_year_expense'] = owner_property_expenses['result'][ope]['taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                     ['taxes'])[te]['amount']))
-
+                                            amortized_taxes_year_expense = amortized_taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                    ['taxes'])[te]['amount']))/12
+                                            owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                        ['taxes'])[te]['amount']))/12
                                         if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month:
                                             taxes_expense = taxes_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                     te]['amount'])
                                             owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount'])
+                                            amortized_taxes_expense = amortized_taxes_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount']))/(datetime.now().month - 1)
+                                            owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))/(datetime.now().month - 1)
                                     # if taxes annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
                                         print('in twice a year')
@@ -1282,11 +1639,20 @@ class OwnerCashflow(Resource):
                                                                                                    ['taxes'])[te]['amount'])))
                                             owner_property_expenses['result'][ope]['taxes_year_expense'] = owner_property_expenses['result'][ope]['taxes_year_expense'] + 2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                       ['taxes'])[te]['amount']))
+                                            amortized_taxes_year_expense = amortized_taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                    ['taxes'])[te]['amount']))/6
+                                            owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                        ['taxes'])[te]['amount']))/6
                                         if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
                                             taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
                                             owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
+                                            amortized_taxes_expense = amortized_taxes_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount']))/((datetime.now().month - 1)/2)
+                                            owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))/((datetime.now().month - 1)/2)
                         # monthly expense for the property to include insurance
                     if owner_property_expenses['result'][ope]['insurance'] is not None:
                         if len(eval(owner_property_expenses['result'][ope]['insurance'])) > 0:
@@ -1319,7 +1685,6 @@ class OwnerCashflow(Resource):
                                             eval(owner_property_expenses['result'][ope]['insurance'])[te]['amount'])
                                     # if insurance Annually
                                 elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency'] == 'Annually':
-
                                     # if insurance annually and once a year
                                     if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
@@ -1327,12 +1692,21 @@ class OwnerCashflow(Resource):
                                                                                                         ['insurance'])[te]['amount']))
                                             owner_property_expenses['result'][ope]['insurance_year_expense'] = owner_property_expenses['result'][ope]['insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                             ['insurance'])[te]['amount']))
+                                            amortized_insurance_year_expense = amortized_insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                            ['insurance'])[te]['amount']))/12
+                                            owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                                ['insurance'])[te]['amount']))/12
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month:
                                             insurance_expense = insurance_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['insurance'])[
                                                     te]['amount'])
                                             owner_property_expenses['result'][ope]['insurance_expense'] = owner_property_expenses['result'][ope]['insurance_expense'] + (int(eval(owner_property_expenses['result'][ope]
-                                                                                                                                                                                  ['insurance'])[te]['amount']))
+                                                                                                                                                                                  ['insurance'])[te]['amount']))/((datetime.now().month - 1))
+                                            amortized_insurance_expense = amortized_insurance_expense + \
+                                                int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                    te]['amount'])
+                                            owner_property_expenses['result'][ope]['amortized_insurance_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                      ['insurance'])[te]['amount']))/((datetime.now().month - 1))
                                     # if insurance annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Twice a year':
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
@@ -1340,18 +1714,32 @@ class OwnerCashflow(Resource):
                                                                                                            ['insurance'])[te]['amount'])))
                                             owner_property_expenses['result'][ope]['insurance_year_expense'] = owner_property_expenses['result'][ope]['insurance_year_expense'] + 2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                               ['insurance'])[te]['amount']))
+                                            amortized_insurance_year_expense = amortized_insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                            ['insurance'])[te]['amount']))/6
+                                            owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                                ['insurance'])[te]['amount']))/6
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
                                             insurance_expense = insurance_expense + \
                                                 (int(eval(owner_property_expenses['result'][ope]['insurance'])[
                                                     te]['amount']))
                                             owner_property_expenses['result'][ope]['insurance_expense'] = owner_property_expenses['result'][ope]['insurance_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                   ['insurance'])[te]['amount']))
+                                            amortized_insurance_year_expense = amortized_insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                            ['insurance'])[te]['amount']))/((datetime.now().month - 1)/2)
+                                            owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                                ['insurance'])[te]['amount']))/((datetime.now().month - 1)/2)
             response['result']['mortgage_expense'] = mortgage_expense
             response['result']['mortgage_year_expense'] = mortgage_year_expense
             response['result']['taxes_expense'] = taxes_expense
             response['result']['taxes_year_expense'] = taxes_year_expense
             response['result']['insurance_expense'] = insurance_expense
             response['result']['insurance_year_expense'] = insurance_year_expense
+            response['result']['amortized_mortgage_expense'] = amortized_mortgage_expense
+            response['result']['amortized_mortgage_year_expense'] = amortized_mortgage_year_expense
+            response['result']['amortized_taxes_expense'] = amortized_taxes_expense
+            response['result']['amortized_taxes_year_expense'] = amortized_taxes_year_expense
+            response['result']['amortized_insurance_expense'] = amortized_insurance_expense
+            response['result']['amortized_insurance_year_expense'] = amortized_insurance_year_expense
             response['result']['owner_property_expense'] = list(
                 owner_property_expenses['result'])
         return response
@@ -1387,6 +1775,20 @@ class OwnerCashflowProperty(Resource):
             extra_year_expected_revenue = 0
             utility_year_expected_revenue = 0
 
+            amortized_rental_revenue = 0
+            amortized_extra_revenue = 0
+            amortized_utility_revenue = 0
+            amortized_rental_expected_revenue = 0
+            amortized_extra_expected_revenue = 0
+            amortized_utility_expected_revenue = 0
+
+            amortized_rental_year_revenue = 0
+            amortized_extra_year_revenue = 0
+            amortized_utility_year_revenue = 0
+            amortized_rental_year_expected_revenue = 0
+            amortized_extra_year_expected_revenue = 0
+            amortized_utility_year_expected_revenue = 0
+
             # owner rental and extra charges revenue monthly
             owner_rental_revenue = db.execute("""
             SELECT * FROM purchases pu
@@ -1457,11 +1859,23 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_revenue'][ore]['amount_due']
                             rental_revenue = rental_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_rental_revenue = amortized_rental_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_rental_expected_revenue = amortized_rental_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
                         else:
                             rental_expected_revenue = rental_expected_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_due']
                             rental_revenue = rental_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_rental_revenue = amortized_rental_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_rental_expected_revenue = amortized_rental_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
 
                     if response['result']['owner_revenue'][ore]['purchase_type'] == 'EXTRA CHARGES':
                         if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -1491,11 +1905,23 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_revenue'][ore]['amount_due']
                             extra_revenue = extra_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_extra_revenue = amortized_extra_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
                         else:
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_due']
                             extra_revenue = extra_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_extra_revenue = amortized_extra_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
 
                     if response['result']['owner_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -1524,23 +1950,47 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_revenue'][ore]['amount_due']
                             utility_revenue = utility_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_utility_revenue = amortized_utility_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expected_revenue = amortized_utility_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
                         else:
                             utility_expected_revenue = utility_expected_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_due']
                             utility_revenue = utility_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_utility_revenue = amortized_utility_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expected_revenue = amortized_utility_expected_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/12
             response['result']['rental_revenue'] = round(
                 rental_revenue, 2)
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
+            response['result']['amortized_rental_revenue'] = round(
+                amortized_rental_revenue, 2)
+            response['result']['amortized_rental_expected_revenue'] = round(
+                amortized_rental_expected_revenue, 2)
             response['result']['extra_revenue'] = round(
                 extra_revenue, 2)
             response['result']['extra_expected_revenue'] = round(
                 extra_expected_revenue, 2)
+            response['result']['amortized_extra_revenue'] = round(
+                amortized_extra_revenue, 2)
+            response['result']['amortized_extra_expected_revenue'] = round(
+                amortized_extra_expected_revenue, 2)
             response['result']['utility_revenue'] = round(
                 utility_revenue, 2)
             response['result']['utility_expected_revenue'] = round(
                 utility_expected_revenue, 2)
+            response['result']['amortized_utility_revenue'] = round(
+                amortized_utility_revenue, 2)
+            response['result']['amortized_utility_expected_revenue'] = round(
+                amortized_utility_expected_revenue, 2)
             # owner rental and extra charged revenue yearly
             owner_rental_revenue_yearly = db.execute("""
             SELECT * FROM purchases pu
@@ -1550,7 +2000,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\' 
+            WHERE pr.property_uid = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -1567,7 +2017,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\' 
+            WHERE pr.property_uid = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
@@ -1634,11 +2084,23 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             rental_year_revenue = rental_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_rental_year_expected_revenue = amortized_rental_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_rental_year_revenue = amortized_rental_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
                         else:
                             rental_year_expected_revenue = rental_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             rental_year_revenue = rental_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_rental_year_expected_revenue = amortized_rental_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_rental_year_revenue = amortized_rental_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
 
                      # if revenue type is EXTRA CHARGES
                     if response['result']['owner_revenue_yearly'][ore]['purchase_type'] == 'EXTRA CHARGES':
@@ -1673,11 +2135,23 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
                         else:
                             extra_year_expected_revenue = extra_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
 
                      # if revenue type is UTILITY
                     if response['result']['owner_revenue_yearly'][ore]['purchase_type'] == 'UTILITY':
@@ -1711,23 +2185,47 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             utility_year_revenue = utility_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_revenue = amortized_utility_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_utility_year_revenue = amortized_utility_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
                         else:
                             utility_year_expected_revenue = utility_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             utility_year_revenue = utility_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_revenue = amortized_utility_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_utility_year_revenue = amortized_utility_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
             response['result']['rental_year_revenue'] = round(
                 rental_year_revenue, 2)
             response['result']['rental_year_expected_revenue'] = round(
                 rental_year_expected_revenue, 2)
+            response['result']['amortized_rental_year_revenue'] = round(
+                amortized_rental_year_revenue, 2)
+            response['result']['amortized_rental_year_expected_revenue'] = round(
+                amortized_rental_year_expected_revenue, 2)
             response['result']['extra_year_revenue'] = round(
                 extra_year_revenue, 2)
             response['result']['extra_year_expected_revenue'] = round(
                 extra_year_expected_revenue, 2)
+            response['result']['amortized_extra_year_revenue'] = round(
+                amortized_extra_year_revenue, 2)
+            response['result']['amortized_extra_year_expected_revenue'] = round(
+                amortized_extra_year_expected_revenue, 2)
             response['result']['utility_year_revenue'] = round(
                 utility_year_revenue, 2)
             response['result']['utility_year_expected_revenue'] = round(
                 utility_year_expected_revenue, 2)
+            response['result']['amortized_utility_year_revenue'] = round(
+                amortized_utility_year_revenue, 2)
+            response['result']['amortized_utility_year_expected_revenue'] = round(
+                amortized_utility_year_expected_revenue, 2)
 
             # intialize expense variables
             utility_expense = 0
@@ -1756,6 +2254,31 @@ class OwnerCashflowProperty(Resource):
             insurance_year_expense = 0
             taxes_year_expense = 0
 
+            amortized_utility_expense = 0
+            amortized_maintenance_expense = 0
+            amortized_management_expense = 0
+            amortized_repairs_expense = 0
+            amortized_maintenance_expected_expense = 0
+            amortized_management_expected_expense = 0
+            amortized_repairs_expected_expense = 0
+            amortized_utility_expected_expense = 0
+
+            amortized_mortgage_expense = 0
+            amortized_insurance_expense = 0
+            amortized_taxes_expense = 0
+
+            amortized_maintenance_year_expense = 0
+            amortized_management_year_expense = 0
+            amortized_repairs_year_expense = 0
+            amortized_utility_year_expense = 0
+            amortized_utility_year_expected_expense = 0
+            amortized_maintenance_year_expected_expense = 0
+            amortized_management_year_expected_expense = 0
+            amortized_repairs_year_expected_expense = 0
+
+            amortized_mortgage_year_expense = 0
+            amortized_insurance_year_expense = 0
+            amortized_taxes_year_expense = 0
             # owner all expense monthly except mortgage, taxes, insurance
             owner_expense = db.execute("""
             SELECT * FROM purchases pu
@@ -1765,7 +2288,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\' 
+            WHERE pr.property_uid = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -1870,6 +2393,12 @@ class OwnerCashflowProperty(Resource):
                                             management_expense = management_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
+                                            amortized_management_expense = amortized_management_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     elif payment['frequency'] == 'One-time':
                                         if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
                                             management_expected_expense = management_expected_expense +  \
@@ -1878,6 +2407,12 @@ class OwnerCashflowProperty(Resource):
                                             management_expense = management_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
+                                            amortized_management_expense = amortized_management_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     else:
                                         print('do nothing')
                             elif payment['fee_type'] == '$':
@@ -1904,6 +2439,11 @@ class OwnerCashflowProperty(Resource):
                                         management_expense = management_expense + \
                                             float(
                                                 payment['charge'])
+                                        amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                            (float(payment['charge'])) / \
+                                            (datetime.now().month-1)
+                                        amortized_management_expense = amortized_management_expense +  \
+                                            (float(payment['charge']))/12
                                 elif payment['frequency'] == 'One-time':
 
                                     if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
@@ -1912,6 +2452,11 @@ class OwnerCashflowProperty(Resource):
                                         management_expense = management_expense + \
                                             float(
                                                 payment['charge'])
+                                        amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                            (float(payment['charge'])) / \
+                                            (datetime.now().month-1)
+                                        amortized_management_expense = amortized_management_expense +  \
+                                            (float(payment['charge']))/12
 
                                 else:
                                     print('do nothing')
@@ -1966,6 +2511,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 maintenance_expense = maintenance_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                amortized_maintenance_expense = amortized_maintenance_expense + \
+                                    (response['result']['owner_expense']
+                                     [ore]['amount_paid'])/12
                             # if maintenance annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 maintenance_expected_expense = maintenance_expected_expense + \
@@ -1973,6 +2524,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 maintenance_expense = maintenance_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                amortized_maintenance_expense = amortized_maintenance_expense + \
+                                    (response['result']['owner_expense']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -1981,6 +2538,12 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             maintenance_expense = maintenance_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_maintenance_expense = amortized_maintenance_expense + \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_paid'])/12
                     # if management
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'MANAGEMENT':
                         # if management monthly
@@ -2011,6 +2574,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 management_expense = management_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                amortized_management_expense = amortized_management_expense + \
+                                    float(
+                                        response['result']['owner_expense'][ore]['amount_paid'])/12
                             # if management annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 management_expected_expense = management_expected_expense +  \
@@ -2018,6 +2587,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 management_expense = management_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                amortized_management_expense = amortized_management_expense + \
+                                    (response['result']['owner_expense']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if management one-time
@@ -2026,6 +2601,12 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             management_expense = management_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_management_expense = amortized_management_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
 
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -2057,6 +2638,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 repairs_expense = repairs_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                amortized_repairs_expense = amortized_repairs_expense + \
+                                    float(
+                                        response['result']['owner_expense'][ore]['amount_paid'])/12
                             # if repairs annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 repairs_expected_expense = repairs_expected_expense + \
@@ -2064,6 +2651,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 repairs_expense = repairs_expense + \
                                     response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
+                                    (response['result']['owner_expense']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                amortized_repairs_expense = amortized_repairs_expense + \
+                                    float(
+                                        response['result']['owner_expense'][ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if repairs one-time
@@ -2072,6 +2665,12 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             repairs_expense = repairs_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_repairs_expense = amortized_repairs_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['owner_expense'][ore]['purchase_frequency'] == 'Weekly':
                             utility_expected_expense = utility_expected_expense + \
@@ -2099,11 +2698,23 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense'][ore]['amount_due']
                             utility_expense = utility_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_utility_expected_expense = amortized_utility_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expense = amortized_utility_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
                         else:
                             utility_expected_expense = utility_expected_expense + \
                                 response['result']['owner_expense'][ore]['amount_due']
                             utility_expense = utility_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+                            amortized_utility_expected_expense = amortized_utility_expected_expense +  \
+                                (response['result']['owner_expense']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+                            amortized_utility_expense = amortized_utility_expense + \
+                                float(
+                                    response['result']['owner_expense'][ore]['amount_paid'])/12
 
             response['result']['maintenance_expense'] = round(
                 maintenance_expense, 2)
@@ -2122,6 +2733,23 @@ class OwnerCashflowProperty(Resource):
             response['result']['utility_expected_expense'] = round(
                 utility_expense, 2)
 
+            response['result']['amortized_maintenance_expense'] = round(
+                amortized_maintenance_expense, 2)
+            response['result']['amortized_management_expense'] = round(
+                amortized_management_expense, 2)
+            response['result']['amortized_repairs_expense'] = round(
+                amortized_repairs_expense, 2)
+            response['result']['amortized_utility_expense'] = round(
+                amortized_utility_expense, 2)
+            response['result']['amortized_maintenance_expected_expense'] = round(
+                amortized_maintenance_expected_expense, 2)
+            response['result']['amortized_management_expected_expense'] = round(
+                amortized_management_expected_expense, 2)
+            response['result']['amortized_repairs_expected_expense'] = round(
+                amortized_repairs_expected_expense, 2)
+            response['result']['amortized_utility_expected_expense'] = round(
+                amortized_utility_expense, 2)
+
             # owner all expenses monthly except mortgage, taxes, insurance
             owner_expense_yearly = db.execute("""
             SELECT * FROM purchases pu
@@ -2131,7 +2759,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\' 
+            WHERE pr.property_uid = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -2237,6 +2865,12 @@ class OwnerCashflowProperty(Resource):
                                         management_year_expense = management_year_expense +  \
                                             (
                                                 float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                        amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/12
+                                        amortized_management_year_expense = amortized_management_year_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     elif payment['frequency'] == 'One-time':
 
                                         management_year_expected_expense = management_year_expected_expense +  \
@@ -2245,6 +2879,12 @@ class OwnerCashflowProperty(Resource):
                                         management_year_expense = management_year_expense +  \
                                             (
                                                 float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+                                        amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/12
+                                        amortized_management_year_expense = amortized_management_year_expense +  \
+                                            ((
+                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
                                     else:
                                         print('do nothing')
                             elif payment['fee_type'] == '$':
@@ -2267,14 +2907,20 @@ class OwnerCashflowProperty(Resource):
                                     management_year_expected_expense = management_year_expected_expense + \
                                         float(payment['charge'])
                                     management_year_expense = management_year_expense + \
-                                        float(
-                                            payment['charge'])
+                                        float(payment['charge'])
+                                    amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                        (float(payment['charge']))/12
+                                    amortized_management_year_expense = amortized_management_year_expense +  \
+                                        (float(payment['charge']))/12
                                 elif payment['frequency'] == 'One-time':
                                     management_year_expected_expense = management_year_expected_expense +  \
                                         float(payment['charge'])
                                     management_year_expense = management_year_expense + \
-                                        float(
-                                            payment['charge'])
+                                        float(payment['charge'])
+                                    amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
+                                        (float(payment['charge']))/12
+                                    amortized_management_year_expense = amortized_management_year_expense +  \
+                                        (float(payment['charge']))/12
 
                                 else:
                                     print('do nothing')
@@ -2338,6 +2984,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                        [ore]['amount_due'])/12
+                                amortized_maintenance_year_expense = amortized_maintenance_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/12
                             # if maintenance annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 maintenance_year_expense = maintenance_year_expense + 2 * \
@@ -2345,6 +2997,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_paid'])
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     2*response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                        [ore]['amount_due'])/6
+                                amortized_maintenance_year_expense = amortized_maintenance_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -2353,6 +3011,12 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+                            amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_maintenance_year_expense = amortized_maintenance_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
                     # if management
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT':
                         print("MANAGEMENT")
@@ -2387,6 +3051,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/12
+                                amortized_management_year_expense = amortized_management_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/12
                             # if management annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 management_year_expense = management_year_expense + 2 * \
@@ -2394,6 +3064,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     2*response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/6
+                                amortized_management_year_expense = amortized_management_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if management one-time
@@ -2402,6 +3078,12 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             management_year_expected_expense = management_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+                            amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_management_year_expense = amortized_management_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
 
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -2432,6 +3114,12 @@ class OwnerCashflowProperty(Resource):
                                                                                [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/12
+                                amortized_repairs_year_expense = amortized_repairs_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/12
                             # if repairs annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 repairs_year_expense = repairs_year_expense + 2 * \
@@ -2439,6 +3127,12 @@ class OwnerCashflowProperty(Resource):
                                         [ore]['amount_paid'])
                                 repairs_year_expected_expense = repairs_year_expected_expense + 2 * \
                                     response['result']['owner_expense_yearly'][ore]['amount_due']
+                                amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_due'])/6
+                                amortized_repairs_year_expense = amortized_repairs_year_expense + \
+                                    (response['result']['owner_expense_yearly']
+                                     [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if repairs one-time
@@ -2447,6 +3141,13 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             repairs_year_expected_expense = repairs_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+                            amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_repairs_year_expense = amortized_repairs_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
+
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Weekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
@@ -2474,11 +3175,23 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_utility_year_expense = amortized_utility_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
                         else:
                             utility_year_expected_expense = utility_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
                             utility_year_expense = utility_year_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
+                            amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_due'])/12
+                            amortized_utility_year_expense = amortized_utility_year_expense + \
+                                (response['result']['owner_expense_yearly']
+                                 [ore]['amount_paid'])/12
             response['result']['maintenance_year_expense'] = round(
                 maintenance_year_expense, 2)
             response['result']['management_year_expense'] = round(
@@ -2495,11 +3208,30 @@ class OwnerCashflowProperty(Resource):
                 repairs_year_expected_expense, 2)
             response['result']['utility_year_expected_expense'] = round(
                 utility_year_expected_expense, 2)
+
+            response['result']['amortized_maintenance_year_expense'] = round(
+                amortized_maintenance_year_expense, 2)
+            response['result']['amortized_management_year_expense'] = round(
+                amortized_management_year_expense, 2)
+            response['result']['amortized_repairs_year_expense'] = round(
+                amortized_repairs_year_expense, 2)
+            response['result']['amortized_utility_year_expense'] = round(
+                amortized_utility_year_expense, 2)
+            response['result']['amortized_maintenance_year_expected_expense'] = round(
+                amortized_maintenance_year_expected_expense, 2)
+            response['result']['amortized_management_year_expected_expense'] = round(
+                amortized_management_year_expected_expense, 2)
+            response['result']['amortized_repairs_year_expected_expense'] = round(
+                amortized_repairs_year_expected_expense, 2)
+            response['result']['amortized_utility_year_expected_expense'] = round(
+                amortized_utility_year_expected_expense, 2)
+
             owner_property_expenses = db.execute("""
-                        SELECT pr.property_uid,pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
+                        SELECT  pr.property_uid, pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
                         WHERE pr.property_uid = \'""" + filterValue + """\'
                         AND (pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null)
                         """)
+
             # monthly expense for the property to include mortgage
             if len(owner_property_expenses['result']) > 0:
                 for ope in range(len(owner_property_expenses['result'])):
@@ -2509,6 +3241,13 @@ class OwnerCashflowProperty(Resource):
                     owner_property_expenses['result'][ope]['taxes_expense'] = 0
                     owner_property_expenses['result'][ope]['insurance_year_expense'] = 0
                     owner_property_expenses['result'][ope]['insurance_expense'] = 0
+
+                    owner_property_expenses['result'][ope]['amortized_mortgage_year_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_mortgage_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_taxes_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = 0
+                    owner_property_expenses['result'][ope]['amortized_insurance_expense'] = 0
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
                         owner_property_expenses['result'][ope]['active_date'], '%Y-%m-%d')), datetime.now())
@@ -2612,13 +3351,21 @@ class OwnerCashflowProperty(Resource):
                                                                                                 ['taxes'])[te]['amount']))
                                             owner_property_expenses['result'][ope]['taxes_year_expense'] = owner_property_expenses['result'][ope]['taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                     ['taxes'])[te]['amount']))
-
+                                            amortized_taxes_year_expense = amortized_taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                    ['taxes'])[te]['amount']))/12
+                                            owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                        ['taxes'])[te]['amount']))/12
                                         if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month:
                                             taxes_expense = taxes_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                     te]['amount'])
                                             owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount'])
+                                            amortized_taxes_expense = amortized_taxes_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount']))/(datetime.now().month - 1)
+                                            owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))/(datetime.now().month - 1)
                                     # if taxes annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
                                         print('in twice a year')
@@ -2627,11 +3374,20 @@ class OwnerCashflowProperty(Resource):
                                                                                                    ['taxes'])[te]['amount'])))
                                             owner_property_expenses['result'][ope]['taxes_year_expense'] = owner_property_expenses['result'][ope]['taxes_year_expense'] + 2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                       ['taxes'])[te]['amount']))
+                                            amortized_taxes_year_expense = amortized_taxes_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                    ['taxes'])[te]['amount']))/6
+                                            owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                        ['taxes'])[te]['amount']))/6
                                         if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
                                             taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
                                             owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
+                                            amortized_taxes_expense = amortized_taxes_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount']))/((datetime.now().month - 1)/2)
+                                            owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))/((datetime.now().month - 1)/2)
                         # monthly expense for the property to include insurance
                     if owner_property_expenses['result'][ope]['insurance'] is not None:
                         if len(eval(owner_property_expenses['result'][ope]['insurance'])) > 0:
@@ -2664,7 +3420,6 @@ class OwnerCashflowProperty(Resource):
                                             eval(owner_property_expenses['result'][ope]['insurance'])[te]['amount'])
                                     # if insurance Annually
                                 elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency'] == 'Annually':
-
                                     # if insurance annually and once a year
                                     if eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Once a year':
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
@@ -2672,12 +3427,21 @@ class OwnerCashflowProperty(Resource):
                                                                                                         ['insurance'])[te]['amount']))
                                             owner_property_expenses['result'][ope]['insurance_year_expense'] = owner_property_expenses['result'][ope]['insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                             ['insurance'])[te]['amount']))
+                                            amortized_insurance_year_expense = amortized_insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                            ['insurance'])[te]['amount']))/12
+                                            owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                                ['insurance'])[te]['amount']))/12
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month:
                                             insurance_expense = insurance_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['insurance'])[
                                                     te]['amount'])
                                             owner_property_expenses['result'][ope]['insurance_expense'] = owner_property_expenses['result'][ope]['insurance_expense'] + (int(eval(owner_property_expenses['result'][ope]
-                                                                                                                                                                                  ['insurance'])[te]['amount']))
+                                                                                                                                                                                  ['insurance'])[te]['amount']))/((datetime.now().month - 1))
+                                            amortized_insurance_expense = amortized_insurance_expense + \
+                                                int(eval(owner_property_expenses['result'][ope]['insurance'])[
+                                                    te]['amount'])
+                                            owner_property_expenses['result'][ope]['amortized_insurance_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                      ['insurance'])[te]['amount']))/((datetime.now().month - 1))
                                     # if insurance annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['insurance'])[te]['frequency_of_payment'] == 'Twice a year':
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).year == today.year:
@@ -2685,18 +3449,32 @@ class OwnerCashflowProperty(Resource):
                                                                                                            ['insurance'])[te]['amount'])))
                                             owner_property_expenses['result'][ope]['insurance_year_expense'] = owner_property_expenses['result'][ope]['insurance_year_expense'] + 2*(int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                               ['insurance'])[te]['amount']))
+                                            amortized_insurance_year_expense = amortized_insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                            ['insurance'])[te]['amount']))/6
+                                            owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                                ['insurance'])[te]['amount']))/6
                                         if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
                                             insurance_expense = insurance_expense + \
                                                 (int(eval(owner_property_expenses['result'][ope]['insurance'])[
                                                     te]['amount']))
                                             owner_property_expenses['result'][ope]['insurance_expense'] = owner_property_expenses['result'][ope]['insurance_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                   ['insurance'])[te]['amount']))
+                                            amortized_insurance_year_expense = amortized_insurance_year_expense + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                            ['insurance'])[te]['amount']))/((datetime.now().month - 1)/2)
+                                            owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
+                                                                                                                                                                                                                ['insurance'])[te]['amount']))/((datetime.now().month - 1)/2)
             response['result']['mortgage_expense'] = mortgage_expense
             response['result']['mortgage_year_expense'] = mortgage_year_expense
             response['result']['taxes_expense'] = taxes_expense
             response['result']['taxes_year_expense'] = taxes_year_expense
             response['result']['insurance_expense'] = insurance_expense
             response['result']['insurance_year_expense'] = insurance_year_expense
+            response['result']['amortized_mortgage_expense'] = amortized_mortgage_expense
+            response['result']['amortized_mortgage_year_expense'] = amortized_mortgage_year_expense
+            response['result']['amortized_taxes_expense'] = amortized_taxes_expense
+            response['result']['amortized_taxes_year_expense'] = amortized_taxes_year_expense
+            response['result']['amortized_insurance_expense'] = amortized_insurance_expense
+            response['result']['amortized_insurance_year_expense'] = amortized_insurance_year_expense
             response['result']['owner_property_expense'] = list(
                 owner_property_expenses['result'])
         return response
