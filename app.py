@@ -1,6 +1,5 @@
 
 from twilio.rest import Client
-from email import message
 from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
@@ -11,13 +10,12 @@ from flask import request
 from flask_restful import Resource
 from data import connect
 import os
-from os import environ
 import stripe
 import json
 
 
 from cashflow import OwnerCashflow, OwnerCashflowProperty
-from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, ManagerContractEnd_CRON
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from appliances import Appliances
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
@@ -25,9 +23,10 @@ from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
 from tenantProfileInfo import TenantProfileInfo, TenantDetails
 from businessProfileInfo import BusinessProfileInfo
-from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, ExtendLeaseCRON, LeasetoMonth_CLASS, LeasetoMonth, LateFee_CLASS, LateFee, PerDay_LateFee_CLASS, PerDay_LateFee, LateFeeExtraCharges_CLASS, LateFeeExtraCharges, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges
+from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
+    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS
 from purchases import Purchases, CreateExpenses, CreateRevenues
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, TenantPayments
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills, OwnerDocuments
 from managerProperties import ManagerProperties
 from tenantProperties import TenantProperties
@@ -39,10 +38,11 @@ from maintenanceRequests import MaintenanceRequestsandQuotes, OwnerMaintenanceRe
 from maintenanceQuotes import MaintenanceQuotes
 from contracts import Contracts
 from propertyInfo import ManagerExpenses, PropertyInfo, AvailableProperties, PropertiesManagerDetail
-from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
+from applications import Applications, EndEarly,  TenantRentalEnd_CLASS
 from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
 from bills import Bills
+from applepay import ApplePay
 app = Flask(__name__)
 
 # cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
@@ -589,7 +589,6 @@ class SendAnnouncement(Resource):
                 text_msg, tenant_pno[e])
         return 'Email and Text Sent'
 
-
 api.add_resource(Send_Twilio_SMS, '/Send_Twilio_SMS')
 api.add_resource(SendAnnouncement, '/SendAnnouncement')
 
@@ -696,5 +695,8 @@ api.add_resource(Bills, "/bills")
 
 api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
+
+api.add_resource(ApplePay, "/applepay")
+
 if __name__ == '__main__':
     app.run(debug=True)
