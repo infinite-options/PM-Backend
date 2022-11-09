@@ -47,7 +47,7 @@ class Businesses(Resource):
             if not user:
                 return 401, response
             fields = ['type', 'name', 'phone_number', 'email', 'ein_number', 'services_fees', 'locations',
-                      'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number']
+                      'paypal', 'apple_pay', 'zelle', 'venmo', 'account_number', 'routing_number', 'created_by', 'available']
             jsonFields = ['services_fees', 'locations']
             newBusiness = {}
             for field in fields:
@@ -60,6 +60,8 @@ class Businesses(Resource):
                         newBusiness[f'business_{field}'] = fieldValue
             newBusinessID = db.call('new_business_id')['result'][0]['new_id']
             newBusiness['business_uid'] = newBusinessID
+            if newBusiness['created_by'] == '':
+                newBusiness['created_by'] = newBusinessID
             response = db.insert('businesses', newBusiness)
             newEmployee = {
                 'user_uid': user['user_uid'],
@@ -72,7 +74,7 @@ class Businesses(Resource):
                 'employee_ssn': '',
                 'employee_ein_number': '',
                 'employee_status': 'ACTIVE',
-                'employee_signedin': 'Owner'
+                'employee_signedin': 'Owner',
             }
             newEmployeeID = db.call('new_employee_id')['result'][0]['new_id']
             newEmployee['employee_uid'] = newEmployeeID
