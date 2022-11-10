@@ -43,6 +43,7 @@ from socialLogin import UserSocialLogin, UserSocialSignup
 from leaseTenants import LeaseTenants
 from bills import Bills
 from applepay import ApplePay
+from contact import Contact
 app = Flask(__name__)
 
 # cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
@@ -589,6 +590,7 @@ class SendAnnouncement(Resource):
                 text_msg, tenant_pno[e])
         return 'Email and Text Sent'
 
+
 api.add_resource(Send_Twilio_SMS, '/Send_Twilio_SMS')
 api.add_resource(SendAnnouncement, '/SendAnnouncement')
 
@@ -697,6 +699,7 @@ api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
 
 api.add_resource(ApplePay, "/applepay")
+api.add_resource(Contact, "/contact")
 
 if __name__ == '__main__':
     app.run(debug=True)
