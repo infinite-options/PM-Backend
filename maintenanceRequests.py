@@ -260,11 +260,19 @@ class MaintenanceRequestsandQuotes(Resource):
                                 0]).split(' ')[0])
                         else:
                             maintenance_res['result'][y]['days_open'] = 1
-
+                        if len(quotes_res['result']) > 0:
+                            for quote in quotes_res['result']:
+                                if quote['quote_status'] == 'ACCEPTED':
+                                    maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                                else:
+                                    maintenance_res['result'][y]['total_estimate'] = 0
+                        else:
+                            maintenance_res['result'][y]['total_estimate'] = 0
                         maintenance_res['result'][y]['quotes'] = list(
                             quotes_res['result'])
                         maintenance_res['result'][y]['total_quotes'] = len(
                             quotes_res['result'])
+
                         maintenance_res['result'][y]['address'] = response['result'][i]['address'] + ' ' + response['result'][i]['unit'] + ', ' + \
                             response['result'][i]['city'] + ', ' + \
                             response['result'][i]['state'] + ' ' + \

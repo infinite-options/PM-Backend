@@ -1544,7 +1544,14 @@ class PropertiesOwnerDetail(Resource):
                             quotes_res = db.select(
                                 ''' maintenanceQuotes quote ''', rid)
                             # print(quotes_res)
-                            # change the response variable here, don't know why
+                            time_between_insertion = datetime.now() - \
+                                datetime.strptime(
+                                maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                            if ',' in str(time_between_insertion):
+                                maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                                    0]).split(' ')[0])
+                            else:
+                                maintenance_res['result'][y]['days_open'] = 1
                             maintenance_res['result'][y]['quotes'] = list(
                                 quotes_res['result'])
                             maintenance_res['result'][y]['total_quotes'] = len(
