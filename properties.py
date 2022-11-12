@@ -136,7 +136,6 @@ class Properties(Resource):
             i = -1
             imageFiles = {}
             while True:
-                print('if true')
                 filename = f'img_{i}'
                 if i == -1:
                     filename = 'img_cover'
@@ -144,19 +143,15 @@ class Properties(Resource):
                 s3Link = data.get(filename)
                 if file:
                     imageFiles[filename] = file
-                    images = updateImages(imageFiles, property_uid)
-                    print('images', images)
-                    newProperty['images'] = json.dumps(images)
                 elif s3Link:
                     imageFiles[filename] = s3Link
-                    images = updateImages(imageFiles, property_uid)
-                    print('images', images)
-                    newProperty['images'] = json.dumps(images)
                 else:
                     break
                 i += 1
+            images = updateImages(imageFiles, property_uid)
+            newProperty['images'] = json.dumps(images)
 
-                ##Image uploading stuff ends here###
+            ##Image uploading stuff ends here###
             primaryKey = {
                 'property_uid': property_uid
             }
@@ -243,262 +238,7 @@ class Properties(Resource):
                     print(contractRes)
 
                     today = date.today()
-                    # if len(contractRes['result']) > 0:
-                    #     start_date = date.fromisoformat(
-                    #         contractRes['result'][0]['start_date'])
-                    #     # creating purchases
-                    #     managementPayments = json.loads(
-                    #         contractRes['result'][0]['contract_fees'])
-                    #     payer = contractRes['result'][0]['owner_id']
-                    #     if '[' in payer:
-                    #         payer = json.loads(payer)
-                    #     if type(payer) == str:
-                    #         payer = [payer]
-                    #     payer = json.dumps(payer)
-                    #     for payment in managementPayments:
-                    #         print(payment)
 
-                    #         # distinguish by $ payments and % payments, then by weekly, biweekly, monthly, annually, one-time
-                    #         if payment['fee_type'] == '$':
-                    #             print('payment fee type $')
-                    #             if payment['frequency'] == 'Weekly':
-                    #                 print('payment frequency weekly $')
-                    #                 charge_month = start_date.strftime('%B')
-                    #                 # charge_date = next_weekday(start_date, 4)
-                    #                 charge_date = start_date
-                    #                 # print('charge_date', charge_date)
-                    #                 daily_charge = round(
-                    #                     int(payment['charge']) / days_in_month(start_date), 2)
-                    #                 num_days_active = days_in_month(
-                    #                     start_date) - start_date.day
-                    #                 prorated_charge = num_days_active * daily_charge
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=prorated_charge,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             elif payment['frequency'] == 'Biweekly':
-                    #                 print('payment frequency biweekly $')
-                    #                 charge_month = start_date.strftime('%B')
-                    #                 # charge_date = next_weekday_biweekly(
-                    #                 #     start_date, 4)
-                    #                 charge_date = start_date
-                    #                 # print('charge_date', charge_date)
-                    #                 daily_charge = round(
-                    #                     int(payment['charge']) / days_in_month(start_date), 2)
-                    #                 num_days_active = days_in_month(
-                    #                     start_date) - start_date.day
-                    #                 prorated_charge = num_days_active * daily_charge
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=prorated_charge,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             elif payment['frequency'] == 'Monthly':
-                    #                 print('payment frequency monthly $')
-                    #                 charge_month = start_date.strftime('%B')
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=days_in_month(start_date))
-                    #                 charge_date = start_date
-                    #                 daily_charge = round(
-                    #                     int(payment['charge']) / days_in_month(start_date), 2)
-                    #                 num_days_active = days_in_month(
-                    #                     start_date) - start_date.day
-                    #                 prorated_charge = num_days_active * daily_charge
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=prorated_charge,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             elif payment['frequency'] == 'Annually':
-                    #                 print('payment frequency annually $')
-                    #                 charge_month = (start_date +
-                    #                                 relativedelta(months=1)).strftime('%B')
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=1) + relativedelta(months=1)
-                    #                 charge_date = start_date
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=payment['charge'],
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             else:
-                    #                 print('payment frequency one-time $')
-                    #                 charge_month = (start_date +
-                    #                                 relativedelta(months=1)).strftime('%B')
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=1) + relativedelta(months=1)
-                    #                 charge_date = start_date
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=payment['charge'],
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-
-                    #         else:
-                    #             print('payment fee type %')
-                    #             if payment['frequency'] == 'Weekly':
-                    #                 print('payment frequency weekly %')
-                    #                 charge_month = start_date.strftime('%B')
-                    #                 # charge_date = next_weekday(start_date, 4)
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=days_in_month(start_date))
-                    #                 charge_date = start_date
-                    #                 # print('charge_date', charge_date)
-                    #                 daily_charge = round((int(payment['charge']) * int(
-                    #                     contractRes['result'][0]['listed_rent']))/100 / days_in_month(start_date), 2)
-                    #                 num_days_active = days_in_month(
-                    #                     start_date) - start_date.day
-                    #                 prorated_charge = num_days_active * daily_charge
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=prorated_charge,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             elif payment['frequency'] == 'Biweekly':
-                    #                 print('payment frequency biweekly %')
-                    #                 charge_month = start_date.strftime('%B')
-                    #                 # charge_date = next_weekday_biweekly(
-                    #                 #     start_date, 4)
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=days_in_month(start_date))
-                    #                 charge_date = start_date
-                    #                 # print('charge_date', charge_date)
-                    #                 daily_charge = round((int(payment['charge']) * int(
-                    #                     contractRes['result'][0]['listed_rent']))/100 / days_in_month(start_date), 2)
-                    #                 num_days_active = days_in_month(
-                    #                     start_date) - start_date.day
-                    #                 prorated_charge = num_days_active * daily_charge
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=prorated_charge,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             elif payment['frequency'] == 'Monthly':
-                    #                 print('payment frequency monthly %')
-                    #                 print(start_date)
-                    #                 charge_month = start_date.strftime('%B')
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=days_in_month(start_date))
-                    #                 charge_date = start_date
-                    #                 daily_charge = round((int(payment['charge']) * int(
-                    #                     contractRes['result'][0]['listed_rent']))/100 / days_in_month(start_date), 2)
-                    #                 num_days_active = days_in_month(
-                    #                     start_date) - start_date.day
-                    #                 prorated_charge = num_days_active * daily_charge
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=prorated_charge,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             elif payment['frequency'] == 'Annually':
-                    #                 print('payment frequency annually %')
-                    #                 charge_month = (start_date +
-                    #                                 relativedelta(months=1)).strftime('%B')
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=1) + relativedelta(months=1)
-                    #                 charge_date = start_date
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=(
-                    #                         int(payment['charge']) * int(contractRes['result'][0]['listed_rent']))/100,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-                    #             else:
-                    #                 print('payment frequency one-time %')
-                    #                 charge_month = (start_date +
-                    #                                 relativedelta(months=1)).strftime('%B')
-                    #                 # charge_date = start_date.replace(
-                    #                 #     day=1) + relativedelta(months=1)
-                    #                 charge_date = start_date
-                    #                 purchaseResponse = newPurchase(
-                    #                     linked_bill_id=None,
-                    #                     pur_property_id=contractRes['result'][0]['property_uid'],
-                    #                     payer=payer,
-                    #                     receiver=contractRes['result'][0]['business_uid'],
-                    #                     purchase_type='MANAGEMENT',
-                    #                     description=payment['fee_name'],
-                    #                     amount_due=(
-                    #                         int(payment['charge']) * int(contractRes['result'][0]['listed_rent']))/100,
-                    #                     purchase_notes=charge_month,
-                    #                     purchase_date=start_date,
-                    #                     purchase_frequency=payment['frequency'],
-                    #                     next_payment=charge_date
-                    #                 )
-
-                    # print('accepted')
                 print(newProperty)
             if newProperty == {}:
                 response['message'] = 'Successfully committed SQL query'

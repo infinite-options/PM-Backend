@@ -22,7 +22,9 @@ class Contact(Resource):
             for key in where:
                 print(key)
                 response = db.select('contacts', where)
-
+                print('response', len(response['result']))
+                if len(response['result']) == 0:
+                    response['result'] = []
                 if key == 'contact_created_by':
                     businessResponse = db.execute("""
                     SELECT DISTINCT b.* FROM pm.properties prop
@@ -43,7 +45,7 @@ class Contact(Resource):
                             busi['contact_email'] = br['business_email']
                             busi['contact_phone_number'] = br['business_phone_number']
                             busi['contact_created_by'] = where[key]
-                            print(busi)
+
                             response['result'].append(busi)
 
                 else:

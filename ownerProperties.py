@@ -1697,7 +1697,8 @@ class OwnerDocuments(Resource):
                     LEFT JOIN pm.tenantProfileInfo tpi
                     ON tpi.tenant_id = lt.linked_tenant_id
                     WHERE prop.owner_id = \'""" + filterValue + """\'
-                    AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'PROCESSING' OR r.rental_status='TENTANT APPROVED')
+                    AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'PROCESSING' OR r.rental_status='TENANT APPROVED')
+                    AND propM.management_status = 'ACCEPTED'
                     GROUP BY lt.linked_rental_uid""")
                     active_lease_docs = []
 
@@ -1735,6 +1736,7 @@ class OwnerDocuments(Resource):
                     ON tpi.tenant_id = lt.linked_tenant_id
                     WHERE prop.owner_id = \'""" + filterValue + """\'
                     AND (r.rental_status = 'EXPIRED' OR r.rental_status = 'TERMINATED')
+                    AND propM.management_status = 'ACCEPTED'
                     GROUP BY lt.linked_rental_uid""")
 
                     expired_lease_docs = []
