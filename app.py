@@ -15,7 +15,7 @@ import json
 
 
 from cashflow import OwnerCashflow, OwnerCashflowProperty
-from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from appliances import Appliances
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
@@ -84,8 +84,6 @@ stripe.api_key = stripe_secret_test_key
 # # app.config["MAIL_PASSWORD"] = "SupportSkedul1"
 # app.config["MAIL_SUPPRESS_SEND"] = False
 mail = Mail(app)
-
-app.config["STRIPE_SECRET_KEY"] = os.environ.get("STRIPE_SECRET_KEY")
 
 
 def sendEmail(recipient, subject, body):
@@ -700,6 +698,8 @@ api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
 
 api.add_resource(ApplePay, "/applepay")
 api.add_resource(Contact, "/contact")
+
+api.add_resource(RemovePropertyOwner, "/RemovePropertyOwner")
 
 if __name__ == '__main__':
     app.run(debug=True)

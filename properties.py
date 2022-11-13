@@ -532,3 +532,26 @@ def ManagerContractEnd_CRON():
                     propertyManagerresponse = db.update(
                         'propertyManager', propertyManagerPK, propertyManagerUpdate)
     return propertyManagerresponse
+
+
+class RemovePropertyOwner(Resource):
+    def put(self):
+        response = {}
+        filters = ['property_uid', 'manager_id', 'owner_id']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[filter] = filterValue
+                print((where))
+
+        print('here',  'property_uid' in where)
+        with connect() as db:
+            if 'property_uid' in where:
+                propertyUpdated = {
+                    'owner_id': ''
+                }
+                response = db.update(
+                    'properties', where, propertyUpdated)
+
+        return response
