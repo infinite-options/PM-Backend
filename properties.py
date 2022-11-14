@@ -119,18 +119,30 @@ class Properties(Resource):
     def put(self):
         response = {}
         with connect() as db:
+
+            print('here in put')
             data = request.form
             print(data)
             property_uid = data.get('property_uid')
             fields = ['owner_id', 'active_date', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'insurance', 'description', 'available_to_rent']
+                      'appliances', 'utilities', 'taxes', 'mortgages', 'insurance', 'description', 'pets_allowed',
+                      'deposit_for_rent', 'available_to_rent']
+            boolFields = ['pets_allowed',
+                          'deposit_for_rent', 'available_to_rent']
+            print('here in put')
             newProperty = {}
             for field in fields:
-
                 fieldValue = data.get(field)
-                print('field', field, fieldValue)
-                if fieldValue:
+                print(field, fieldValue)
+                if field in boolFields:
+                    # newProperty[field] = bool(data.get(field))
+
+                    if fieldValue == 'true':
+                        newProperty[field] = 1
+                    else:
+                        newProperty[field] = 0
+                else:
                     newProperty[field] = data.get(field)
             images = []
             i = -1
@@ -255,12 +267,21 @@ class Property(Resource):
             data = request.form
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'taxes', 'mortgages', 'description', 'available_to_rent']
+                      'appliances', 'utilities', 'taxes', 'mortgages', 'description', 'pets_allowed', 'deposit_for_rent', 'available_to_rent']
+            boolFields = ['pets_allowed',
+                          'deposit_for_rent', 'available_to_rent']
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)
-                if fieldValue:
-                    newProperty[field] = fieldValue
+                if field in boolFields:
+                    # newProperty[field] = bool(data.get(field))
+                    print(field, fieldValue)
+                    if fieldValue == 'true':
+                        newProperty[field] = 1
+                    else:
+                        newProperty[field] = 0
+                else:
+                    newProperty[field] = data.get(field)
             images = []
             i = -1
             imageFiles = {}

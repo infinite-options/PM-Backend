@@ -17,7 +17,7 @@ import json
 from cashflow import OwnerCashflow, OwnerCashflowProperty
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
-from appliances import Appliances
+from appliances import Appliances, RemoveAppliance
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
@@ -679,6 +679,8 @@ api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
 api.add_resource(UserToken, "/UserToken/<string:user_email_id>")
 
 api.add_resource(Appliances, "/appliances")
+api.add_resource(RemoveAppliance, "/RemoveAppliance")
+
 
 api.add_resource(UpdateAccessToken, "/UpdateAccessToken/<string:user_id>")
 api.add_resource(

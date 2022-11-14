@@ -41,8 +41,10 @@ class Appliances(Resource):
         response = {}
         with connect() as db:
             data = request.form
+            print(data)
             property_uid = data.get('property_uid')
             appliances = eval(data.get('appliances'))
+            print(appliances)
             images = []
             i = 0
             imageFiles = {}
@@ -179,4 +181,43 @@ class Appliances(Resource):
                 }
                 print(existingApp)
                 response = db.update('properties', primaryKey, updatedProperty)
+        return response
+
+
+class RemoveAppliance(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            print(data)
+            property_uid = data.get('property_uid')
+            appliance = (data.get('appliance'))
+
+            getAppliance = db.execute(
+                """SELECT appliances FROM pm.properties WHERE property_uid= \'""" + property_uid + """\'""")
+            getappLen = len(json.loads(
+                getAppliance['result'][0]['appliances']).keys())
+            existingApp = json.loads(
+                getAppliance['result'][0]['appliances'])
+            print(existingApp)
+            if appliance in existingApp:
+
+                del(existingApp[appliance])
+                print(existingApp)
+                primaryKey = {
+                    'property_uid': property_uid
+                }
+                updatedProperty = {
+                    'appliances': json.dumps(existingApp)
+                }
+
+                response = db.update('properties', primaryKey, updatedProperty)
+            else:
+                response['message'] = 'No appliance'
+                response['code'] = 200
+
+            # list_existingApp = list(existingApp.items())
+            # print(list_existingApp)
+            # updatedApp = existingApp
+
         return response
