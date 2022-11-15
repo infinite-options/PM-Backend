@@ -128,21 +128,12 @@ class Properties(Resource):
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'taxes', 'mortgages', 'insurance', 'description', 'pets_allowed',
                       'deposit_for_rent', 'available_to_rent']
-            boolFields = ['pets_allowed',
-                          'deposit_for_rent', 'available_to_rent']
-            print('here in put')
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)
                 print(field, fieldValue)
-                if field in boolFields:
-                    # newProperty[field] = bool(data.get(field))
+                if fieldValue:
 
-                    if fieldValue == 'true':
-                        newProperty[field] = 1
-                    else:
-                        newProperty[field] = 0
-                else:
                     newProperty[field] = data.get(field)
             images = []
             i = -1
