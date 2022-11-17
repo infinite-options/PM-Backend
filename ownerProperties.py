@@ -46,6 +46,9 @@ class PropertiesOwner(Resource):
                         property_id = response['result'][i]['property_uid']
                         print(property_id)
                         pid = {'linked_property_id': property_id}
+
+                        response['result'][i]['per_sqft'] = round(response['result'][i]['listed_rent'] /
+                                                                  response['result'][i]['area'], 2)
                         # property manager info for property
                         property_res = db.execute("""SELECT 
                                                         pm.*, 
@@ -241,6 +244,8 @@ class PropertiesOwnerDetail(Resource):
                         print(property_id)
                         pid = {'linked_property_id': property_id}
                         # property manager info for property
+                        response['result'][i]['per_sqft'] = round(response['result'][i]['listed_rent'] /
+                                                                  response['result'][i]['area'], 2)
                         property_res = db.execute("""SELECT 
                                                         pm.*, 
                                                         b.business_uid AS manager_id, 

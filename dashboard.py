@@ -187,6 +187,8 @@ class OwnerDashboard(Resource):
                 property_id = response['result'][i]['property_uid']
                 print(property_id)
                 pid = {'linked_property_id': property_id}
+                response['result'][i]['per_sqft'] = round(response['result'][i]['listed_rent'] /
+                                                          response['result'][i]['area'], 2)
                 # property manager info for property
                 property_res = db.execute("""SELECT 
                                                 pm.*, 
