@@ -64,7 +64,7 @@ class OwnerCashflow(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.owner_id = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
@@ -81,7 +81,7 @@ class OwnerCashflow(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.owner_id = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -520,7 +520,7 @@ class OwnerCashflow(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.owner_id = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
@@ -535,7 +535,7 @@ class OwnerCashflow(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.owner_id = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.payer LIKE '%""" + filterValue + """%'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -556,7 +556,7 @@ class OwnerCashflow(Resource):
             ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT")
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
@@ -1397,7 +1397,7 @@ class OwnerCashflow(Resource):
             owner_property_expenses = db.execute("""
                         SELECT  pr.property_uid, pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
                         WHERE pr.owner_id = \'""" + filterValue + """\'
-                        AND pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null
+                        AND (pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null)
                         """)
 
             # monthly expense for the property to include mortgage
@@ -1702,7 +1702,7 @@ class OwnerCashflowProperty(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.property_uid = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
@@ -1719,7 +1719,7 @@ class OwnerCashflowProperty(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.property_uid = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -2158,7 +2158,7 @@ class OwnerCashflowProperty(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.property_uid = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
@@ -2173,7 +2173,7 @@ class OwnerCashflowProperty(Resource):
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.property_uid = \'""" + filterValue + """\'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.payer LIKE '%""" + filterValue + """%'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -2194,7 +2194,7 @@ class OwnerCashflowProperty(Resource):
             ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.property_uid = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
-            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT")
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")

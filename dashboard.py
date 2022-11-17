@@ -203,12 +203,12 @@ class OwnerDashboard(Resource):
                     property_res['result'])
                 response['result'][i]['management_status'] = ""
                 response['result'][i]['managerInfo'] = {}
-                print(property_res)
+                # print(property_res)
                 # management status for property
                 if len(property_res['result']) > 0:
                     for pr in range(len(property_res['result'])):
-                        print(property_res['result']
-                              [pr]['management_status'])
+                        # print(property_res['result']
+                        #       [pr]['management_status'])
                         if property_res['result'][pr]['management_status'] == 'ACCEPTED' or property_res['result'][pr]['management_status'] == 'OWNER END EARLY' or property_res['result'][pr]['management_status'] == 'PM END EARLY' or property_res['result'][pr]['management_status'] == 'END EARLY':
                             response['result'][i]['management_status'] = property_res['result'][pr]['management_status']
                             response['result'][i]['managerInfo'] = property_res['result'][pr]
@@ -246,10 +246,37 @@ class OwnerDashboard(Resource):
                 response['result'][i]['rentalInfo'] = list(
                     rental_res['result'])
                 # rental status for the property
+                response['result'][i]['rent_paid'] = ''
                 if len(rental_res['result']) > 0:
                     response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
+                    print(rental_res['result'][0]['tenant_id'].split(','))
+                    if len(rental_res['result'][0]['tenant_id'].split(',')) > 0:
+                        print('in if')
+                        for r in rental_res['result'][0]['tenant_id'].split(','):
+                            rentPayment = db.execute("""
+                            SELECT * FROM pm.purchases pur
+                            WHERE (DATE_FORMAT(pur.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pur.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pur.next_payment) = YEAR(now()))
+                            AND pur.payer  LIKE '%""" + r + """%'
+                            AND pur.purchase_type= "RENT"
+                            AND pur.pur_property_id LIKE '%""" + property_id + """%'
+                            """)
+                            if len(rentPayment['result']) > 0:
+                                response['result'][i]['rent_paid'] = rentPayment['result'][0]['purchase_status']
+
+                    else:
+                        rentPayment = db.execute("""
+                        SELECT * FROM pm.purchases pur
+                        WHERE (DATE_FORMAT(pur.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pur.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pur.next_payment) = YEAR(now()))
+                        AND  pur.payer  LIKE '%""" + rental_res['result'][0]['tenant_id'] + """%'
+                        AND pur.purchase_type= "RENT"
+                        AND pur.pur_property_id LIKE '%""" + property_id + """%'
+                        """)
+                        if len(rentPayment['result']) > 0:
+                            response['result'][i]['rent_paid'] = rentPayment['result'][0]['purchase_status']
+
                 else:
                     response['result'][i]['rental_status'] = ""
+                    response['result'][i]['rent_paid'] = ""
 
                 maintenance_res = db.execute("""SELECT mr.*, p.address, p.unit, p.city, p.state, p.zip
                                                 FROM pm.maintenanceRequests mr
@@ -307,7 +334,7 @@ class OwnerDashboard(Resource):
                     for i in range(len(expense_res['result'])):
                         # if utility return all the details related to the utility
                         if expense_res['result'][i]['purchase_type'] == 'UTILITY':
-                            print('in utility')
+                            # print('in utility')
 
                             billRes = db.execute("""SELECT b.*
                                                     FROM pm.bills b                
@@ -321,7 +348,7 @@ class OwnerDashboard(Resource):
                                     #     billRes['result'][j])
                         # if maintainence return all the details related to the maintenance requests
                         elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
-                            print('in maintenance')
+                            # print('in maintenance')
                             maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*
                                                             FROM maintenanceQuotes mq
                                                             LEFT JOIN pm.maintenanceRequests mr
@@ -336,7 +363,7 @@ class OwnerDashboard(Resource):
                                         maintenanceRes['result'][j])
                         # if repair return all the details related to the repair requests
                         elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
-                            print('in maintenance')
+                            # print('in maintenance')
                             repairRes = db.execute("""SELECT mq.*, mr.*, b.*
                                                             FROM maintenanceQuotes mq
                                                             LEFT JOIN pm.maintenanceRequests mr
