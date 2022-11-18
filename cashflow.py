@@ -66,8 +66,7 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
-            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-            AND pu.purchase_status='PAID'""")
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
             response['result']['owner_revenue'] = list(
                 owner_rental_revenue['result'])
@@ -85,8 +84,7 @@ class OwnerCashflow(Resource):
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.receiver = \'""" + filterValue + """\'
-            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-            AND pu.purchase_status='PAID' """)
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
             response['result']['owner_revenue'] = response['result']['owner_revenue'] + list(
                 owner_utility_revenue['result'])
@@ -96,7 +94,6 @@ class OwnerCashflow(Resource):
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
-
                     if response['result']['owner_revenue'][ore]['purchase_type'] == 'RENT':
                         if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
 
@@ -238,6 +235,8 @@ class OwnerCashflow(Resource):
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
             response['result']['owner_expected_revenue'] = response['result']['owner_expected_revenue'] + list(
+                owner_utility_expected_revenue['result'])
+            response['result']['owner_utility_expected_revenue'] = list(
                 owner_utility_expected_revenue['result'])
 
             if len(response['result']['owner_expected_revenue']) > 0:
@@ -571,6 +570,10 @@ class OwnerCashflow(Resource):
             insurance_expense = 0
             taxes_expense = 0
 
+            mortgage_expected_expense = 0
+            insurance_expected_expense = 0
+            taxes_expected_expense = 0
+
             maintenance_year_expense = 0
             management_year_expense = 0
             repairs_year_expense = 0
@@ -583,6 +586,10 @@ class OwnerCashflow(Resource):
             mortgage_year_expense = 0
             insurance_year_expense = 0
             taxes_year_expense = 0
+
+            mortgage_year_expected_expense = 0
+            insurance_year_expected_expense = 0
+            taxes_year_expected_expense = 0
 
             amortized_utility_expense = 0
             amortized_maintenance_expense = 0
@@ -597,6 +604,10 @@ class OwnerCashflow(Resource):
             amortized_insurance_expense = 0
             amortized_taxes_expense = 0
 
+            amortized_mortgage_expected_expense = 0
+            amortized_insurance_expected_expense = 0
+            amortized_taxes_expected_expense = 0
+
             amortized_maintenance_year_expense = 0
             amortized_management_year_expense = 0
             amortized_repairs_year_expense = 0
@@ -609,6 +620,10 @@ class OwnerCashflow(Resource):
             amortized_mortgage_year_expense = 0
             amortized_insurance_year_expense = 0
             amortized_taxes_year_expense = 0
+
+            amortized_mortgage_year_expected_expense = 0
+            amortized_insurance_year_expected_expense = 0
+            amortized_taxes_year_expected_expense = 0
             # owner all expense monthly except mortgage, taxes, insurance
             owner_expense = db.execute("""
             SELECT * FROM purchases pu
@@ -621,8 +636,7 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
-            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')            
-            AND pu.purchase_status = 'PAID'""")
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
             response['result']['owner_expense'] = list(owner_expense['result'])
 
@@ -638,11 +652,24 @@ class OwnerCashflow(Resource):
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.payer LIKE '%""" + filterValue + """%'
-            AND pu.receiver LIKE '%""" + filterValue + """%'
-            AND pu.purchase_status = 'PAID' """)
+            AND pu.receiver NOT LIKE '%""" + filterValue + """%' """)
 
-            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
-                owner_utility_expense['result']))
+            owner_utility_expense_individual = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (pu.purchase_type="UTILITY")
+            AND pu.receiver LIKE '%""" + filterValue + """%' """)
+            response['result']['owner_utility_expense_individual'] = (list(
+                owner_utility_expense_individual['result']))
+            # response['result']['owner_utility_expense'] = (
+            #     list(owner_utility_expense['result']))
 
             # monthly expenses for the property
             owner_management_expense = db.execute("""
@@ -662,8 +689,6 @@ class OwnerCashflow(Resource):
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
 
-            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
-                owner_management_expense['result']))
             if len(owner_management_expense['result']) > 0:
                 for mex in range(len(owner_management_expense['result'])):
                     # if management
@@ -718,27 +743,32 @@ class OwnerCashflow(Resource):
                                             (
                                                 float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
                                     elif payment['frequency'] == 'Annually':
-                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
-                                            management_expected_expense = management_expected_expense +  \
-                                                (
-                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
+                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
+
                                             management_expense = management_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                                ((
-                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
                                             amortized_management_expense = amortized_management_expense +  \
                                                 ((
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
-                                    elif payment['frequency'] == 'One-time':
                                         if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
                                             management_expected_expense = management_expected_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
+                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
+                                                ((
+                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
+
+                                    elif payment['frequency'] == 'One-time':
+                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
                                             management_expense = management_expense +  \
                                                 (
                                                     float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
+
+                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
+                                            management_expected_expense = management_expected_expense +  \
+                                                (
+                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
 
                                     else:
                                         print('do nothing')
@@ -760,25 +790,29 @@ class OwnerCashflow(Resource):
                                         float(payment['charge'])
                                 elif payment['frequency'] == 'Annually':
 
+                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['start_date']).day <= today.day:
+                                        management_expense = management_expense + \
+                                            float(
+                                                payment['charge'])
+                                        amortized_management_expense = amortized_management_expense +  \
+                                            (float(payment['charge']))/12
                                     if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
                                         management_expected_expense = management_expected_expense + \
                                             float(payment['charge'])
-                                        management_expense = management_expense + \
-                                            float(
-                                                payment['charge'])
+
                                         amortized_management_expected_expense = amortized_management_expected_expense +  \
                                             (float(payment['charge'])) / \
                                             (datetime.now().month-1)
-                                        amortized_management_expense = amortized_management_expense +  \
-                                            (float(payment['charge']))/12
+
                                 elif payment['frequency'] == 'One-time':
 
-                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
-                                        management_expected_expense = management_expected_expense +  \
-                                            float(payment['charge'])
+                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['start_date']).day <= today.day:
                                         management_expense = management_expense + \
                                             float(
                                                 payment['charge'])
+                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
+                                        management_expected_expense = management_expected_expense +  \
+                                            float(payment['charge'])
 
                                 else:
                                     print('do nothing')
@@ -792,6 +826,8 @@ class OwnerCashflow(Resource):
                     months_active = abs(delta_active.months +
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
+                    print(response['result']['owner_expense'][ore]['lease_start'],
+                          response['result']['owner_expense'][ore]['property_uid'])
                     delta_leased = relativedelta((datetime.strptime(
                         response['result']['owner_expense'][ore]['lease_start'], '%Y-%m-%d')), datetime.now())
 
@@ -937,35 +973,47 @@ class OwnerCashflow(Resource):
 
                             repairs_expense = repairs_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
+            utility_bill = []
+            if len(owner_utility_expense['result']) > 0:
+                for ore in range(len(owner_utility_expense['result'])):
+                    if owner_utility_expense['result'][ore]['linked_bill_id'] not in utility_bill:
 
-                    if response['result']['owner_expense'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_expense'][ore]['purchase_frequency'] == 'Weekly':
+                        if owner_utility_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                            # response['result']['owner_utility_expense'].append(
+                            #     owner_utility_expense['result'][ore])
+                            utility_bill.append(
+                                owner_utility_expense['result'][ore]['linked_bill_id'])
+                            if owner_utility_expense['result'][ore]['purchase_frequency'] == 'Weekly':
 
-                            utility_expense = utility_expense + \
-                                weeks_current_month*int(response['result']['owner_expense']
-                                                        [ore]['amount_paid'])
-                        elif response['result']['owner_expense'][ore]['purchase_frequency'] == 'Biweekly':
+                                utility_expense = utility_expense + \
+                                    weeks_current_month*int(owner_utility_expense['result']
+                                                            [ore]['amount_paid'])
+                            elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
 
-                            utility_expense = utility_expense + \
-                                weeks_current_month/2 * \
-                                int(response['result']['owner_expense']
-                                    [ore]['amount_paid'])
-                        elif response['result']['owner_expense'][ore]['purchase_frequency'] == 'Monthly':
+                                utility_expense = utility_expense + \
+                                    weeks_current_month/2 * \
+                                    int(owner_utility_expense['result']
+                                        [ore]['amount_paid'])
+                            elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Monthly':
 
-                            utility_expense = utility_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
-                        elif response['result']['owner_expense'][ore]['purchase_frequency'] == 'Annually':
+                                utility_expense = utility_expense + \
+                                    owner_utility_expense['result'][ore]['amount_paid']
+                            elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Annually':
 
-                            utility_expense = utility_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
+                                utility_expense = utility_expense + \
+                                    owner_utility_expense['result'][ore]['amount_paid']
 
-                            amortized_utility_expense = amortized_utility_expense + \
-                                float(
-                                    response['result']['owner_expense'][ore]['amount_paid'])/12
-                        else:
-                            utility_expense = utility_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
+                                amortized_utility_expense = amortized_utility_expense + \
+                                    float(
+                                        owner_utility_expense['result'][ore]['amount_paid'])/12
+                            else:
+                                utility_expense = utility_expense + \
+                                    owner_utility_expense['result'][ore]['amount_paid']
 
+            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
+                owner_utility_expense['result']))
+            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
+                owner_management_expense['result']))
             response['result']['maintenance_expense'] = round(
                 maintenance_expense, 2)
             response['result']['management_expense'] = round(
@@ -1013,10 +1061,25 @@ class OwnerCashflow(Resource):
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
             AND pu.payer LIKE '%""" + filterValue + """%'            
+            AND pu.receiver NOT LIKE '%""" + filterValue + """%'; """)
+
+            owner_utility_expected_expense_individual = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND (pu.purchase_type="UTILITY")           
             AND pu.receiver LIKE '%""" + filterValue + """%'; """)
 
-            response['result']['owner_expected_expense'] = response['result']['owner_expected_expense'] + (list(
-                owner_utility_expected_expense['result']))
+            response['result']['owner_utility_expected_expense_individual'] = (list(
+                owner_utility_expected_expense_individual['result']))
+            # response['result']['owner_utility_expected_expense'] = (
+            #     list(owner_utility_expected_expense['result']))
 
             if len(response['result']['owner_expected_expense']) > 0:
                 for ore in range(len(response['result']['owner_expected_expense'])):
@@ -1168,34 +1231,46 @@ class OwnerCashflow(Resource):
                         else:
                             repairs_expected_expense = repairs_expected_expense + \
                                 response['result']['owner_expected_expense'][ore]['amount_due']
+            utility_bill_expected = []
+            if len(owner_utility_expected_expense['result']) > 0:
+                for ore in range(len(owner_utility_expected_expense['result'])):
+                    print('in for loop owner_utility_expected_expense')
+                    if owner_utility_expected_expense['result'][ore]['linked_bill_id'] not in utility_bill_expected:
 
-                    if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Weekly':
-                            utility_expected_expense = utility_expected_expense + \
-                                weeks_current_month*int(response['result']['owner_expected_expense']
-                                                        [ore]['amount_due'])
+                        print('in if not in utility_bill_expected')
+                        if owner_utility_expected_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                            # response['result']['owner_utility_expected_expense'].append(
+                            #     owner_utility_expected_expense['result'][ore])
+                            utility_bill_expected.append(
+                                owner_utility_expected_expense['result'][ore]['linked_bill_id'])
+                            if owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+                                utility_expected_expense = utility_expected_expense + \
+                                    weeks_current_month*int(owner_utility_expected_expense['result']
+                                                            [ore]['amount_due'])
 
-                        elif response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Biweekly':
-                            utility_expected_expense = utility_expected_expense + \
-                                weeks_current_month/2 * \
-                                int(response['result']['owner_expected_expense']
-                                    [ore]['amount_due'])
+                            elif owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+                                utility_expected_expense = utility_expected_expense + \
+                                    weeks_current_month/2 * \
+                                    int(owner_utility_expected_expense['result']
+                                        [ore]['amount_due'])
 
-                        elif response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
-                            utility_expected_expense = utility_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                            elif owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+                                utility_expected_expense = utility_expected_expense + \
+                                    owner_utility_expected_expense['result'][ore]['amount_due']
 
-                        elif response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Annually':
-                            utility_expected_expense = utility_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                            elif owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Annually':
+                                utility_expected_expense = utility_expected_expense + \
+                                    owner_utility_expected_expense['result'][ore]['amount_due']
 
-                            amortized_utility_expected_expense = amortized_utility_expected_expense +  \
-                                (response['result']['owner_expected_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
-                        else:
-                            utility_expected_expense = utility_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                                amortized_utility_expected_expense = amortized_utility_expected_expense +  \
+                                    (owner_utility_expected_expense['result']
+                                     [ore]['amount_due'])/(datetime.now().month-1)
+                            else:
+                                utility_expected_expense = utility_expected_expense + \
+                                    owner_utility_expected_expense['result'][ore]['amount_due']
 
+            response['result']['owner_expected_expense'] = response['result']['owner_expected_expense'] + (list(
+                owner_utility_expected_expense['result']))
             response['result']['maintenance_expected_expense'] = round(
                 maintenance_expected_expense, 2)
             response['result']['management_expected_expense'] = round(
@@ -1243,11 +1318,26 @@ class OwnerCashflow(Resource):
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type="UTILITY")
             AND pu.payer LIKE '%""" + filterValue + """%'
+            AND pu.receiver NOT LIKE '%""" + filterValue + """%'; """)
+
+            response['result']['owner_utility_expense_yearly'] = (
+                list(owner_utility_year_expense['result']))
+
+            owner_utility_year_expense_individual = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND YEAR(pu.next_payment) = YEAR(now())
+            AND (pu.purchase_type="UTILITY")
             AND pu.receiver LIKE '%""" + filterValue + """%'; """)
 
-            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
-                owner_utility_year_expense['result']))
-
+            response['result']['owner_utility_year_expense_individual'] = (list(
+                owner_utility_year_expense_individual['result']))
             # monthly expenses for the property
             owner_management_year_expense = db.execute("""
             SELECT * FROM purchases pu
@@ -1266,8 +1356,6 @@ class OwnerCashflow(Resource):
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
 
-            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
-                owner_management_year_expense['result']))
             if len(owner_management_year_expense['result']) > 0:
                 for mex in range(len(owner_management_year_expense['result'])):
                     # if management
@@ -1385,12 +1473,12 @@ class OwnerCashflow(Resource):
                 for ore in range(len(response['result']['owner_expense_yearly'])):
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['active_date'], '%Y-%m-%d')), datetime.now())
+                        response['result']['owner_expense_yearly'][ore]['active_date'], '%Y-%m-%d')), datetime.now())
                     months_active = abs(delta_active.months +
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
                     delta_leased = relativedelta((datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d')), datetime.now())
+                        response['result']['owner_expense_yearly'][ore]['lease_start'], '%Y-%m-%d')), datetime.now())
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
@@ -1399,10 +1487,10 @@ class OwnerCashflow(Resource):
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
                     # number of weeks a property has been active
                     weeks_active = round((abs(today - datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+                        response['result']['owner_expense_yearly'][ore]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
                     # number of weeks a property has been under an active lease
                     weeks_leased = round((abs(today - datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                        response['result']['owner_expense_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
 
                     # if expenses type is MAINTAINENCE
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MAINTENANCE':
@@ -1585,46 +1673,61 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             repairs_year_expected_expense = repairs_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+            utility_year_bill_expected = []
+            if len(owner_utility_year_expense['result']) > 0:
+                for ore in range(len(owner_utility_year_expense['result'])):
+                    print('in for loop owner_utility_expected_expense')
+                    if owner_utility_year_expense['result'][ore]['linked_bill_id'] not in utility_year_bill_expected:
 
-                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Weekly':
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                weeks_leased*int(response['result']['owner_expense_yearly']
-                                                 [ore]['amount_due'])
-                            utility_year_expense = utility_year_expense + \
-                                weeks_leased*int(response['result']['owner_expense_yearly']
-                                                 [ore]['amount_paid'])
-                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Biweekly':
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                weeks_leased/2 * \
-                                int(response['result']['owner_expense_yearly']
-                                    [ore]['amount_due'])
-                            utility_year_expense = utility_year_expense + \
-                                weeks_leased/2 * \
-                                int(response['result']['owner_expense_yearly']
-                                    [ore]['amount_paid'])
-                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
-                            utility_year_expected_expense = utility_year_expected_expense + months_leased * \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
-                            utility_year_expense = utility_year_expense + months_leased * \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
-                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
-                            utility_year_expense = utility_year_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
-                            amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
-                                (response['result']['owner_expense_yearly']
-                                 [ore]['amount_due'])/12
-                            amortized_utility_year_expense = amortized_utility_year_expense + \
-                                (response['result']['owner_expense_yearly']
-                                 [ore]['amount_paid'])/12
-                        else:
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
-                            utility_year_expense = utility_year_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
+                        print('in if not in utility_year_bill_expected')
+                        if owner_utility_year_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                            # response['result']['owner_utility_expected_expense'].append(
+                            #     owner_utility_year_expense['result'][ore])
+                            utility_year_bill_expected.append(
+                                owner_utility_year_expense['result'][ore]['linked_bill_id'])
 
+                            if owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    weeks_leased*int(owner_utility_year_expense['result']
+                                                     [ore]['amount_due'])
+                                utility_year_expense = utility_year_expense + \
+                                    weeks_leased*int(owner_utility_year_expense['result']
+                                                     [ore]['amount_paid'])
+                            elif owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    weeks_leased/2 * \
+                                    int(owner_utility_year_expense['result']
+                                        [ore]['amount_due'])
+                                utility_year_expense = utility_year_expense + \
+                                    weeks_leased/2 * \
+                                    int(owner_utility_year_expense['result']
+                                        [ore]['amount_paid'])
+                            elif owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+                                utility_year_expected_expense = utility_year_expected_expense + months_leased * \
+                                    owner_utility_year_expense['result'][ore]['amount_due']
+                                utility_year_expense = utility_year_expense + months_leased * \
+                                    owner_utility_year_expense['result'][ore]['amount_paid']
+                            elif owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Annually':
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_due']
+                                utility_year_expense = utility_year_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_paid']
+                                amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
+                                    (owner_utility_year_expense['result']
+                                     [ore]['amount_due'])/12
+                                amortized_utility_year_expense = amortized_utility_year_expense + \
+                                    (owner_utility_year_expense['result']
+                                     [ore]['amount_paid'])/12
+                            else:
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_due']
+                                utility_year_expense = utility_year_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_paid']
+
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
+                owner_utility_year_expense['result']))
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
+                owner_management_year_expense['result']))
             response['result']['maintenance_year_expense'] = round(
                 maintenance_year_expense, 2)
             response['result']['management_year_expense'] = round(
@@ -1788,17 +1891,19 @@ class OwnerCashflow(Resource):
                                                                                                                     ['taxes'])[te]['amount']))/12
                                             owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                                         ['taxes'])[te]['amount']))/12
-                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
                                             taxes_expense = taxes_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                     te]['amount'])
                                             owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount'])
+
                                             amortized_taxes_expense = amortized_taxes_expense + \
                                                 (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                     te]['amount']))/(datetime.now().month - 1)
                                             owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))/(datetime.now().month - 1)
+
                                     # if taxes annually and twice a year
                                     elif eval(owner_property_expenses['result'][ope]['taxes'])[te]['frequency_of_payment'] == 'Twice a year':
                                         print('in twice a year')
@@ -1811,7 +1916,7 @@ class OwnerCashflow(Resource):
                                                                                                                     ['taxes'])[te]['amount']))/6
                                             owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                                         ['taxes'])[te]['amount']))/6
-                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month:
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month or (date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']) + relativedelta(months=6)).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
                                             taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))
                                             owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
@@ -1821,6 +1926,17 @@ class OwnerCashflow(Resource):
                                                     te]['amount']))/((datetime.now().month - 1)/2)
                                             owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
                                                 te]['amount']))/((datetime.now().month - 1)/2)
+                                        if date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).month == today.month:
+                                            taxes_expense = taxes_expense + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))
+                                            owner_property_expenses['result'][ope]['taxes_expense'] = owner_property_expenses['result'][ope]['taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))
+                                            amortized_taxes_expense = amortized_taxes_expense + \
+                                                (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                    te]['amount']))/((datetime.now().month - 1)/2)
+                                            owner_property_expenses['result'][ope]['amortized_taxes_expense'] = owner_property_expenses['result'][ope]['amortized_taxes_expense'] + (int(eval(owner_property_expenses['result'][ope]['taxes'])[
+                                                te]['amount']))/((datetime.now().month - 1)/2)
+
                         # monthly expense for the property to include insurance
                     if owner_property_expenses['result'][ope]['insurance'] is not None:
                         if len(eval(owner_property_expenses['result'][ope]['insurance'])) > 0:
@@ -1864,7 +1980,7 @@ class OwnerCashflow(Resource):
                                                                                                                             ['insurance'])[te]['amount']))/12
                                             owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] = owner_property_expenses['result'][ope]['amortized_insurance_year_expense'] + (int(eval(owner_property_expenses['result'][ope]
                                                                                                                                                                                                                 ['insurance'])[te]['amount']))/12
-                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month:
+                                        if date.fromisoformat(eval(owner_management_expense['result'][ope]['insurance'])[te]['next_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
                                             insurance_expense = insurance_expense + \
                                                 int(eval(owner_property_expenses['result'][ope]['insurance'])[
                                                     te]['amount'])
@@ -1919,12 +2035,14 @@ class OwnerCashflowProperty(Resource):
         response['message'] = 'Successfully executed SQL query'
         response['code'] = 200
         response['result'] = {}
-        filters = ['property_id']
+        filters = ['property_id', 'owner_id']
         where = {}
 
         with connect() as db:
-            filterValue = request.args.get(filters[0])
-            print(filterValue)
+            filterValue1 = request.args.get(filters[0])
+
+            filterValue2 = request.args.get(filters[1])
+            print(filterValue1, filterValue2)
             today = date.today()
 
             # initialize revenue variables
@@ -1966,11 +2084,10 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
-            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-            AND pu.purchase_status='PAID'""")
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
             response['result']['owner_revenue'] = list(
                 owner_rental_revenue['result'])
@@ -1984,12 +2101,11 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
-            AND pu.receiver = \'""" + filterValue + """\'
-            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-            AND pu.purchase_status='PAID' """)
+            AND pu.receiver = \'""" + filterValue2 + """\'
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
             response['result']['owner_revenue'] = response['result']['owner_revenue'] + list(
                 owner_utility_revenue['result'])
@@ -1999,7 +2115,6 @@ class OwnerCashflowProperty(Resource):
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
-
                     if response['result']['owner_revenue'][ore]['purchase_type'] == 'RENT':
                         if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
 
@@ -2117,7 +2232,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
@@ -2134,13 +2249,15 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
-            AND pu.receiver = \'""" + filterValue + """\'
+            AND pu.receiver = \'""" + filterValue2 + """\'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
             response['result']['owner_expected_revenue'] = response['result']['owner_expected_revenue'] + list(
+                owner_utility_expected_revenue['result'])
+            response['result']['owner_utility_expected_revenue'] = list(
                 owner_utility_expected_revenue['result'])
 
             if len(response['result']['owner_expected_revenue']) > 0:
@@ -2250,7 +2367,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -2267,10 +2384,10 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type="UTILITY")
-            AND pu.receiver = \'""" + filterValue + """\'
+            AND pu.receiver = \'""" + filterValue2 + """\'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') """)
 
             response['result']['owner_revenue_yearly'] = response['result']['owner_revenue_yearly'] + list(
@@ -2521,11 +2638,10 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
-            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')            
-            AND pu.purchase_status = 'PAID'""")
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
             response['result']['owner_expense'] = list(owner_expense['result'])
 
@@ -2535,15 +2651,15 @@ class OwnerCashflowProperty(Resource):
             ON pa.pay_purchase_id = pu.purchase_uid
             LEFT JOIN properties pr
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
-            AND pu.payer LIKE '%""" + filterValue + """%'
-            AND pu.receiver LIKE '%""" + filterValue + """%'
-            AND pu.purchase_status = 'PAID' """)
+            AND pu.receiver LIKE '%""" + filterValue2 + """%' """)
 
-            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
-                owner_utility_expense['result']))
+            response['result']['owner_utility_expense'] = (
+                list(owner_utility_expense['result']))
 
             # monthly expenses for the property
             owner_management_expense = db.execute("""
@@ -2556,15 +2672,13 @@ class OwnerCashflowProperty(Resource):
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN pm.contracts c
             ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND c.contract_status = 'ACTIVE'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type= "RENT")
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
 
-            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
-                owner_management_expense['result']))
             if len(owner_management_expense['result']) > 0:
                 for mex in range(len(owner_management_expense['result'])):
                     # if management
@@ -2839,34 +2953,40 @@ class OwnerCashflowProperty(Resource):
                             repairs_expense = repairs_expense + \
                                 response['result']['owner_expense'][ore]['amount_paid']
 
-                    if response['result']['owner_expense'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_expense'][ore]['purchase_frequency'] == 'Weekly':
+            if len(owner_utility_expense['result']) > 0:
+                for ore in range(len(owner_utility_expense['result'])):
+                    if owner_utility_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                        if owner_utility_expense['result'][ore]['purchase_frequency'] == 'Weekly':
 
                             utility_expense = utility_expense + \
-                                weeks_current_month*int(response['result']['owner_expense']
+                                weeks_current_month*int(owner_utility_expense['result']
                                                         [ore]['amount_paid'])
-                        elif response['result']['owner_expense'][ore]['purchase_frequency'] == 'Biweekly':
+                        elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
 
                             utility_expense = utility_expense + \
                                 weeks_current_month/2 * \
-                                int(response['result']['owner_expense']
+                                int(owner_utility_expense['result']
                                     [ore]['amount_paid'])
-                        elif response['result']['owner_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Monthly':
 
                             utility_expense = utility_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
-                        elif response['result']['owner_expense'][ore]['purchase_frequency'] == 'Annually':
+                                owner_utility_expense['result'][ore]['amount_paid']
+                        elif owner_utility_expense['result'][ore]['purchase_frequency'] == 'Annually':
 
                             utility_expense = utility_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
+                                owner_utility_expense['result'][ore]['amount_paid']
 
                             amortized_utility_expense = amortized_utility_expense + \
                                 float(
-                                    response['result']['owner_expense'][ore]['amount_paid'])/12
+                                    owner_utility_expense['result'][ore]['amount_paid'])/12
                         else:
                             utility_expense = utility_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
+                                owner_utility_expense['result'][ore]['amount_paid']
 
+            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
+                owner_utility_expense['result']))
+            response['result']['owner_expense'] = response['result']['owner_expense'] + (list(
+                owner_management_expense['result']))
             response['result']['maintenance_expense'] = round(
                 maintenance_expense, 2)
             response['result']['management_expense'] = round(
@@ -2894,7 +3014,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -2910,14 +3030,13 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type="UTILITY")
-            AND pu.payer LIKE '%""" + filterValue + """%'            
-            AND pu.receiver LIKE '%""" + filterValue + """%'; """)
+            AND (pu.purchase_type="UTILITY")           
+            AND pu.receiver  LIKE '%""" + filterValue2 + """%'; """)
 
-            response['result']['owner_expected_expense'] = response['result']['owner_expected_expense'] + (list(
-                owner_utility_expected_expense['result']))
+            response['result']['owner_utility_expected_expense'] = (
+                list(owner_utility_expected_expense['result']))
 
             if len(response['result']['owner_expected_expense']) > 0:
                 for ore in range(len(response['result']['owner_expected_expense'])):
@@ -3070,33 +3189,38 @@ class OwnerCashflowProperty(Resource):
                             repairs_expected_expense = repairs_expected_expense + \
                                 response['result']['owner_expected_expense'][ore]['amount_due']
 
-                    if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Weekly':
+            if len(owner_utility_expected_expense['result']) > 0:
+                for ore in range(len(owner_utility_expected_expense['result'])):
+                    if owner_utility_expected_expense['result'][ore]['purchase_type'] == 'UTILITY':
+
+                        if owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Weekly':
                             utility_expected_expense = utility_expected_expense + \
-                                weeks_current_month*int(response['result']['owner_expected_expense']
+                                weeks_current_month*int(owner_utility_expected_expense['result']
                                                         [ore]['amount_due'])
 
-                        elif response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Biweekly':
+                        elif owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
                             utility_expected_expense = utility_expected_expense + \
                                 weeks_current_month/2 * \
-                                int(response['result']['owner_expected_expense']
+                                int(owner_utility_expected_expense['result']
                                     [ore]['amount_due'])
 
-                        elif response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
+                        elif owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Monthly':
                             utility_expected_expense = utility_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                                owner_utility_expected_expense['result'][ore]['amount_due']
 
-                        elif response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Annually':
+                        elif owner_utility_expected_expense['result'][ore]['purchase_frequency'] == 'Annually':
                             utility_expected_expense = utility_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                                owner_utility_expected_expense['result'][ore]['amount_due']
 
                             amortized_utility_expected_expense = amortized_utility_expected_expense +  \
-                                (response['result']['owner_expected_expense']
+                                (owner_utility_expected_expense['result']
                                  [ore]['amount_due'])/(datetime.now().month-1)
                         else:
                             utility_expected_expense = utility_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
-
+                                owner_utility_expected_expense['result'][ore]['amount_due']
+            print('after utilties')
+            response['result']['owner_expected_expense'] = response['result']['owner_expected_expense'] + (list(
+                owner_utility_expected_expense['result']))
             response['result']['maintenance_expected_expense'] = round(
                 maintenance_expected_expense, 2)
             response['result']['management_expected_expense'] = round(
@@ -3124,7 +3248,7 @@ class OwnerCashflowProperty(Resource):
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN rentals r
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type <> "RENT" AND pu.purchase_type <> "EXTRA CHARGES" AND pu.purchase_type <> "UTILITY")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
@@ -3138,14 +3262,15 @@ class OwnerCashflowProperty(Resource):
             ON pa.pay_purchase_id = pu.purchase_uid
             LEFT JOIN properties pr
             ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type="UTILITY")
-            AND pu.payer LIKE '%""" + filterValue + """%'
-            AND pu.receiver LIKE '%""" + filterValue + """%'; """)
+            AND pu.receiver LIKE '%""" + filterValue2 + """%'; """)
 
-            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
-                owner_utility_year_expense['result']))
+            response['result']['owner_utility_expense_yearly'] = (
+                list(owner_utility_year_expense['result']))
 
             # monthly expenses for the property
             owner_management_year_expense = db.execute("""
@@ -3158,15 +3283,13 @@ class OwnerCashflowProperty(Resource):
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             LEFT JOIN pm.contracts c
             ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
-            WHERE pr.property_uid = \'""" + filterValue + """\'
+            WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND c.contract_status = 'ACTIVE'
             AND YEAR(pu.next_payment) = YEAR(now())
             AND (pu.purchase_type= "RENT")
             AND r.rental_status = 'ACTIVE'
             AND pu.purchase_status = 'PAID'""")
 
-            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
-                owner_management_year_expense['result']))
             if len(owner_management_year_expense['result']) > 0:
                 for mex in range(len(owner_management_year_expense['result'])):
                     # if management
@@ -3284,12 +3407,12 @@ class OwnerCashflowProperty(Resource):
                 for ore in range(len(response['result']['owner_expense_yearly'])):
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['active_date'], '%Y-%m-%d')), datetime.now())
+                        response['result']['owner_expense_yearly'][ore]['active_date'], '%Y-%m-%d')), datetime.now())
                     months_active = abs(delta_active.months +
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
                     delta_leased = relativedelta((datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d')), datetime.now())
+                        response['result']['owner_expense_yearly'][ore]['lease_start'], '%Y-%m-%d')), datetime.now())
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
@@ -3298,10 +3421,10 @@ class OwnerCashflowProperty(Resource):
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
                     # number of weeks a property has been active
                     weeks_active = round((abs(today - datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+                        response['result']['owner_expense_yearly'][ore]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
                     # number of weeks a property has been under an active lease
                     weeks_leased = round((abs(today - datetime.strptime(
-                        response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                        response['result']['owner_expense_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
 
                     # if expenses type is MAINTAINENCE
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MAINTENANCE':
@@ -3484,45 +3607,59 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_paid']
                             repairs_year_expected_expense = repairs_year_expected_expense + \
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
+            utility_bill_year = []
+            if len(owner_utility_year_expense['result']) > 0:
+                for ore in range(len(owner_utility_year_expense['result'])):
+                    if owner_utility_year_expense['result'][ore]['linked_bill_id'] not in utility_bill_year:
 
-                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'UTILITY':
-                        if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Weekly':
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                weeks_leased*int(response['result']['owner_expense_yearly']
-                                                 [ore]['amount_due'])
-                            utility_year_expense = utility_year_expense + \
-                                weeks_leased*int(response['result']['owner_expense_yearly']
-                                                 [ore]['amount_paid'])
-                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Biweekly':
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                weeks_leased/2 * \
-                                int(response['result']['owner_expense_yearly']
-                                    [ore]['amount_due'])
-                            utility_year_expense = utility_year_expense + \
-                                weeks_leased/2 * \
-                                int(response['result']['owner_expense_yearly']
-                                    [ore]['amount_paid'])
-                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
-                            utility_year_expected_expense = utility_year_expected_expense + months_leased * \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
-                            utility_year_expense = utility_year_expense + months_leased * \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
-                        elif response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Annually':
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
-                            utility_year_expense = utility_year_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
-                            amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
-                                (response['result']['owner_expense_yearly']
-                                 [ore]['amount_due'])/12
-                            amortized_utility_year_expense = amortized_utility_year_expense + \
-                                (response['result']['owner_expense_yearly']
-                                 [ore]['amount_paid'])/12
-                        else:
-                            utility_year_expected_expense = utility_year_expected_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
-                            utility_year_expense = utility_year_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
+                        if owner_utility_year_expense['result'][ore]['purchase_type'] == 'UTILITY':
+                            # response['result']['owner_utility_year_expense'].append(
+                            #     owner_utility_year_expense['result'][ore])
+                            utility_bill_year.append(
+                                owner_utility_year_expense['result'][ore]['linked_bill_id'])
+
+                            if owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Weekly':
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    weeks_leased*int(owner_utility_year_expense['result']
+                                                     [ore]['amount_due'])
+                                utility_year_expense = utility_year_expense + \
+                                    weeks_leased*int(owner_utility_year_expense['result']
+                                                     [ore]['amount_paid'])
+                            elif owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Biweekly':
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    weeks_leased/2 * \
+                                    int(owner_utility_year_expense['result']
+                                        [ore]['amount_due'])
+                                utility_year_expense = utility_year_expense + \
+                                    weeks_leased/2 * \
+                                    int(owner_utility_year_expense['result']
+                                        [ore]['amount_paid'])
+                            elif owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Monthly':
+                                utility_year_expected_expense = utility_year_expected_expense + months_leased * \
+                                    owner_utility_year_expense['result'][ore]['amount_due']
+                                utility_year_expense = utility_year_expense + months_leased * \
+                                    owner_utility_year_expense['result'][ore]['amount_paid']
+                            elif owner_utility_year_expense['result'][ore]['purchase_frequency'] == 'Annually':
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_due']
+                                utility_year_expense = utility_year_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_paid']
+                                amortized_utility_year_expected_expense = amortized_utility_year_expected_expense + \
+                                    (owner_utility_year_expense['result']
+                                     [ore]['amount_due'])/12
+                                amortized_utility_year_expense = amortized_utility_year_expense + \
+                                    (owner_utility_year_expense['result']
+                                     [ore]['amount_paid'])/12
+                            else:
+                                utility_year_expected_expense = utility_year_expected_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_due']
+                                utility_year_expense = utility_year_expense + \
+                                    owner_utility_year_expense['result'][ore]['amount_paid']
+
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
+                owner_utility_year_expense['result']))
+            response['result']['owner_expense_yearly'] = response['result']['owner_expense_yearly'] + (list(
+                owner_management_year_expense['result']))
 
             response['result']['maintenance_year_expense'] = round(
                 maintenance_year_expense, 2)
@@ -3560,7 +3697,7 @@ class OwnerCashflowProperty(Resource):
 
             owner_property_expenses = db.execute("""
                         SELECT  pr.property_uid, pr.address,pr.unit, pr.mortgages, pr.taxes, pr.insurance, pr.active_date FROM properties pr
-                        WHERE pr.property_uid = \'""" + filterValue + """\'
+                        WHERE pr.property_uid = \'""" + filterValue1 + """\'
                         AND (pr.mortgages is not null OR  pr.taxes is not null OR  pr.insurance is not null)
                         """)
 
