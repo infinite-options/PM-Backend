@@ -21,11 +21,12 @@ class Contact(Resource):
         with connect() as db:
             for key in where:
                 print(key)
+                print(where[key].split('-')[0])
                 response = db.select('contacts', where)
-                print('response', len(response['result']))
+                # print('response', len(response['result']))
                 if len(response['result']) == 0:
                     response['result'] = []
-                if key == 'contact_created_by':
+                if key == 'contact_created_by' and where[key].split('-')[0] == '100':
                     businessResponse = db.execute("""
                     SELECT DISTINCT b.* FROM pm.properties prop
                     LEFT JOIN pm.propertyManager propm
@@ -37,7 +38,7 @@ class Contact(Resource):
 
                     if len(businessResponse['result']) > 0:
                         for br in businessResponse['result']:
-                            print(br)
+                            # print(br)
                             busi = {}
                             busi['contact_uid'] = br['business_uid']
                             busi['contact_name'] = br['business_name']
@@ -47,7 +48,28 @@ class Contact(Resource):
                             busi['contact_created_by'] = where[key]
 
                             response['result'].append(busi)
+                elif key == 'contact_created_by' and where[key].split('-')[0] == '600':
+                    businessResponse = db.execute("""
+                    SELECT DISTINCT o.* FROM pm.properties prop
+                    LEFT JOIN pm.propertyManager propm
+                    ON prop.property_uid = propm.linked_property_id
+                    LEFT JOIN pm.ownerProfileInfo o
+                    ON prop.owner_id = o.owner_id
+                    WHERE propm.linked_business_id = \'""" + where[key] + """\'""")
 
+                    if len(businessResponse['result']) > 0:
+                        for br in businessResponse['result']:
+                            # print(br)
+                            busi = {}
+                            busi['contact_uid'] = br['owner_id']
+                            busi['contact_name'] = br['owner_first_name'] + \
+                                ' ' + br['owner_last_name']
+                            busi['contact_type'] = 'OWNER'
+                            busi['contact_email'] = br['owner_email']
+                            busi['contact_phone_number'] = br['owner_phone_number']
+                            busi['contact_created_by'] = where[key]
+
+                            response['result'].append(busi)
                 else:
                     response = db.select('contacts', where)
         return response

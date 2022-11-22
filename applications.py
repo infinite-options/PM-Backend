@@ -62,12 +62,31 @@ class Applications(Resource):
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
-                where[f'a.{filter}'] = filterValue
+                where[filter] = filterValue
+
         with connect() as db:
 
-            cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*'
-            tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid LEFT JOIN pm.businesses b ON b.business_uid = pM.linked_business_id'
-            response = db.select(cols=cols, tables=tables, where=where)
+            if 'property_uid' in where:
+                print('here')
+                response = db.execute("""
+                SELECT application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                applications a 
+                LEFT JOIN tenantProfileInfo t 
+                ON a.tenant_id = t.tenant_id 
+                LEFT JOIN properties p 
+                ON a.property_uid = p.property_uid 
+                LEFT JOIN rentals r 
+                ON a.application_uid = r.linked_application_id 
+                LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid
+                LEFT JOIN pm.businesses b 
+                ON b.business_uid = pM.linked_business_id
+                WHERE pM.management_status = 'ACCEPTED' and p.property_uid=  \'""" + where['property_uid'] + """\'
+                """)
+
+            else:
+                cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
+                tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid LEFT JOIN pm.businesses b ON b.business_uid = pM.linked_business_id'
+                response = db.select(cols=cols, tables=tables, where=where)
         return response
 
     def post(self):

@@ -147,13 +147,16 @@ class TenantDetails(Resource):
                                     """)
                         response['result'][i]['user_payments'] = list(
                             user_payments['result'])
-                        user_repairRequests = db.execute("""SELECT *
-                                                            FROM pm.maintenanceRequests mr
-                                                            LEFT JOIN pm.maintenanceQuotes mq
-                                                            ON mq.linked_request_uid = mr.maintenance_request_uid
-                                                            LEFT JOIN pm.businesses b
-                                                            ON b.business_uid = mq.quote_business_uid
-                                                            WHERE mr.property_uid = \'""" + response['result'][i]['property_uid'] + """\'
+                        user_repairRequests = db.execute("""
+                        SELECT mr.*, p.address, p.unit, p.city, p.state, p.zip
+                        FROM pm.maintenanceRequests mr
+                        LEFT JOIN pm.maintenanceQuotes mq
+                        ON mq.linked_request_uid = mr.maintenance_request_uid
+                        LEFT JOIN pm.businesses b
+                        ON b.business_uid = mq.quote_business_uid
+                        LEFT JOIN pm.properties p
+                        ON mr.property_uid = p.property_uid
+                        WHERE mr.property_uid = \'""" + response['result'][i]['property_uid'] + """\'
                                                             """)
                         response['result'][i]['user_repairRequests'] = list(
                             user_repairRequests['result'])

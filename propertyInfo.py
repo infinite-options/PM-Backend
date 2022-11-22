@@ -925,28 +925,111 @@ class PropertiesManagerDetail(Resource):
                         property_id = response['result'][i]['property_uid']
                         # print(property_id)
                         pid = {'linked_property_id': property_id}
+                        owner_id = response['result'][i]['owner_id']
+                        # owner info for the property
+                        owner_res = db.execute("""SELECT
+                                                    o.owner_id AS owner_id,
+                                                    o.owner_first_name AS owner_first_name,
+                                                    o.owner_last_name AS owner_last_name,
+                                                    o.owner_email AS owner_email ,
+                                                    o.owner_phone_number AS owner_phone_number
+                                                    FROM pm.ownerProfileInfo o
+                                                    WHERE o.owner_id = \'""" + owner_id + """\'""")
+                        response['result'][i]['owner'] = list(
+                            owner_res['result'])
                         application_res = db.execute("""SELECT
                                                         *
                                                         FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
 
                         response['result'][i]['applications'] = list(
                             application_res['result'])
-                        maintenance_res = db.execute("""SELECT *
-                                                            FROM pm.maintenanceRequests mr
-                                                            WHERE mr.property_uid = \'""" + property_id + """\'
-                                                            """)
+
+                        maintenance_res = db.execute("""
+                        SELECT mr.*,p.owner_id, p.property_uid, p.address, p.unit, p.city, p.state, p.zip
+                        FROM pm.maintenanceRequests mr
+                        LEFT JOIN pm.properties p
+                        ON mr.property_uid = p.property_uid
+                        WHERE mr.property_uid = \'""" + property_id + """\'
+                        """)
                         response['result'][i]['maintenanceRequests'] = list(
                             maintenance_res['result'])
-                        property_res = db.execute("""SELECT
-                                                        pm.*,
-                                                        b.business_uid AS manager_id,
-                                                        b.business_name AS manager_business_name,
-                                                        b.business_email AS manager_email,
-                                                        b.business_phone_number AS manager_phone_number
-                                                        FROM pm.propertyManager pm
-                                                        LEFT JOIN businesses b
-                                                        ON b.business_uid = pm.linked_business_id
-                                                        WHERE pm.linked_property_id = \'""" + property_id + """\'""")
+
+                        # print(maintenance_res['result'])
+                        for y in range(len(maintenance_res['result'])):
+                            req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                            rid = {'linked_request_uid': req_id}  # rid
+                            rental_res = db.execute("""
+                            SELECT r.*,
+                                GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                                GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                                GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                                GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                                GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                                FROM pm.rentals r 
+                                LEFT JOIN pm.leaseTenants lt
+                                ON lt.linked_rental_uid = r.rental_uid
+                                LEFT JOIN pm.tenantProfileInfo tpi
+                                ON tpi.tenant_id = lt.linked_tenant_id
+                                WHERE r.rental_property_id = \'""" + maintenance_res['result'][y]['property_uid'] + """\'
+                                AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                                GROUP BY lt.linked_rental_uid""")
+
+                            if len(rental_res['result']) > 0:
+
+                                maintenance_res['result'][y]['rentalInfo'] = list(
+                                    rental_res['result'])
+                            else:
+                                maintenance_res['result'][y]['rentalInfo'] = 'Not Rented'
+
+                            owner_id = maintenance_res['result'][y]['owner_id']
+                            # owner info for the property
+                            owner_res = db.execute("""
+                            SELECT
+                            o.owner_id AS owner_id,
+                            o.owner_first_name AS owner_first_name,
+                            o.owner_last_name AS owner_last_name,
+                            o.owner_email AS owner_email ,
+                            o.owner_phone_number AS owner_phone_number
+                            FROM pm.ownerProfileInfo o
+                            WHERE o.owner_id = \'""" + owner_id + """\'""")
+                            maintenance_res['result'][y]['owner'] = list(
+                                owner_res['result'])
+                            # print(rid)
+                            quotes_res = db.select(
+                                ''' maintenanceQuotes quote ''', rid)
+                            # print(quotes_res)
+                            time_between_insertion = datetime.now() - \
+                                datetime.strptime(
+                                maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                            if ',' in str(time_between_insertion):
+                                maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                                    0]).split(' ')[0])
+                            else:
+                                maintenance_res['result'][y]['days_open'] = 1
+
+                            maintenance_res['result'][y]['quotes'] = list(
+                                quotes_res['result'])
+                            if len(quotes_res['result']) > 0:
+                                for quote in quotes_res['result']:
+                                    if quote['quote_status'] == 'ACCEPTED':
+                                        maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                                    else:
+                                        maintenance_res['result'][y]['total_estimate'] = 0
+                            else:
+                                maintenance_res['result'][y]['total_estimate'] = 0
+                            maintenance_res['result'][y]['total_quotes'] = len(
+                                quotes_res['result'])
+                        property_res = db.execute("""
+                        SELECT
+                        pm.*,
+                        b.business_uid AS manager_id,
+                        b.business_name AS manager_business_name,
+                        b.business_email AS manager_email,
+                        b.business_phone_number AS manager_phone_number
+                        FROM pm.propertyManager pm
+                        LEFT JOIN businesses b
+                        ON b.business_uid = pm.linked_business_id
+                        WHERE pm.linked_property_id = \'""" + property_id + """\'""")
 
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
@@ -963,31 +1046,23 @@ class PropertiesManagerDetail(Resource):
                         else:
                             response['result'][i]['management_status'] = ""
                             response['result'][i]['managerInfo'] = {}
-                        owner_id = response['result'][i]['owner_id']
-                        owner_res = db.execute("""SELECT
-                                                        o.owner_first_name AS owner_first_name,
-                                                        o.owner_last_name AS owner_last_name,
-                                                        o.owner_email AS owner_email ,
-                                                        o.owner_phone_number AS owner_phone_number
-                                                        FROM pm.ownerProfileInfo o
-                                                        WHERE o.owner_id = \'""" + owner_id + """\'""")
-                        response['result'][i]['owner'] = list(
-                            owner_res['result'])
-                        rental_res = db.execute("""SELECT
-                                                    r.*,
-                                                    GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
-                                                    GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
-                                                    GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
-                                                    GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
-                                                    GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
-                                                    FROM pm.rentals r
-                                                    LEFT JOIN pm.leaseTenants lt
-                                                    ON lt.linked_rental_uid = r.rental_uid
-                                                    LEFT JOIN pm.tenantProfileInfo tpi
-                                                    ON tpi.tenant_id = lt.linked_tenant_id
-                                                    WHERE r.rental_property_id = \'""" + property_id + """\'
-                                                    AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-                                                    GROUP BY lt.linked_rental_uid""")
+
+                        rental_res = db.execute("""
+                        SELECT
+                        r.*,
+                        GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                        GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                        GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                        GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                        GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                        FROM pm.rentals r
+                        LEFT JOIN pm.leaseTenants lt
+                        ON lt.linked_rental_uid = r.rental_uid
+                        LEFT JOIN pm.tenantProfileInfo tpi
+                        ON tpi.tenant_id = lt.linked_tenant_id
+                        WHERE r.rental_property_id = \'""" + property_id + """\'
+                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                        GROUP BY lt.linked_rental_uid""")
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
                         if len(rental_res['result']) > 0:

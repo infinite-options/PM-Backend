@@ -356,8 +356,8 @@ class OwnerDashboard(Resource):
                                                             LEFT JOIN pm.maintenanceRequests mr
                                                             ON mr.maintenance_request_uid = mq.linked_request_uid
                                                             LEFT JOIN pm.businesses b
-                                                            ON b.business_uid = mq.quote_business_uid
-                                                            WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                                                            ON b.business_uid = mq.quote_business_uid)
+                                                            # WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
                             if(len(maintenanceRes['result']) > 0):
                                 for j in range(len(maintenanceRes['result'])):
@@ -407,16 +407,18 @@ class ManagerDashboard(Resource):
                                     WHERE management_status <> 'REJECTED'
                                     AND management_status <> 'TERMINATED'
                                     AND management_status <> 'EXPIRED'
+                                    AND management_status <> 'END EARLY'
                                     AND manager_id = \'""" + buid + """\' """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
                 print(property_id)
-
+                response['result'][i]['per_sqft'] = round(response['result'][i]['listed_rent'] /
+                                                          response['result'][i]['area'], 2)
                 # get tenant applications
-                application_res = db.execute("""SELECT
-                                                    *
-                                                    FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
+                application_res = db.execute("""
+                SELECT *
+                FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
 
                 response['result'][i]['applications'] = list(
                     application_res['result'])
@@ -428,10 +430,13 @@ class ManagerDashboard(Resource):
                 response['result'][i]['num_apps'] = num_apps
 
                 # get maintenance requests
-                maintenance_res = db.execute("""SELECT *
-                                                    FROM pm.maintenanceRequests mr
-                                                    WHERE mr.property_uid = \'""" + property_id + """\'
-                                                    """)
+                maintenance_res = db.execute("""
+                SELECT mr.*, p.owner_id, p.property_uid,p.address, p.unit, p.city, p.state, p.zip
+                FROM pm.maintenanceRequests mr
+                LEFT JOIN pm.properties p
+                ON mr.property_uid = p.property_uid
+                WHERE mr.property_uid = \'""" + property_id + """\'
+                """)
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
                 new_mr = 0
@@ -465,25 +470,71 @@ class ManagerDashboard(Resource):
                 response['result'][i]['process_mr'] = process_mr
                 response['result'][i]['quote_received_mr'] = quote_received_mr
                 response['result'][i]['quote_accepted_mr'] = quote_accepted_mr
+                # print(maintenance_res['result'])
+                for y in range(len(maintenance_res['result'])):
+                    req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                    rid = {'linked_request_uid': req_id}  # rid
+                    rental_res = db.execute("""
+                    SELECT r.*,
+                        GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                        GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                        GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                        GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                        GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                        FROM pm.rentals r
+                        LEFT JOIN pm.leaseTenants lt
+                        ON lt.linked_rental_uid = r.rental_uid
+                        LEFT JOIN pm.tenantProfileInfo tpi
+                        ON tpi.tenant_id = lt.linked_tenant_id
+                        WHERE r.rental_property_id = \'""" + maintenance_res['result'][y]['property_uid'] + """\'
+                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                        GROUP BY lt.linked_rental_uid""")
 
-                # rental info for the property
-                rental_res = db.execute("""SELECT 
-                                            r.*, lt.*,tpi.*
-                                            FROM pm.rentals r 
-                                            LEFT JOIN pm.leaseTenants lt
-                                            ON lt.linked_rental_uid = r.rental_uid
-                                            LEFT JOIN pm.tenantProfileInfo tpi
-                                            ON tpi.tenant_id = lt.linked_tenant_id
-                                            WHERE r.rental_property_id = \'""" + property_id + """\'
-                                            AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
+                    if len(rental_res['result']) > 0:
 
-                if len(rental_res['result']) > 0:
+                        maintenance_res['result'][y]['rentalInfo'] = list(
+                            rental_res['result'])
+                    else:
+                        maintenance_res['result'][y]['rentalInfo'] = 'Not Rented'
 
-                    response['result'][i]['rentalInfo'] = list(
-                        rental_res['result'])
-                else:
-                    response['result'][i]['rentalInfo'] = 'NOT RENTED'
+                    owner_id = maintenance_res['result'][y]['owner_id']
+                    # owner info for the property
+                    owner_res = db.execute("""
+                    SELECT
+                    o.owner_id AS owner_id,
+                    o.owner_first_name AS owner_first_name,
+                    o.owner_last_name AS owner_last_name,
+                    o.owner_email AS owner_email ,
+                    o.owner_phone_number AS owner_phone_number
+                    FROM pm.ownerProfileInfo o
+                    WHERE o.owner_id = \'""" + owner_id + """\'""")
+                    maintenance_res['result'][y]['owner'] = list(
+                        owner_res['result'])
+                    # print(rid)
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    # print(quotes_res)
+                    time_between_insertion = datetime.now() - \
+                        datetime.strptime(
+                        maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                    if ',' in str(time_between_insertion):
+                        maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                            0]).split(' ')[0])
+                    else:
+                        maintenance_res['result'][y]['days_open'] = 1
 
+                    maintenance_res['result'][y]['quotes'] = list(
+                        quotes_res['result'])
+                    if len(quotes_res['result']) > 0:
+                        for quote in quotes_res['result']:
+                            if quote['quote_status'] == 'ACCEPTED':
+                                maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                            else:
+                                maintenance_res['result'][y]['total_estimate'] = 0
+                    else:
+                        maintenance_res['result'][y]['total_estimate'] = 0
+                    maintenance_res['result'][y]['total_quotes'] = len(
+                        quotes_res['result'])
                 if len(maintenance_res['result']) > 0:
                     num_days = []
                     for mr in maintenance_res['result']:
@@ -507,18 +558,37 @@ class ManagerDashboard(Resource):
 
                 else:
                     response['result'][i]['oldestOpenMR'] = 'Not Applicable'
-                rent_status_result = db.execute("""SELECT *
-                                                FROM pm.purchases p
-                                                LEFT JOIN
-                                                pm.payments pa
-                                                ON pa.pay_purchase_id = p.purchase_uid
-                                                LEFT JOIN rentals r
-                                                ON r.rental_property_id LIKE '%""" + property_id + """%'
-                                                WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                                                AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
-                                                AND p.purchase_type= "RENT"
-                                                AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-                                                AND p.receiver = \'""" + buid + """\'""")
+                # rental info for the property
+                rental_res = db.execute("""
+                SELECT r.*, lt.*,tpi.*
+                FROM pm.rentals r 
+                LEFT JOIN pm.leaseTenants lt
+                ON lt.linked_rental_uid = r.rental_uid
+                LEFT JOIN pm.tenantProfileInfo tpi
+                ON tpi.tenant_id = lt.linked_tenant_id
+                WHERE r.rental_property_id = \'""" + property_id + """\'
+                AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
+
+                if len(rental_res['result']) > 0:
+
+                    response['result'][i]['rentalInfo'] = list(
+                        rental_res['result'])
+                else:
+                    response['result'][i]['rentalInfo'] = 'Not Rented'
+
+                rent_status_result = db.execute("""
+                SELECT *
+                FROM pm.purchases p
+                LEFT JOIN
+                pm.payments pa
+                ON pa.pay_purchase_id = p.purchase_uid
+                LEFT JOIN rentals r
+                ON r.rental_property_id LIKE '%""" + property_id + """%'
+                WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                AND p.purchase_type= "RENT"
+                AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                AND p.receiver = \'""" + buid + """\'""")
                 if len(rent_status_result['result']) > 0:
                     response['result'][i]['rent_status'] = rent_status_result['result'][0]['purchase_status']
                     rent_payments = json.loads(
@@ -551,7 +621,7 @@ class ManagerDashboard(Resource):
                                 response['result'][i]['late_date'] = 0
 
                 else:
-                    response['result'][i]['rent_status'] = 'NOT RENTED'
+                    response['result'][i]['rent_status'] = 'Not Rented'
                     response['result'][i]['late_date'] = 'Not Applicable'
                 rental_revenue = 0
                 extraCharges_revenue = 0
