@@ -17,17 +17,18 @@ import json
 from cashflow import OwnerCashflow, OwnerCashflowProperty
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
+from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
 from appliances import Appliances, RemoveAppliance
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 from ownerProfileInfo import OwnerProfileInfo
-from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants, ManagerDocuments
+from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
 from tenantProfileInfo import TenantProfileInfo, TenantDetails
 from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
     PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS
 from purchases import Purchases, CreateExpenses, CreateRevenues
 from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS
-from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills, OwnerDocuments
+from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
 from managerProperties import ManagerProperties
 from tenantProperties import TenantProperties
 from refresh import Refresh
@@ -630,6 +631,7 @@ api.add_resource(ManagerClients, '/managerClients')
 api.add_resource(ManagerPropertyTenants, '/managerPropertyTenants')
 api.add_resource(ManagerDocuments, '/managerDocuments')
 
+api.add_resource(TenantDocuments, '/tenantDocuments')
 api.add_resource(CancelAgreement, '/cancelAgreement')
 api.add_resource(ManagerContractEnd_CLASS,
                  '/managerContractEnd_CLASS')

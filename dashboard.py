@@ -27,7 +27,7 @@ class TenantDashboard(Resource):
                                         ON linked_rental_uid = rental_uid
                                         LEFT JOIN pm.propertyManager p
                                         ON linked_property_id = property_uid
-                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND rental_status = 'ACTIVE' AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
@@ -45,7 +45,22 @@ class TenantDashboard(Resource):
 
                 response['result'][i]['property_manager'] = list(
                     property_res['result'])
-
+                announcements_res = db.execute("""
+                SELECT * FROM announcements
+                WHERE receiver LIKE '%""" + user['user_uid'] + """%'
+                AND receiver_properties LIKE  '%""" + property_id + """%' """)
+                response['result'][i]['announcements'] = list(
+                    announcements_res['result'])
+                # get maintenance requests
+                maintenance_res = db.execute("""
+                SELECT mr.*, p.owner_id, p.property_uid,p.address, p.unit, p.city, p.state, p.zip
+                FROM pm.maintenanceRequests mr
+                LEFT JOIN pm.properties p
+                ON mr.property_uid = p.property_uid
+                WHERE mr.property_uid = \'""" + property_id + """\'
+                """)
+                response['result'][i]['maintenanceRequests'] = list(
+                    maintenance_res['result'])
                 owner_id = response['result'][i]['owner_id']
                 # owner info for the property
                 owner_res = db.execute("""SELECT
@@ -71,14 +86,17 @@ class TenantDashboard(Resource):
                 response['result'][i]['tenantInfo'] = list(
                     rental_res['result'])
 
-                tenant_expenses = db.execute("""SELECT *
-                                                        FROM pm.purchases p
-                                                        LEFT JOIN
-                                                        pm.payments pa
-                                                        ON pa.pay_purchase_id = p.purchase_uid
-                                                        WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                                                        AND p.payer LIKE '%""" + user['user_uid'] + """%'
-                                                        AND (p.purchase_type= "RENT" OR p.purchase_type= "EXTRA CHARGES" OR p.purchase_type= "UTILITY")""")
+                tenant_expenses = db.execute("""
+                SELECT *
+                FROM pm.purchases pu
+                LEFT JOIN
+                pm.payments pa
+                ON pa.pay_purchase_id = pu.purchase_uid
+                LEFT JOIN pm.properties p
+                ON pu.pur_property_id LIKE CONCAT('%', p.property_uid, '%')
+                WHERE pu.pur_property_id LIKE '%""" + property_id + """%'
+                AND pu.payer LIKE '%""" + user['user_uid'] + """%'
+                AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "UTILITY")""")
                 response['result'][i]['tenantExpenses'] = []
                 if len(tenant_expenses['result']) > 0:
                     num_days = []
