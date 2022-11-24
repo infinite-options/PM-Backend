@@ -172,3 +172,194 @@ class TenantDetails(Resource):
                                     user_repairRequests['result'][y]['days_open'] = 1
 
         return response
+
+
+class PropertiesTenantDetail(Resource):
+    def get(self):
+        response = {}
+        filters = ['property_uid', 'tenant_id']
+        where = {}
+        with connect() as db:
+            for filter in filters:
+                filterValue1 = request.args.get(filters[0])
+
+                filterValue2 = request.args.get(filters[1])
+                print(filterValue1, filterValue2)
+                if filterValue1 is not None:
+                    where[filter] = filterValue1
+
+                    response = db.execute(
+                        """SELECT * FROM pm.properties p WHERE p.property_uid = \'"""
+                        + filterValue1
+                        + """\'""")
+                    for i in range(len(response['result'])):
+                        property_id = response['result'][i]['property_uid']
+                        # print(property_id)
+                        pid = {'linked_property_id': property_id}
+
+                        maintenance_res = db.execute("""
+                        SELECT mr.*,p.owner_id, p.property_uid, p.address, p.unit, p.city, p.state, p.zip
+                        FROM pm.maintenanceRequests mr
+                        LEFT JOIN pm.properties p
+                        ON mr.property_uid = p.property_uid
+                        WHERE mr.property_uid = \'""" + property_id + """\'
+                        """)
+                        response['result'][i]['maintenanceRequests'] = list(
+                            maintenance_res['result'])
+
+                        # print(maintenance_res['result'])
+                        for y in range(len(maintenance_res['result'])):
+                            req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                            rid = {'linked_request_uid': req_id}  # rid
+
+                            # print(rid)
+                            quotes_res = db.select(
+                                ''' maintenanceQuotes quote ''', rid)
+                            # print(quotes_res)
+                            time_between_insertion = datetime.now() - \
+                                datetime.strptime(
+                                maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                            if ',' in str(time_between_insertion):
+                                maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                                    0]).split(' ')[0])
+                            else:
+                                maintenance_res['result'][y]['days_open'] = 1
+
+                            maintenance_res['result'][y]['quotes'] = list(
+                                quotes_res['result'])
+                            if len(quotes_res['result']) > 0:
+                                for quote in quotes_res['result']:
+                                    if quote['quote_status'] == 'ACCEPTED':
+                                        maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                                    else:
+                                        maintenance_res['result'][y]['total_estimate'] = 0
+                            else:
+                                maintenance_res['result'][y]['total_estimate'] = 0
+                            maintenance_res['result'][y]['total_quotes'] = len(
+                                quotes_res['result'])
+                        property_res = db.execute("""
+                        SELECT
+                        p.address, p.unit, p.city, p.state,p.zip,
+                        b.business_uid AS manager_id,
+                        b.business_name AS manager_business_name,
+                        b.business_email AS manager_email,
+                        b.business_phone_number AS manager_phone_number
+                        FROM pm.propertyManager pm
+                        LEFT JOIN businesses b
+                        ON b.business_uid = pm.linked_business_id
+                        LEFT JOIN properties p
+                        ON pm.linked_property_id = p.property_uid
+                        WHERE pm.linked_property_id = \'""" + property_id + """\'
+                        AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')   """)
+
+                        response['result'][i]['property_manager'] = list(
+                            property_res['result'])
+
+                        rental_res = db.execute("""
+                        SELECT
+                        r.*,
+                        GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                        GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                        GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                        GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                        GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                        FROM pm.rentals r
+                        LEFT JOIN pm.leaseTenants lt
+                        ON lt.linked_rental_uid = r.rental_uid
+                        LEFT JOIN pm.tenantProfileInfo tpi
+                        ON tpi.tenant_id = lt.linked_tenant_id
+                        WHERE r.rental_property_id = \'""" + property_id + """\'
+                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                        GROUP BY lt.linked_rental_uid""")
+                        response['result'][i]['rentalInfo'] = list(
+                            rental_res['result'])
+                        if len(rental_res['result']) > 0:
+                            response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
+                        else:
+                            response['result'][i]['rental_status'] = ""
+
+                        tenant_expenses = db.execute("""
+                        SELECT *
+                        FROM pm.purchases pu
+                        LEFT JOIN
+                        pm.payments pa
+                        ON pa.pay_purchase_id = pu.purchase_uid
+                        LEFT JOIN pm.properties p
+                        ON pu.pur_property_id LIKE CONCAT('%', p.property_uid, '%')
+                        WHERE pu.pur_property_id LIKE '%""" + property_id + """%'
+                        AND pu.payer LIKE '%""" + filterValue2 + """%'
+                        AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "UTILITY")""")
+                        response['result'][i]['tenantExpenses'] = []
+                        if len(tenant_expenses['result']) > 0:
+                            num_days = []
+                            date = []
+                            for ore in range(len(tenant_expenses['result'])):
+                                print('here', tenant_expenses['result'][ore])
+                                time_between_insertion = datetime.now() - \
+                                    datetime.strptime(
+                                        tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S')
+                                print(time_between_insertion)
+                                # if older than 30 days
+                                if time_between_insertion.days > 30:
+                                    print('older than 30 days')
+                                    # if unpaid then all
+                                    if tenant_expenses['result'][ore]['purchase_status'] == 'UNPAID':
+                                        response['result'][i]['tenantExpenses'].append(
+                                            (tenant_expenses['result'][ore]))
+                                # if in future
+                                elif time_between_insertion.days < 0:
+                                    print('in future')
+                                    # if utility or extra charges then all
+                                    if tenant_expenses['result'][ore]['purchase_type'] != 'RENT':
+                                        print('here no rents')
+                                        print(
+                                            'appended from here', tenant_expenses['result'][ore]['purchase_type'])
+                                        if tenant_expenses['result'][ore]['purchase_frequency'] != 'Monthly':
+                                            print(
+                                                'appended from here purchase_frequency not monthly', tenant_expenses['result'][ore]['purchase_frequency'])
+                                            response['result'][i]['tenantExpenses'].append(
+                                                (tenant_expenses['result'][ore]))
+                                        else:
+                                            print(
+                                                'appended from here monthly', tenant_expenses['result'][ore]['purchase_frequency'])
+                                            num_days.append(datetime.strptime(
+                                                tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
+                                    # add time differences in date, if rent get the most recent upcoming
+                                    else:
+
+                                        date.append(datetime.strptime(
+                                            tenant_expenses['result'][ore]['next_payment'], '%Y-%m-%d %H:%M:%S'))
+                                # if in the last 30 days
+                                elif 0 <= time_between_insertion.days < 30:
+                                    print('not older than 30 days not in future',
+                                          time_between_insertion)
+
+                                    response['result'][i]['tenantExpenses'].append(
+                                        (tenant_expenses['result'][ore]))
+                                # nothing if anything else
+                                else:
+                                    print('not older than 30 days',
+                                          time_between_insertion.days)
+
+                        for ore in range(len(tenant_expenses['result'])):
+                            # upcoming 1 rent in the future
+                            if tenant_expenses['result'][ore]['purchase_type'] == 'RENT':
+                                if len(date) > 0:
+                                    if datetime.strftime(min(
+                                            date, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                                        print('next payment due',
+                                              tenant_expenses['result'][ore])
+                                        response['result'][i]['tenantExpenses'].append(
+                                            (tenant_expenses['result'][ore]))
+                            else:
+                                if len(num_days) > 0:
+                                    if datetime.strftime(min(
+                                            num_days, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
+                                        print('next payment due',
+                                              tenant_expenses['result'][ore])
+                                        response['result'][i]['tenantExpenses'].append(
+                                            (tenant_expenses['result'][ore]))
+
+                        print('tenantExpenses',
+                              response['result'][i]['tenantExpenses'])
+                return response

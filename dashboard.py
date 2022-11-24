@@ -20,28 +20,33 @@ class TenantDashboard(Resource):
         with connect() as db:
             res = db.select('tenantProfileInfo', where)
             print('user_id:', user['user_uid'])
-            response = db.execute(""" SELECT * FROM pm.properties
-                                        LEFT JOIN pm.rentals
-                                        ON rental_property_id = property_uid
-                                        LEFT JOIN pm.leaseTenants
-                                        ON linked_rental_uid = rental_uid
-                                        LEFT JOIN pm.propertyManager p
-                                        ON linked_property_id = property_uid
-                                        WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+            response = db.execute(""" 
+            SELECT * FROM pm.properties
+            LEFT JOIN pm.rentals
+            ON rental_property_id = property_uid
+            LEFT JOIN pm.leaseTenants
+            ON linked_rental_uid = rental_uid
+            LEFT JOIN pm.propertyManager p
+            ON linked_property_id = property_uid
+            WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
                 print(property_id)
-                property_res = db.execute("""SELECT
-                                            b.business_uid AS manager_id,
-                                            b.business_name AS manager_business_name,
-                                            b.business_email AS manager_email,
-                                            b.business_phone_number AS manager_phone_number
-                                            FROM pm.propertyManager pm
-                                            LEFT JOIN businesses b
-                                            ON b.business_uid = pm.linked_business_id
-                                            WHERE pm.linked_property_id = \'""" + property_id + """\'
-                                            AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')   """)
+                property_res = db.execute("""
+                SELECT
+                p.address, p.unit, p.city, p.state,p.zip,
+                b.business_uid AS manager_id,
+                b.business_name AS manager_business_name,
+                b.business_email AS manager_email,
+                b.business_phone_number AS manager_phone_number
+                FROM pm.propertyManager pm
+                LEFT JOIN businesses b
+                ON b.business_uid = pm.linked_business_id
+                LEFT JOIN properties p
+                ON pm.linked_property_id = p.property_uid
+                WHERE pm.linked_property_id = \'""" + property_id + """\'
+                AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')   """)
 
                 response['result'][i]['property_manager'] = list(
                     property_res['result'])
@@ -61,6 +66,34 @@ class TenantDashboard(Resource):
                 """)
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
+                for y in range(len(maintenance_res['result'])):
+                    req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                    rid = {'linked_request_uid': req_id}  # rid
+                    # print(rid)
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    # print(quotes_res)
+                    time_between_insertion = datetime.now() - \
+                        datetime.strptime(
+                        maintenance_res['result'][y]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                    if ',' in str(time_between_insertion):
+                        maintenance_res['result'][y]['days_open'] = int((str(time_between_insertion).split(',')[
+                            0]).split(' ')[0])
+                    else:
+                        maintenance_res['result'][y]['days_open'] = 1
+
+                    maintenance_res['result'][y]['quotes'] = list(
+                        quotes_res['result'])
+                    if len(quotes_res['result']) > 0:
+                        for quote in quotes_res['result']:
+                            if quote['quote_status'] == 'ACCEPTED':
+                                maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                            else:
+                                maintenance_res['result'][y]['total_estimate'] = 0
+                    else:
+                        maintenance_res['result'][y]['total_estimate'] = 0
+                    maintenance_res['result'][y]['total_quotes'] = len(
+                        quotes_res['result'])
                 owner_id = response['result'][i]['owner_id']
                 # owner info for the property
                 owner_res = db.execute("""SELECT
@@ -167,15 +200,7 @@ class TenantDashboard(Resource):
                                       tenant_expenses['result'][ore])
                                 response['result'][i]['tenantExpenses'].append(
                                     (tenant_expenses['result'][ore]))
-                # for ore in range(len(tenant_expenses['result'])):
-                #     # upcoming 1 rent in the future
 
-                #     if datetime.strftime(min(
-                #             num_days, key=lambda d: abs(d - datetime.now())), '%Y-%m-%d %H:%M:%S') == tenant_expenses['result'][ore]['next_payment']:
-                #         print('next payment due',
-                #               tenant_expenses['result'][ore])
-                #         response['result'][i]['tenantExpenses'].append(
-                #             (tenant_expenses['result'][ore]))
                 print('tenantExpenses',
                       response['result'][i]['tenantExpenses'])
 
@@ -298,11 +323,12 @@ class OwnerDashboard(Resource):
                     response['result'][i]['rental_status'] = ""
                     response['result'][i]['rent_paid'] = ""
 
-                maintenance_res = db.execute("""SELECT mr.*, p.address, p.unit, p.city, p.state, p.zip
-                                                FROM pm.maintenanceRequests mr
-                                                LEFT JOIN pm.properties p
-                                                ON mr.property_uid = p.property_uid
-                                                WHERE mr.property_uid = \'""" + property_id + """\'
+                maintenance_res = db.execute("""
+                SELECT mr.*, p.address, p.unit, p.city, p.state, p.zip
+                FROM pm.maintenanceRequests mr
+                LEFT JOIN pm.properties p
+                ON mr.property_uid = p.property_uid
+                WHERE mr.property_uid = \'""" + property_id + """\'
                                                 """)
                 response['result'][i]['maintenanceRequests'] = list(
                     maintenance_res['result'])
