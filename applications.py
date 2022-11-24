@@ -67,22 +67,24 @@ class Applications(Resource):
         with connect() as db:
 
             if 'property_uid' in where:
-                print('here')
+                print('here', where['property_uid'], where)
+
                 response = db.execute("""
-                SELECT application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
-                applications a 
-                LEFT JOIN tenantProfileInfo t 
+                SELECT a.application_uid, a.message, a.application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                pm.applications a 
+                LEFT JOIN pm.tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
-                LEFT JOIN properties p 
-                ON a.property_uid = p.property_uid 
-                LEFT JOIN rentals r 
+                LEFT JOIN pm.properties p 
+                ON  p.property_uid = a.property_uid
+                LEFT JOIN pm.rentals r 
                 ON a.application_uid = r.linked_application_id 
-                LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid
+                LEFT JOIN pm.propertyManager pM 
+                ON pM.linked_property_id = p.property_uid
                 LEFT JOIN pm.businesses b 
-                ON b.business_uid = pM.linked_business_id
-                WHERE pM.management_status = 'ACCEPTED' and p.property_uid=  \'""" + where['property_uid'] + """\'
+                ON  pM.linked_business_id = b.business_uid
+                WHERE pM.management_status = 'ACCEPTED' and a.property_uid=  \'""" + where['property_uid'] + """\'
                 """)
-            if 'tenant_id' in where:
+            elif 'tenant_id' in where:
                 response = db.execute("""
                 SELECT application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 applications a 
@@ -144,17 +146,17 @@ class Applications(Resource):
             # tenant approves lease aggreement
             if newApplication['application_status'] == 'RENTED':
                 response = db.execute(
-                    """SELECT * FROM pm.applications WHERE application_status='FORWARDED' AND property_uid = \'"""
-                    + newApplication['property_uid']
-                    + """\' """)
+                    """SELECT * FROM pm.applications
+                     WHERE application_status='FORWARDED' 
+                     AND property_uid = \'""" + newApplication['property_uid'] + """\' """)
                 # print('response', response, len(response['result']))
                 if len(response['result']) > 1:
                     newApplication['application_status'] = 'ACCEPTED'
                 else:
                     response = db.execute(
-                        """SELECT * FROM pm.applications WHERE application_status='ACCEPTED' AND property_uid = \'"""
-                        + newApplication['property_uid']
-                        + """\' """)
+                        """SELECT * FROM pm.applications 
+                        WHERE application_status='ACCEPTED' 
+                        AND property_uid = \'""" + newApplication['property_uid'] + """\' """)
                     print('response', response['result'])
 
                     if len(response['result']) > 0:
@@ -165,9 +167,8 @@ class Applications(Resource):
                             }
                             response = db.update(
                                 'applications', pk, newApplication)
-                    res = db.execute("""SELECT
-                                        r.*,
-                                        p.*,
+                    print(newApplication)
+                    res = db.execute("""SELECT  r.*, p.*,
                                         GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
                                         FROM pm.rentals r
                                         LEFT JOIN pm.leaseTenants lt
@@ -175,8 +176,9 @@ class Applications(Resource):
                                         LEFT JOIN pm.propertyManager p
                                         ON p.linked_property_id= r.rental_property_id
                                         WHERE r.rental_status='PROCESSING'
-                                        AND p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY'
-                                        AND r.rental_property_id = \'""" + newApplication['property_uid'] + """\'
+                                        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+                                        AND r.rental_property_id = \'""" + newApplication['property_uid'] + """\' 
+                                        AND r.linked_application_id LIKE '%""" + newApplication['application_uid'] + """%'
                                         GROUP BY lt.linked_rental_uid; """)
                     print('res', res, len(res['result']))
 
@@ -660,6 +662,7 @@ class Applications(Resource):
                             'rental_uid': res['result'][0]['rental_uid']}
                         newRental = {
                             'rental_status': 'ACTIVE'}
+                        print('rental', pk1, newRental)
                         res = db.update(
                             'rentals', pk1, newRental)
                     resRej = db.execute(

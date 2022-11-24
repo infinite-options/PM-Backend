@@ -125,33 +125,7 @@ class MaintenanceRequests(Resource):
             images = []
             i = -1
             imageFiles = {}
-            # while True:
-            #     print('if true')
-            #     filename = f'img_{i}'
-            #     if i == -1:
-            #         filename = 'img_cover'
-            #     file = request.files.get(filename)
-            #     s3Link = data.get(filename)
-            #     if file:
-            #         imageFiles[filename] = file
-            #
-            # ##Mickey is trying something - start ##
-            # key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
-            # resultURL = uploadImage(file, key)
-            # images.append(resultURL)
-            ##Mickey is trying something - end  ##
-            #
-            #         print('images', images)
-            #         newRequest['images'] = json.dumps(images)
-            #     elif s3Link:
-            #         imageFiles[filename] = s3Link
-            #         #images = updateImages(imageFiles, maintenance_request_uid)
-            #         images.append(s3Link)
-            #         print('images', images)
-            #         newRequest['images'] = json.dumps(images)
-            #     else:
-            #         break
-            #     i += 1
+
             while True:
                 print('if true')
                 filename = f'img_{i}'
@@ -182,7 +156,7 @@ class MaintenanceRequests(Resource):
 class MaintenanceRequestsandQuotes(Resource):
     def get(self):
         response = {}
-        filters = ['property_uid', 'manager_id', 'owner_id']
+        filters = ['property_uid', 'manager_id', 'owner_id', 'tenant_id']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -316,6 +290,44 @@ class MaintenanceRequestsandQuotes(Resource):
                         # response['result'].remove(prop)
                         sorted_props.append(prop)
                 response['result'] = sorted_props
+
+            elif 'tenant_id' in where:
+                print('in elif')
+
+                # list of all properties for the owner
+                response = db.execute("""
+                    SELECT * FROM 
+                    maintenanceRequests mr
+                    LEFT JOIN properties p
+                    ON p.property_uid = mr.property_uid
+                    LEFT JOIN pm.rentals r
+                    ON r.rental_property_id=p.property_uid
+                    LEFT JOIN pm.leaseTenants lt
+                    ON lt.linked_rental_uid=r.rental_uid
+                    LEFT JOIN pm.propertyManager pM
+                    ON pM.linked_property_id=p.property_uid
+                    WHERE linked_tenant_id= \'""" + filterValue + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY'); """)
+                # info for each property
+                print(response)
+                for i in range(len(response['result'])):
+                    req_id = response['result'][i]['maintenance_request_uid']
+                    rid = {'linked_request_uid': req_id}  # rid
+                    quotes_res = db.select(
+                        ''' maintenanceQuotes quote ''', rid)
+                    time_between_insertion = datetime.now() - \
+                        datetime.strptime(
+                        response['result'][i]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                    if ',' in str(time_between_insertion):
+                        response['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
+                            0]).split(' ')[0])
+                    else:
+                        response['result'][i]['days_open'] = 1
+
+                    # print(quotes_res)
+                    response['result'][i]['quotes'] = list(
+                        quotes_res['result'])
+                    response['result'][i]['total_quotes'] = len(
+                        quotes_res['result'])
             else:
                 response = db.select(
                     ''' maintenanceRequests request ''', where)

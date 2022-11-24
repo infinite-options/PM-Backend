@@ -254,9 +254,15 @@ class PropertiesTenantDetail(Resource):
 
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
-
+                        app_res = db.execute("""
+                        SELECT * FROM pm.applications a
+                        WHERE a.property_uid= \'""" + property_id + """\'
+                        AND a.tenant_id = \'""" + filterValue2 + """\'""")
+                        response['result'][i]['applications'] = list(
+                            app_res['result'])
                         rental_res = db.execute("""
                         SELECT
+                        a.*,
                         r.*,
                         GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
                         GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
@@ -268,7 +274,10 @@ class PropertiesTenantDetail(Resource):
                         ON lt.linked_rental_uid = r.rental_uid
                         LEFT JOIN pm.tenantProfileInfo tpi
                         ON tpi.tenant_id = lt.linked_tenant_id
+                        LEFT JOIN pm.applications a
+                        ON r.linked_application_id LIKE CONCAT('%', a.application_uid, '%') 
                         WHERE r.rental_property_id = \'""" + property_id + """\'
+                        AND a.tenant_id = \'""" + filterValue2 + """\'
                         AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                         GROUP BY lt.linked_rental_uid""")
                         response['result'][i]['rentalInfo'] = list(
