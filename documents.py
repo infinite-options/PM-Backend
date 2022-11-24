@@ -376,6 +376,9 @@ class TenantDocuments(Resource):
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + ', ' + \
+                                        doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['created_for'] = {'first_name': doc['tenant_first_name'],
                                                         'last_name': doc['tenant_last_name']}
                                     active_lease_docs.append(d)
@@ -414,6 +417,9 @@ class TenantDocuments(Resource):
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + ', ' + \
+                                        doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['created_for'] = {'first_name': doc['tenant_first_name'],
                                                         'last_name': doc['tenant_last_name']}
                                     expired_lease_docs.append(d)
@@ -429,8 +435,6 @@ class TenantDocuments(Resource):
                         for doc in tenant_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
-                                    d['expiry_date'] = ''
-                                    d['created_date'] = ''
                                     d['created_by'] = {'first_name': doc['tenant_first_name'],
                                                        'last_name': doc['tenant_last_name']}
                                     d['created_for'] = {'first_name': doc['tenant_first_name'],
