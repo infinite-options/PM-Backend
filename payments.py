@@ -262,7 +262,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(rent *
                                                                             (1-payment['charge']/100)),
@@ -281,7 +281,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
@@ -302,7 +302,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent *
                                                                              (1-payment['charge']/100)))/weeks_current_month/2,
@@ -321,7 +321,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))/weeks_current_month/2,
@@ -341,7 +341,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100))/weeks_current_month,
@@ -362,7 +362,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))/weeks_current_month,
@@ -435,7 +435,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month/2 *
                                                                 ((rent *
@@ -455,7 +455,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month/2 *
                                                                 ((rent-payment['expense_amount'])*(
@@ -475,7 +475,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(rent *
                                                                             (1-payment['charge']/100))*2,
@@ -494,7 +494,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))*2,
@@ -514,7 +514,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100))/(weeks_current_month/2),
@@ -535,7 +535,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))/(weeks_current_month/2),
@@ -621,7 +621,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*(rent *
                                                                                                 (1-payment['charge']/100)),
@@ -640,7 +640,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
@@ -661,7 +661,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent *
@@ -681,7 +681,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent-payment['expense_amount'])*(
@@ -703,7 +703,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100)),
@@ -724,7 +724,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100)),
@@ -771,7 +771,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*(rent *
                                                                                                 (1-payment['charge']/100)),
@@ -790,7 +790,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
@@ -811,7 +811,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent *
@@ -831,7 +831,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent-payment['expense_amount'])*(
@@ -853,7 +853,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100)),
@@ -874,7 +874,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100)),
@@ -968,7 +968,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent)*(1-payment['charge']/100)),
@@ -986,7 +986,7 @@ class TenantPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-payment['charge']/100)),
@@ -3063,7 +3063,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(rent *
                                                                             (1-payment['charge']/100)),
@@ -3082,7 +3082,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
@@ -3103,7 +3103,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent *
                                                                              (1-payment['charge']/100)))/weeks_current_month/2,
@@ -3122,7 +3122,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))/weeks_current_month/2,
@@ -3142,7 +3142,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100))/weeks_current_month,
@@ -3163,7 +3163,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))/weeks_current_month,
@@ -3236,7 +3236,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month/2 *
                                                                 ((rent *
@@ -3256,7 +3256,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month/2 *
                                                                 ((rent-payment['expense_amount'])*(
@@ -3276,7 +3276,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(rent *
                                                                             (1-payment['charge']/100))*2,
@@ -3295,7 +3295,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))*2,
@@ -3315,7 +3315,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100))/(weeks_current_month/2),
@@ -3336,7 +3336,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))/(weeks_current_month/2),
@@ -3422,7 +3422,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*(rent *
                                                                                                 (1-payment['charge']/100)),
@@ -3441,7 +3441,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
@@ -3462,7 +3462,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent *
@@ -3482,7 +3482,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent-payment['expense_amount'])*(
@@ -3504,7 +3504,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100)),
@@ -3525,7 +3525,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100)),
@@ -3572,7 +3572,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*(rent *
                                                                                                 (1-payment['charge']/100)),
@@ -3591,7 +3591,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=weeks_current_month*((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
@@ -3612,7 +3612,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent *
@@ -3632,7 +3632,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent-payment['expense_amount'])*(
@@ -3654,7 +3654,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100)),
@@ -3675,7 +3675,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100)),
@@ -3769,7 +3769,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent)*(1-payment['charge']/100)),
@@ -3787,7 +3787,7 @@ class ManagerPayments_CLASS(Resource):
                                                                 payer=json.dumps(
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
-                                                                purchase_type='MANAGEMENT',
+                                                                purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-payment['charge']/100)),

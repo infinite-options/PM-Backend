@@ -685,11 +685,10 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT")
-            AND r.rental_status = 'ACTIVE'
-            AND pu.purchase_status = 'PAID'""")
-
+            AND pu.purchase_type= "OWNER PAYMENT"
+            AND pu.purchase_status = 'PAID';""")
             if len(owner_management_expense['result']) > 0:
+                print('here in mgmt')
                 for mex in range(len(owner_management_expense['result'])):
                     # if management
                     # number of months a property has been active
@@ -712,112 +711,39 @@ class OwnerCashflow(Resource):
                     # number of weeks a property has been under an active lease
                     weeks_leased = round((abs(today - datetime.strptime(
                         owner_management_expense['result'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
-
-                    if owner_management_expense['result'][mex]['purchase_type'] == 'RENT':
-                        managementPayments = json.loads(
-                            owner_management_expense['result'][mex]['contract_fees'])
-
-                        for payment in managementPayments:
-                            # print('amount paid to owner', payment)
-                            if payment['fee_type'] == '%':
-                                if payment['of'] == 'Gross Rent':
-                                    if payment['frequency'] == 'Weekly':
-                                        management_expected_expense = management_expected_expense + weeks_current_month*float((
-                                            float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                        management_expense = management_expense +  \
-                                            weeks_current_month*float((
-                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                    elif payment['frequency'] == 'Biweekly':
-                                        management_expected_expense = management_expected_expense + weeks_current_month/2 * \
-                                            ((
-                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                        management_expense = management_expense +  \
-                                            weeks_current_month/2 * \
-                                            ((
-                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                    elif payment['frequency'] == 'Monthly':
-                                        management_expected_expense = management_expected_expense +  \
-                                            ((
-                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                        management_expense = management_expense +  \
-                                            (
-                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                    elif payment['frequency'] == 'Annually':
-                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
-
-                                            management_expense = management_expense +  \
-                                                (
-                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                            amortized_management_expense = amortized_management_expense +  \
-                                                ((
-                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
-                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
-                                            management_expected_expense = management_expected_expense +  \
-                                                (
-                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                            amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                                ((
-                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/(datetime.now().month-1)
-
-                                    elif payment['frequency'] == 'One-time':
-                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['next_date']).day <= today.day:
-                                            management_expense = management_expense +  \
-                                                (
-                                                    float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-
-                                        if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
-                                            management_expected_expense = management_expected_expense +  \
-                                                (
-                                                    float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-
-                                    else:
-                                        print('do nothing')
-                            elif payment['fee_type'] == '$':
-                                if payment['frequency'] == 'Weekly':
-                                    management_expected_expense = management_expected_expense + weeks_current_month * \
-                                        float(payment['charge'])
-                                    management_expense = management_expense + weeks_current_month * \
-                                        float(payment['charge'])
-                                elif payment['frequency'] == 'Biweekly':
-                                    management_expected_expense = management_expected_expense + weeks_current_month/2 * \
-                                        float(payment['charge'])
-                                    management_expense = management_expense + weeks_current_month/2 * \
-                                        float(payment['charge'])
-                                elif payment['frequency'] == 'Monthly':
-                                    management_expected_expense = management_expected_expense +  \
-                                        float(payment['charge'])
-                                    management_expense = management_expense + \
-                                        float(payment['charge'])
-                                elif payment['frequency'] == 'Annually':
-
-                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['start_date']).day <= today.day:
-                                        management_expense = management_expense + \
-                                            float(
-                                                payment['charge'])
-                                        amortized_management_expense = amortized_management_expense +  \
-                                            (float(payment['charge']))/12
-                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
-                                        management_expected_expense = management_expected_expense + \
-                                            float(payment['charge'])
-
-                                        amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                            (float(payment['charge'])) / \
-                                            (datetime.now().month-1)
-
-                                elif payment['frequency'] == 'One-time':
-
-                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month and date.fromisoformat(eval(owner_property_expenses['result'][ope]['taxes'])[te]['start_date']).day <= today.day:
-                                        management_expense = management_expense + \
-                                            float(
-                                                payment['charge'])
-                                    if date.fromisoformat(owner_management_expense['result'][mex]['start_date']).month == today.month:
-                                        management_expected_expense = management_expected_expense +  \
-                                            float(payment['charge'])
-
-                                else:
-                                    print('do nothing')
+                    # get contract fees
+                    managementPayments = json.loads(
+                        owner_management_expense['result'][mex]['contract_fees'])
+                    for payment in managementPayments:
+                        print('here in for loop')
+                        if payment['fee_type'] == '%':
+                            # if management monthly
+                            if owner_management_expense['result'][mex]['purchase_frequency'] == 'Weekly' and payment['frequency'] == 'Weekly':
+                                management_expense = management_expense + \
+                                    (owner_management_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expense['result'][mex]['amount_paid'])
+                            elif owner_management_expense['result'][mex]['purchase_frequency'] == 'Biweekly' and payment['frequency'] == 'Biweekly':
+                                management_expense = management_expense + \
+                                    (owner_management_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expense['result'][mex]['amount_paid'])
+                            elif owner_management_expense['result'][mex]['purchase_frequency'] == 'Monthly' and payment['frequency'] == 'Monthly':
+                                management_expense = management_expense + \
+                                    (owner_management_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expense['result'][mex]['amount_paid'])
+                                # if management annually
+                            elif owner_management_expense['result'][mex]['purchase_frequency'] == 'Annually' and payment['frequency'] == 'Annually':
+                                management_expense = management_expense + \
+                                    (owner_management_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expense['result'][mex]['amount_paid'])
+                                amortized_management_expense = amortized_management_expense + \
+                                    float(
+                                        owner_management_expense['result'][mex]['amount_paid'])/12
+                            # if management one-time
                             else:
-                                print('do nothing')
+                                management_expense = management_expense + \
+                                    (owner_management_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expense['result'][mex]['amount_paid'])
+
             if len(response['result']['owner_expense']) > 0:
                 for ore in range(len(response['result']['owner_expense'])):
                     # number of months a property has been active
@@ -1048,7 +974,77 @@ class OwnerCashflow(Resource):
 
             response['result']['owner_expected_expense'] = list(
                 owner_expected_expense['result'])
+            # monthly expenses for the property
+            owner_management_expected_expense = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN pm.contracts c
+            ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND c.contract_status = 'ACTIVE'
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND pu.purchase_type= "OWNER PAYMENT";""")
+            if len(owner_management_expected_expense['result']) > 0:
+                print('here in mgmt')
+                for mex in range(len(owner_management_expected_expense['result'])):
+                    # if management
+                    # number of months a property has been active
+                    delta_active = relativedelta((datetime.strptime(
+                        owner_management_expected_expense['result'][mex]['active_date'], '%Y-%m-%d')), datetime.now())
+                    months_active = abs(delta_active.months +
+                                        (delta_active.years * 12))
+                    # number of months a property has been under an active lease
+                    delta_leased = relativedelta((datetime.strptime(
+                        owner_management_expected_expense['result'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
 
+                    months_leased = abs(delta_leased.months +
+                                        (delta_leased.years * 12))
+                    # number of weeks in the current month
+                    weeks_current_month = len(
+                        calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                    # number of weeks a property has been active
+                    weeks_active = round((abs(today - datetime.strptime(
+                        owner_management_expected_expense['result'][mex]['active_date'], '%Y-%m-%d').date()).days)/7, 1)
+                    # number of weeks a property has been under an active lease
+                    weeks_leased = round((abs(today - datetime.strptime(
+                        owner_management_expected_expense['result'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                    # get contract fees
+                    managementPayments = json.loads(
+                        owner_management_expected_expense['result'][mex]['contract_fees'])
+                    for payment in managementPayments:
+                        print('here in for loop')
+                        if payment['fee_type'] == '%':
+                            # if management monthly
+                            if owner_management_expected_expense['result'][mex]['purchase_frequency'] == 'Weekly' and payment['frequency'] == 'Weekly':
+                                management_expected_expense = management_expected_expense + \
+                                    (owner_management_expected_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expected_expense['result'][mex]['amount_due'])
+                            elif owner_management_expected_expense['result'][mex]['purchase_frequency'] == 'Biweekly' and payment['frequency'] == 'Biweekly':
+                                management_expected_expense = management_expected_expense + \
+                                    (owner_management_expected_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expected_expense['result'][mex]['amount_due'])
+                            elif owner_management_expected_expense['result'][mex]['purchase_frequency'] == 'Monthly' and payment['frequency'] == 'Monthly':
+                                management_expected_expense = management_expected_expense + \
+                                    (owner_management_expected_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expected_expense['result'][mex]['amount_due'])
+                                # if management annually
+                            elif owner_management_expected_expense['result'][mex]['purchase_frequency'] == 'Annually' and payment['frequency'] == 'Annually':
+                                management_expected_expense = management_expected_expense + \
+                                    (owner_management_expected_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expected_expense['result'][mex]['amount_due'])
+                                amortized_management_expected_expense = amortized_management_expected_expense + \
+                                    float(
+                                        owner_management_expected_expense['result'][mex]['amount_due'])/12
+                            # if management one-time
+                            else:
+                                management_expected_expense = management_expected_expense + \
+                                    (owner_management_expected_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_expected_expense['result'][mex]['amount_due'])
             owner_utility_expected_expense = db.execute("""
             SELECT * FROM purchases pu
             LEFT JOIN payments pa
@@ -1144,6 +1140,7 @@ class OwnerCashflow(Resource):
                     if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expected_expense'][ore]['description'] != 'Rent':
                         # if management monthly
                         if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
+                            print('here 1150', management_expected_expense)
                             # if management monthly once a month
                             if response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expected_expense'][ore]['payment_frequency'] is None:
                                 management_expected_expense = management_expected_expense + response[
@@ -1271,6 +1268,8 @@ class OwnerCashflow(Resource):
 
             response['result']['owner_expected_expense'] = response['result']['owner_expected_expense'] + (list(
                 owner_utility_expected_expense['result']))
+            response['result']['owner_expected_expense'] = response['result']['owner_expected_expense'] + (list(
+                owner_management_expected_expense['result']))
             response['result']['maintenance_expected_expense'] = round(
                 maintenance_expected_expense, 2)
             response['result']['management_expected_expense'] = round(
@@ -1352,9 +1351,7 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
             AND YEAR(pu.next_payment) = YEAR(now())
-            AND (pu.purchase_type= "RENT")
-            AND r.rental_status = 'ACTIVE'
-            AND pu.purchase_status = 'PAID'""")
+            AND pu.purchase_type= "OWNER PAYMENT";""")
 
             if len(owner_management_year_expense['result']) > 0:
                 for mex in range(len(owner_management_year_expense['result'])):
@@ -1380,95 +1377,59 @@ class OwnerCashflow(Resource):
                     weeks_leased = round((abs(today - datetime.strptime(
                         owner_management_year_expense['result'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
 
-                    if owner_management_year_expense['result'][mex]['purchase_type'] == 'RENT':
-                        managementPayments = json.loads(
-                            owner_management_year_expense['result'][mex]['contract_fees'])
+                    managementPayments = json.loads(
+                        owner_management_year_expense['result'][mex]['contract_fees'])
 
-                        for payment in managementPayments:
-                            # print('amount paid to owner', payment)
-                            if payment['fee_type'] == '%':
-                                if payment['of'] == 'Gross Rent':
-                                    if payment['frequency'] == 'Weekly':
-                                        management_year_expected_expense = management_year_expected_expense + weeks_leased*float((
-                                            float(owner_management_year_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                        management_year_expense = management_year_expense +  \
-                                            weeks_leased*float((
-                                                float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                    elif payment['frequency'] == 'Biweekly':
-                                        management_year_expected_expense = management_year_expected_expense + weeks_leased/2 * \
-                                            ((
-                                                float(owner_management_year_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                        management_year_expense = management_year_expense +  \
-                                            weeks_leased/2 * \
-                                            ((
-                                                float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)
-                                    elif payment['frequency'] == 'Monthly':
-                                        management_year_expected_expense = management_year_expected_expense + months_leased * \
-                                            ((
-                                                float(owner_management_year_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)
-                                        management_year_expense = management_year_expense + months_leased *  \
-                                            (
-                                                float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                    elif payment['frequency'] == 'Annually':
-
-                                        management_year_expected_expense = management_year_expected_expense +  \
-                                            (
-                                                float(owner_management_year_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                        management_year_expense = management_year_expense +  \
-                                            (
-                                                float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-                                        amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
-                                            ((
-                                                float(owner_management_expense['result'][mex]['amount_due']) * float(payment['charge']))/100)/12
-                                        amortized_management_year_expense = amortized_management_year_expense +  \
-                                            ((
-                                                float(owner_management_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100)/12
-                                    elif payment['frequency'] == 'One-time':
-
-                                        management_year_expected_expense = management_year_expected_expense +  \
-                                            (
-                                                float(owner_management_year_expense['result'][mex]['amount_due']) * float(payment['charge']))/100
-                                        management_year_expense = management_year_expense +  \
-                                            (
-                                                float(owner_management_year_expense['result'][mex]['amount_paid']) * float(payment['charge']))/100
-
-                                    else:
-                                        print('do nothing')
-                            elif payment['fee_type'] == '$':
-                                if payment['frequency'] == 'Weekly':
-                                    management_year_expected_expense = management_year_expected_expense + weeks_leased * \
-                                        float(payment['charge'])
-                                    management_year_expense = management_year_expense + weeks_leased * \
-                                        float(payment['charge'])
-                                elif payment['frequency'] == 'Biweekly':
-                                    management_year_expected_expense = management_year_expected_expense + weeks_leased/2 * \
-                                        float(payment['charge'])
-                                    management_year_expense = management_year_expense + weeks_leased/2 * \
-                                        float(payment['charge'])
-                                elif payment['frequency'] == 'Monthly':
-                                    management_year_expected_expense = management_year_expected_expense + months_leased *  \
-                                        float(payment['charge'])
-                                    management_year_expense = management_year_expense + \
-                                        float(payment['charge'])
-                                elif payment['frequency'] == 'Annually':
-                                    management_year_expected_expense = management_year_expected_expense + \
-                                        float(payment['charge'])
-                                    management_year_expense = management_year_expense + \
-                                        float(payment['charge'])
-                                    amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
-                                        (float(payment['charge']))/12
-                                    amortized_management_year_expense = amortized_management_year_expense +  \
-                                        (float(payment['charge']))/12
-                                elif payment['frequency'] == 'One-time':
-                                    management_year_expected_expense = management_year_expected_expense +  \
-                                        float(payment['charge'])
-                                    management_year_expense = management_year_expense + \
-                                        float(payment['charge'])
-
-                                else:
-                                    print('do nothing')
+                    for payment in managementPayments:
+                        # print('amount paid to owner', payment)
+                        print('here in for loop')
+                        # if management monthly
+                        if payment['fee_type'] == '%':
+                            if owner_management_year_expense['result'][mex]['purchase_frequency'] == 'Weekly' and payment['frequency'] == 'Weekly':
+                                management_year_expense = management_year_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid'])
+                                management_year_expected_expense = management_year_expected_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_due'])
+                            elif owner_management_year_expense['result'][mex]['purchase_frequency'] == 'Biweekly' and payment['frequency'] == 'Biweekly':
+                                management_year_expense = management_year_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid'])
+                                management_year_expected_expense = management_year_expected_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_due'])
+                            elif owner_management_year_expense['result'][mex]['purchase_frequency'] == 'Monthly' and payment['frequency'] == 'Monthly':
+                                management_year_expense = management_year_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid'])
+                                management_year_expected_expense = management_year_expected_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_due'])
+                                # if management annually
+                            elif owner_management_year_expense['result'][mex]['purchase_frequency'] == 'Annually' and payment['frequency'] == 'Annually':
+                                management_year_expense = management_year_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid'])
+                                management_year_expected_expense = management_year_expected_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_due'])
+                                amortized_management_year_expense = amortized_management_year_expense + \
+                                    float(
+                                        (owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                            payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid']))/12
+                                amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
+                                    ((owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid']))/12
+                            # if management one-time
                             else:
-                                print('do nothing')
+                                management_year_expense = management_year_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_paid'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_paid'])
+                                management_year_expected_expense = management_year_expected_expense + \
+                                    (owner_management_year_expense['result'][mex]['amount_due'])/(1-int(
+                                        payment['charge'])/100)-(owner_management_year_expense['result'][mex]['amount_due'])
+
             if len(response['result']['owner_expense_yearly']) > 0:
                 for ore in range(len(response['result']['owner_expense_yearly'])):
                     # number of months a property has been active
