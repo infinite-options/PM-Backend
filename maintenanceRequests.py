@@ -229,22 +229,25 @@ class MaintenanceRequestsandQuotes(Resource):
                     else:
                         response['result'][i]['rentalInfo'] = 'Not Rented'
             elif 'owner_id' in where:
-                print('in elif')
+                print('in elif', where['owner_id'])
 
                 # list of all properties for the owner
                 response = db.execute(
                     """SELECT * FROM pm.properties p WHERE p.owner_id = \'"""
-                    + filterValue
+                    + where['owner_id']
                     + """\'""")
+                print('here')
                 # info for each property
                 for i in range(len(response['result'])):
+                    print('in for loop')
                     property_id = response['result'][i]['property_uid']
                     # print(property_id)
                     pid = {'linked_property_id': property_id}
-                    maintenance_res = db.execute("""SELECT *
-                                                        FROM pm.maintenanceRequests mr
-                                                        WHERE mr.property_uid = \'""" + property_id + """\'
-                                                        """)
+                    maintenance_res = db.execute("""
+                    SELECT *
+                    FROM pm.maintenanceRequests mr
+                    WHERE mr.property_uid = \'""" + property_id + """\'
+                    """)
                     response['result'][i]['maintenanceRequests'] = list(
                         maintenance_res['result'])
 

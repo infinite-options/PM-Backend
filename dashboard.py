@@ -437,15 +437,15 @@ class ManagerDashboard(Resource):
         user = get_jwt_identity()
         buid = ''
         for business in user['businesses']:
-            # print(business)
+            print(business)
             if business['business_type'] == 'MANAGEMENT' and business['employee_role'] == 'Owner':
                 buid = business['business_uid']
-                # print(buid)
-        # print('buid', buid)
+                print(buid)
+        print('buid', buid)
         with connect() as db:
 
             today = date.today()
-
+            print(buid)
             response = db.execute("""SELECT *
                                     FROM pm.propertyInfo
                                     WHERE management_status <> 'REJECTED'
@@ -453,7 +453,7 @@ class ManagerDashboard(Resource):
                                     AND management_status <> 'EXPIRED'
                                     AND management_status <> 'END EARLY'
                                     AND manager_id = \'""" + buid + """\' """)
-
+            print(response)
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
                 print(property_id)

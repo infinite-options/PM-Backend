@@ -54,6 +54,10 @@ def next_weekday_biweekly(d, weekday):
     return d + timedelta(days_ahead)
 
 
+def diff_month(d1, d2):
+    return (d1.year - d2.year) * 12 + d1.month - d2.month
+
+
 class Properties(Resource):
     def get(self):
         response = {}
@@ -189,25 +193,28 @@ class Properties(Resource):
                 if management_status != 'FORWARDED':
                     print('in not forward')
                     db.update('propertyManager', pk, propertyManager)
+
                 else:
                     db.insert('propertyManager', propertyManager)
                 if management_status == 'ACCEPTED':
-
-                    rejectOthers = db.execute(""" SELECT * FROM propertyManager 
-                                                WHERE linked_property_id = \'""" + property_uid + """\' 
-                                                AND linked_business_id <> \'""" + manager_id + """\' """)
+                    print('IN ACCEPTED')
+                    rejectOthers = db.execute(""" 
+                    SELECT * FROM propertyManager 
+                    WHERE linked_property_id = \'""" + property_uid + """\' 
+                    AND linked_business_id <> \'""" + manager_id + """\' """)
                     if len(rejectOthers['result']) > 0:
                         print("set others to reject")
                         for i in range(len(rejectOthers['result'])):
                             print(rejectOthers['result'][i])
                             if rejectOthers['result'][i]['management_status'] == 'SENT':
-                                contractRes = db.execute("""SELECT * FROM
-                                                            pm.contracts c
-                                                            LEFT JOIN
-                                                            pm.properties p
-                                                            ON p.property_uid = c.property_uid  
-                                                            WHERE c.property_uid = \'""" + property_uid + """\' 
-                                                            AND c.business_uid= \'""" + rejectOthers['result'][i]['linked_business_id'] + """\'""")
+                                contractRes = db.execute("""
+                                SELECT * FROM
+                                pm.contracts c
+                                LEFT JOIN
+                                pm.properties p
+                                ON p.property_uid = c.property_uid  
+                                WHERE c.property_uid = \'""" + property_uid + """\' 
+                                AND c.business_uid= \'""" + rejectOthers['result'][i]['linked_business_id'] + """\'""")
                                 if len(contractRes['result']) > 0:
                                     for i in range(len(contractRes['result'])):
                                         pk = {
@@ -231,16 +238,116 @@ class Properties(Resource):
                             }
                             db.update('propertyManager', pk,
                                       propertyManagerReject)
-
-                    contractRes = db.execute(
-                        """SELECT * FROM
-                            pm.contracts c
-                            LEFT JOIN
-                            pm.properties p
-                            ON p.property_uid = c.property_uid  WHERE c.property_uid = \'""" + property_uid + """\' AND c.business_uid= \'""" + manager_id + """\'""")
+                    contractRes = db.execute("""
+                    SELECT c.*, p.owner_id FROM
+                    pm.contracts c
+                    LEFT JOIN properties p
+                    ON p.property_uid = c.property_uid
+                    WHERE c.property_uid = \'""" + property_uid + """\'
+                    AND c.business_uid= \'""" + manager_id + """\'""")
                     print(contractRes)
+                    if len(contractRes['result']) > 0:
+                        today = date.today()
+                        for contract in contractRes['result']:
+                            # creating purchases
+                            managementPayments = json.loads(
+                                contract['contract_fees'])
+                            payer = manager_id
+                            payer = json.dumps([payer])
+                            for payment in managementPayments:
+                                # if fee_type is $, put the charge amount directly
+                                if payment['fee_type'] == '$':
+                                    print('payment fee type $')
+                                    if payment['frequency'] == 'Weekly':
+                                        print('payment frequency weekly $')
 
-                    today = date.today()
+                                        # set charge date as friday of every week
+                                        charge_date = next_weekday(
+                                            contract['start_date'], 4)
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [contract['property_uid']]),
+                                            payer=payer,
+                                            receiver=contract['owner_id'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=-int(payment['charge']),
+                                            purchase_notes=charge_month,
+                                            purchase_date=contract['start_date'],
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                    elif payment['frequency'] == 'Biweekly':
+
+                                        # set charge date as friday of every 2 week
+                                        start_date = date.fromisoformat(
+                                            contract['start_date'])
+                                        charge_date = next_weekday_biweekly(
+                                            contract['start_date'], 4)
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        print('charge_date',
+                                              charge_date, charge_month)
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [contract['property_uid']]),
+                                            payer=payer,
+                                            receiver=contract['owner_id'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=-int(payment['charge']),
+                                            purchase_notes=charge_month,
+                                            purchase_date=contract['start_date'],
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                    elif payment['frequency'] == 'Monthly':
+                                        print('payment frequency monthly $')
+
+                                        # set charge date as first of every month
+                                        charge_date = contract['start_date'].replace(
+                                            day=1) + relativedelta(months=1)
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [contract['property_uid']]),
+                                            payer=payer,
+                                            receiver=contract['owner_id'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=-int(payment['charge']),
+                                            purchase_notes=charge_month,
+                                            purchase_date=contract['start_date'],
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date
+                                        )
+
+                                    else:
+                                        print('payment frequency one-time $')
+                                        charge_date = date.fromisoformat(
+                                            contract['start_date'])
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [contract['property_uid']]),
+                                            payer=payer,
+                                            receiver=contract['owner_id'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=-int(payment['charge']),
+                                            purchase_notes=charge_month,
+                                            purchase_date=today,
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date
+                                        )
 
                 print(newProperty)
             if newProperty == {}:
