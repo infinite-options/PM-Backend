@@ -15,6 +15,7 @@ import json
 
 
 from cashflow import OwnerCashflow, OwnerCashflowProperty
+from managerCashflow import ManagerCashflow
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
@@ -27,7 +28,7 @@ from businessProfileInfo import BusinessProfileInfo
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
     PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS
 from purchases import Purchases, CreateExpenses, CreateRevenues
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
 from managerProperties import ManagerProperties
 from tenantProperties import TenantProperties
@@ -700,6 +701,8 @@ api.add_resource(Bills, "/bills")
 
 api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
+
+api.add_resource(ManagerCashflow, "/managerCashflow")
 
 api.add_resource(ApplePay, "/applepay")
 api.add_resource(Contact, "/contact")

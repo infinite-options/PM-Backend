@@ -872,7 +872,7 @@ class LateFee_CLASS(Resource):
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(
                                         [response['result'][i]['rental_property_id']]),
-                                    payer=json.dumps(tenants),
+                                    payer=json.dumps([tenants]),
                                     receiver=response['result'][i]['linked_business_id'],
                                     purchase_type='EXTRA CHARGES',
                                     description='Late Fee',
@@ -946,7 +946,7 @@ def LateFee():
                                 linked_bill_id=None,
                                 pur_property_id=json.dumps(
                                     [response['result'][i]['rental_property_id']]),
-                                payer=json.dumps(tenants),
+                                payer=json.dumps([tenants]),
                                 receiver=response['result'][i]['linked_business_id'],
                                 purchase_type='EXTRA CHARGES',
                                 description='Late Fee',
@@ -1170,7 +1170,7 @@ class LateFeeExtraCharges_CLASS(Resource):
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [lease['rental_property_id']]),
-                                            payer=json.dumps(payer),
+                                            payer=(payer),
                                             receiver=lease['linked_business_id'],
                                             purchase_type='EXTRA CHARGES',
                                             description='Late Fee',
@@ -1247,7 +1247,7 @@ def LateFeeExtraCharges():
                                         linked_bill_id=None,
                                         pur_property_id=json.dumps(
                                             [lease['rental_property_id']]),
-                                        payer=json.dumps(payer),
+                                        payer=(payer),
                                         receiver=lease['linked_business_id'],
                                         purchase_type='EXTRA CHARGES',
                                         description='Late Fee',

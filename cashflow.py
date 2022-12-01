@@ -884,7 +884,7 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense'][ore]['amount_paid']
 
                     # if management
-                    if response['result']['owner_expense'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expense'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expense'][ore]['description'] != 'Rent':
                         # if management monthly
                         if response['result']['owner_expense'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
@@ -1141,7 +1141,7 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expected_expense'][ore]['amount_due']
 
                     # if management
-                    if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expected_expense'][ore]['description'] != 'Rent':
                         # if management monthly
                         if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
@@ -1556,7 +1556,7 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
 
                     # if management
-                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expense_yearly'][ore]['description'] != 'Rent':
                         print("MANAGEMENT")
                         # if management monthly
                         if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
@@ -2863,7 +2863,7 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense'][ore]['amount_paid']
 
                     # if management
-                    if response['result']['owner_expense'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expense'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expense'][ore]['description'] != 'Rent':
                         # if management monthly
                         if response['result']['owner_expense'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
@@ -3098,7 +3098,7 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expected_expense'][ore]['amount_due']
 
                     # if management
-                    if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expected_expense'][ore]['description'] != 'Rent':
                         # if management monthly
                         if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
@@ -3490,7 +3490,7 @@ class OwnerCashflowProperty(Resource):
                                 response['result']['owner_expense_yearly'][ore]['amount_due']
 
                     # if management
-                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT':
+                    if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expense_yearly'][ore]['description'] != 'Rent':
                         print("MANAGEMENT")
                         # if management monthly
                         if response['result']['owner_expense_yearly'][ore]['purchase_frequency'] == 'Monthly':
