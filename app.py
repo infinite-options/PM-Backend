@@ -15,7 +15,7 @@ import json
 
 
 from cashflow import OwnerCashflow, OwnerCashflowProperty
-from managerCashflow import ManagerCashflow
+from managerCashflows import ManagerCashflow
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
@@ -30,7 +30,7 @@ from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, Lease
 from purchases import Purchases, CreateExpenses
 from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from managerProperties import ManagerProperties
+from managerProperties import ManagerProperties, ManagerContractFees_CLASS
 from tenantProperties import TenantProperties
 from refresh import Refresh
 from businesses import Businesses
@@ -648,9 +648,11 @@ api.add_resource(MessageEmail, '/message')
 api.add_resource(Announcement, '/announcement')
 
 api.add_resource(ManagerProperties, '/managerProperties')
-# api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
+api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
 
 api.add_resource(TenantPayments_CLASS, '/TenantPayments_CLASS')
+
+api.add_resource(ManagerPayments_CLASS, '/ManagerPayments_CLASS')
 
 
 api.add_resource(TenantProperties, '/tenantProperties')

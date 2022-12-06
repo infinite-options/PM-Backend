@@ -269,25 +269,23 @@ def ManagerContractFees():
         response = {'message': 'Successfully committed SQL query',
                     'code': 200}
         payments = []
-        response = db.execute("""
-        SELECT * FROM contracts c
-        LEFT JOIN
-        pm.properties prop
-        ON prop.property_uid = c.property_uid
-        LEFT JOIN
-        pm.propertyManager propM
-        ON propM.linked_property_id = c.property_uid
-        WHERE c.contract_status = 'ACTIVE'
-        AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY') """)
+        response = db.execute("""SELECT * FROM contracts c
+                                    LEFT JOIN
+                                    pm.properties prop
+                                    ON prop.property_uid = c.property_uid
+                                    LEFT JOIN
+                                    pm.propertyManager propM
+                                    ON propM.linked_property_id = c.property_uid
+                                    WHERE c.contract_status = 'ACTIVE'
+                                    AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')  """)
 
         # getting all the expenses and calculating the expense amount
         if len(response['result']) > 0:
             for i in range(len(response['result'])):
                 response['result'][i]['expense_amount'] = 0
-                purRes = db.execute("""
-                SELECT * FROM purchases pur
-                WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                AND (pur.purchase_type = 'UTILITY' OR pur.purchase_type = 'MAINTENANCE' OR pur.purchase_type = 'REPAIRS') """)
+                purRes = db.execute("""SELECT * FROM purchases pur
+                                        WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                                        AND (pur.purchase_type = 'UTILITY' OR pur.purchase_type = 'MAINTENANCE' OR pur.purchase_type = 'REPAIRS') """)
                 response['result'][i]['expenses'] = list(purRes['result'])
                 if len(purRes['result']) > 0:
                     for ore in range(len(purRes['result'])):
@@ -297,10 +295,10 @@ def ManagerContractFees():
         if len(response['result']) > 0:
             for i in range(len(response['result'])):
                 response['result'][i]['expense_amount'] = 0
-                purRes = db.execute("""
-                SELECT * FROM purchases pur
-                WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                AND pur.purchase_type = 'MANAGEMENT' """)
+                purRes = db.execute("""SELECT * FROM purchases pur
+                                        WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                                        AND pur.purchase_type = 'MANAGEMENT' """)
+                print('purRes', purRes['result'])
                 response['result'][i]['prevPurchases'] = list(
                     purRes['result'])
 
