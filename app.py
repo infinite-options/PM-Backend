@@ -593,13 +593,11 @@ class SendAnnouncement(Resource):
 
 api.add_resource(Send_Twilio_SMS, '/Send_Twilio_SMS')
 api.add_resource(SendAnnouncement, '/SendAnnouncement')
-
 api.add_resource(Properties, '/properties')
 api.add_resource(Property, '/properties/<property_uid>')
 api.add_resource(NotManagedProperties, '/notManagedProperties')
 api.add_resource(TenantDashboard, '/tenantDashboard')
 api.add_resource(TenantDetails, '/tenantDetails')
-
 api.add_resource(ManagerDashboard, '/managerDashboard')
 api.add_resource(OwnerDashboard, '/ownerDashboard')
 api.add_resource(Users, '/users')
@@ -619,10 +617,8 @@ api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
 api.add_resource(PerDay_LateFeeExtraCharges_CLASS,
                  '/PerDay_LateFeeExtraCharges_CLASS')
 api.add_resource(stripe_key, "/stripe_key/<string:desc>")
-
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
-
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
 api.add_resource(Payments, '/payments')
@@ -630,31 +626,21 @@ api.add_resource(UserPayments, '/userPayments')
 api.add_resource(ManagerClients, '/managerClients')
 api.add_resource(ManagerPropertyTenants, '/managerPropertyTenants')
 api.add_resource(ManagerDocuments, '/managerDocuments')
-
 api.add_resource(TenantDocuments, '/tenantDocuments')
 api.add_resource(CancelAgreement, '/cancelAgreement')
 api.add_resource(ManagerContractEnd_CLASS,
                  '/managerContractEnd_CLASS')
 api.add_resource(TenantRentalEnd_CLASS, '/tenantRentalEnd_CLASS')
-
 api.add_resource(OwnerPayments, '/ownerPayments')
-
 api.add_resource(OwnerProperties, '/ownerProperties')
 api.add_resource(OwnerPropertyBills, '/ownerPropertyBills')
-
 api.add_resource(OwnerDocuments, '/ownerDocuments')
 api.add_resource(MessageEmail, '/message')
-
 api.add_resource(Announcement, '/announcement')
-
 api.add_resource(ManagerProperties, '/managerProperties')
 api.add_resource(ManagerContractFees_CLASS, '/ManagerContractFees_CLASS')
-
 api.add_resource(TenantPayments_CLASS, '/TenantPayments_CLASS')
-
 api.add_resource(ManagerPayments_CLASS, '/ManagerPayments_CLASS')
-
-
 api.add_resource(TenantProperties, '/tenantProperties')
 api.add_resource(Refresh, '/refresh')
 api.add_resource(Businesses, '/businesses')
@@ -682,11 +668,8 @@ api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
 api.add_resource(UserDetails, "/UserDetails/<string:user_id>")
 api.add_resource(UserToken, "/UserToken/<string:user_email_id>")
-
 api.add_resource(Appliances, "/appliances")
 api.add_resource(RemoveAppliance, "/RemoveAppliance")
-
-
 api.add_resource(UpdateAccessToken, "/UpdateAccessToken/<string:user_id>")
 api.add_resource(
     AvailableAppointmentsTenant,
@@ -696,18 +679,13 @@ api.add_resource(
     AvailableAppointmentsMaintenance,
     "/AvailableAppointmentsMaintenance/<string:date_value>/<string:duration>/<string:user_id>/<string:start_time>,<string:end_time>"
 )
-
 api.add_resource(LeaseTenants, "/leaseTenants")
 api.add_resource(Bills, "/bills")
-
 api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
-
 api.add_resource(ManagerCashflow, "/managerCashflow")
-
 api.add_resource(ApplePay, "/applepay")
 api.add_resource(Contact, "/contact")
-
 api.add_resource(RemovePropertyOwner, "/RemovePropertyOwner")
 
 if __name__ == '__main__':
