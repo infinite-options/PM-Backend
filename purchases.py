@@ -1063,7 +1063,6 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-
         elif data['payer'] == 'OWNER':
             if data['splitPercentTenant'] != '0' and data['splitPercentManager'] != '0':
                 if data['purchase_frequency'] == 'Monthly':
@@ -1537,4 +1536,6 @@ class CreateExpenses(Resource):
                         response = db.insert('purchases', newPurchase)
             else:
                 print('do nothing')
-            return response
+        else:
+            print('do nothing')
+        return response
