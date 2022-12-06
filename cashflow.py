@@ -386,6 +386,9 @@ class OwnerCashflow(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -395,9 +398,11 @@ class OwnerCashflow(Resource):
                     # number of weeks a property has been under an active lease
                     weeks_leased = round((abs(today - datetime.strptime(
                         response['result']['owner_revenue_yearly'][ore]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
-
+                    print('months leased', months_leased)
                     # if revenue type is RENT
                     if response['result']['owner_revenue_yearly'][ore]['purchase_type'] == 'RENT':
+                        print('IF RENT', response['result']
+                              ['owner_revenue_yearly'][ore])
                         if response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Weekly':
                             rental_year_expected_revenue = rental_year_expected_revenue + \
                                 weeks_leased*int(response['result']['owner_revenue_yearly']
@@ -416,6 +421,7 @@ class OwnerCashflow(Resource):
                                 int(response['result']['owner_revenue_yearly']
                                     [ore]['amount_paid'])
                         elif response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Monthly':
+                            print('if monthly', rental_year_expected_revenue)
                             rental_year_expected_revenue = rental_year_expected_revenue + \
                                 months_leased * \
                                 int(response['result']
@@ -424,7 +430,8 @@ class OwnerCashflow(Resource):
                                 months_leased * \
                                 int(response['result']['owner_revenue_yearly']
                                     [ore]['amount_paid'])
-
+                            print('rental_year_expected_revenue',
+                                  rental_year_expected_revenue)
                         elif response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
                             rental_year_expected_revenue = rental_year_expected_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
@@ -685,8 +692,7 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND pu.purchase_type= "OWNER PAYMENT"
-            AND pu.purchase_status = 'PAID';""")
+            AND pu.purchase_type= "OWNER PAYMENT";""")
             if len(owner_management_expense['result']) > 0:
                 print('here in mgmt')
                 for mex in range(len(owner_management_expense['result'])):
@@ -702,6 +708,8 @@ class OwnerCashflow(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -759,6 +767,8 @@ class OwnerCashflow(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -817,7 +827,8 @@ class OwnerCashflow(Resource):
                             if response['result']['owner_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expense'][ore]['payment_frequency'] is None:
 
                                 management_expense = management_expense + \
-                                    response['result']['owner_expense'][ore]['amount_paid']
+                                    abs(response['result']['owner_expense']
+                                        [ore]['amount_paid'])
                                 # if management monthly twice a month
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a month':
 
@@ -833,11 +844,12 @@ class OwnerCashflow(Resource):
                             if response['result']['owner_expense'][ore]['payment_frequency'] == 'Once a year':
 
                                 management_expense = management_expense + \
-                                    response['result']['owner_expense'][ore]['amount_paid']
+                                    abs(response['result']['owner_expense']
+                                        [ore]['amount_paid'])
 
                                 amortized_management_expense = amortized_management_expense + \
                                     float(
-                                        response['result']['owner_expense'][ore]['amount_paid'])/12
+                                        abs(response['result']['owner_expense'][ore]['amount_paid']))/12
                             # if management annually twice a year
                             elif response['result']['owner_expense'][ore]['payment_frequency'] == 'Twice a year':
 
@@ -853,7 +865,8 @@ class OwnerCashflow(Resource):
                         else:
 
                             management_expense = management_expense + \
-                                response['result']['owner_expense'][ore]['amount_paid']
+                                abs(response['result']['owner_expense']
+                                    [ore]['amount_paid'])
 
                     if response['result']['owner_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -1004,6 +1017,8 @@ class OwnerCashflow(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -1140,16 +1155,16 @@ class OwnerCashflow(Resource):
                     if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'MANAGEMENT' and response['result']['owner_expected_expense'][ore]['description'] != 'Rent':
                         # if management monthly
                         if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
-                            print('here 1150', management_expected_expense)
+
                             # if management monthly once a month
                             if response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expected_expense'][ore]['payment_frequency'] is None:
-                                management_expected_expense = management_expected_expense + response[
-                                    'result']['owner_expected_expense'][ore]['amount_due']
+                                management_expected_expense = management_expected_expense + abs(response[
+                                    'result']['owner_expected_expense'][ore]['amount_due'])
 
                                 # if management monthly twice a month
                             elif response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Twice a month':
                                 management_expected_expense = management_expected_expense + 2 * \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])
 
                             else:
@@ -1159,21 +1174,21 @@ class OwnerCashflow(Resource):
                             # if management annually once a year
                             if response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Once a year':
                                 management_expected_expense = management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])
 
                                 amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])/(datetime.now().month-1)
 
                             # if management annually twice a year
                             elif response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 management_expected_expense = management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])
 
                                 amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])/((datetime.now().month-1)/2)
 
                             else:
@@ -1181,7 +1196,8 @@ class OwnerCashflow(Resource):
                         # if management one-time
                         else:
                             management_expected_expense = management_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                                abs(response['result']
+                                    ['owner_expected_expense'][ore]['amount_due'])
 
                     if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -1367,6 +1383,8 @@ class OwnerCashflow(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -1443,6 +1461,8 @@ class OwnerCashflow(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -1529,7 +1549,8 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     months_active * \
-                                    response['result']['owner_expense_yearly'][ore]['amount_due']
+                                    abs(response['result']
+                                        ['owner_expense_yearly'][ore]['amount_due'])
                                 # if management monthly twice a month
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a month':
                                 management_year_expense = management_year_expense + 2*months_active * \
@@ -1537,7 +1558,7 @@ class OwnerCashflow(Resource):
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
                                     2*months_active * \
-                                    (response['result']['owner_expense_yearly']
+                                    abs(response['result']['owner_expense_yearly']
                                         [ore]['amount_due'])
                             else:
                                 print('do nothing')
@@ -1546,37 +1567,40 @@ class OwnerCashflow(Resource):
                             # if management annually once a year
                             if response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Once a year':
                                 management_year_expense = management_year_expense +  \
-                                    (response['result']['owner_expense_yearly']
+                                    abs(response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
-                                    response['result']['owner_expense_yearly'][ore]['amount_due']
+                                    abs(response['result']
+                                        ['owner_expense_yearly'][ore]['amount_due'])
                                 amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
-                                    (response['result']['owner_expense_yearly']
-                                     [ore]['amount_due'])/12
+                                    abs(response['result']['owner_expense_yearly']
+                                        [ore]['amount_due'])/12
                                 amortized_management_year_expense = amortized_management_year_expense + \
-                                    (response['result']['owner_expense_yearly']
-                                     [ore]['amount_paid'])/12
+                                    abs(response['result']['owner_expense_yearly']
+                                        [ore]['amount_paid'])/12
                             # if management annually twice a year
                             elif response['result']['owner_expense_yearly'][ore]['payment_frequency'] == 'Twice a year':
                                 management_year_expense = management_year_expense + 2 * \
-                                    (response['result']['owner_expense_yearly']
+                                    abs(response['result']['owner_expense_yearly']
                                         [ore]['amount_paid'])
                                 management_year_expected_expense = management_year_expected_expense + \
-                                    2*response['result']['owner_expense_yearly'][ore]['amount_due']
+                                    2*abs(response['result']['owner_expense_yearly'][ore]['amount_due'])
                                 amortized_management_year_expected_expense = amortized_management_year_expected_expense + \
-                                    (response['result']['owner_expense_yearly']
-                                     [ore]['amount_due'])/6
+                                    abs(response['result']['owner_expense_yearly']
+                                        [ore]['amount_due'])/6
                                 amortized_management_year_expense = amortized_management_year_expense + \
-                                    (response['result']['owner_expense_yearly']
-                                     [ore]['amount_paid'])/6
+                                    abs(response['result']['owner_expense_yearly']
+                                        [ore]['amount_paid'])/6
                             else:
                                 print('do nothing')
                         # if management one-time
                         else:
                             management_year_expense = management_year_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_paid']
+                                abs(response['result']['owner_expense_yearly']
+                                    [ore]['amount_paid'])
                             management_year_expected_expense = management_year_expected_expense + \
-                                response['result']['owner_expense_yearly'][ore]['amount_due']
+                                abs(response['result']
+                                    ['owner_expense_yearly'][ore]['amount_due'])
 
                     if response['result']['owner_expense_yearly'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -2368,6 +2392,8 @@ class OwnerCashflowProperty(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -2654,6 +2680,8 @@ class OwnerCashflowProperty(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -2773,6 +2801,8 @@ class OwnerCashflowProperty(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -3064,13 +3094,13 @@ class OwnerCashflowProperty(Resource):
                         if response['result']['owner_expected_expense'][ore]['purchase_frequency'] == 'Monthly':
                             # if management monthly once a month
                             if response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Once a month' or response['result']['owner_expected_expense'][ore]['payment_frequency'] is None:
-                                management_expected_expense = management_expected_expense + response[
-                                    'result']['owner_expected_expense'][ore]['amount_due']
+                                management_expected_expense = management_expected_expense + abs(response[
+                                    'result']['owner_expected_expense'][ore]['amount_due'])
 
                                 # if management monthly twice a month
                             elif response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Twice a month':
                                 management_expected_expense = management_expected_expense + 2 * \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])
 
                             else:
@@ -3080,21 +3110,21 @@ class OwnerCashflowProperty(Resource):
                             # if management annually once a year
                             if response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Once a year':
                                 management_expected_expense = management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])
 
                                 amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])/(datetime.now().month-1)
 
                             # if management annually twice a year
                             elif response['result']['owner_expected_expense'][ore]['payment_frequency'] == 'Twice a year':
                                 management_expected_expense = management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])
 
                                 amortized_management_expected_expense = amortized_management_expected_expense +  \
-                                    (response['result']['owner_expected_expense']
+                                    abs(response['result']['owner_expected_expense']
                                         [ore]['amount_due'])/((datetime.now().month-1)/2)
 
                             else:
@@ -3102,7 +3132,8 @@ class OwnerCashflowProperty(Resource):
                         # if management one-time
                         else:
                             management_expected_expense = management_expected_expense + \
-                                response['result']['owner_expected_expense'][ore]['amount_due']
+                                abs(response['result']
+                                    ['owner_expected_expense'][ore]['amount_due'])
 
                     if response['result']['owner_expected_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -3265,6 +3296,8 @@ class OwnerCashflowProperty(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -3377,6 +3410,8 @@ class OwnerCashflowProperty(Resource):
 
                     months_leased = abs(delta_leased.months +
                                         (delta_leased.years * 12))
+                    if months_leased == 0:
+                        months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))

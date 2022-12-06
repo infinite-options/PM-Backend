@@ -93,7 +93,7 @@ class Purchases(Resource):
                 print('do nothing date provided')
             else:
                 print((pur_property_id.split("\"")))
-                sql = """SELECT * 
+                sql = """SELECT *
                         FROM pm.rentals r
                         LEFT JOIN pm.properties p
                         ON p.property_uid = r.rental_property_id
@@ -101,15 +101,15 @@ class Purchases(Resource):
                         AND r.rental_status = 'ACTIVE';"""
                 print('rentalRes',  sql)
 
-                rentalRes = db.execute("""SELECT * 
+                rentalRes = db.execute("""SELECT *
                                             FROM pm.rentals r
                                             LEFT JOIN pm.properties p
                                             ON p.property_uid = r.rental_property_id
                                             WHERE r.rental_property_id LIKE '%""" + pur_property_id.split("\"")[1] + """%'
                                             AND r.rental_status = 'ACTIVE';""")
 
-                propertyRes = db.execute("""SELECT * 
-                                        FROM properties 
+                propertyRes = db.execute("""SELECT *
+                                        FROM properties
                                         WHERE property_uid  LIKE '%""" + pur_property_id.split("\"")[1] + """%' """)
                 print('rentalRes', (propertyRes['result']))
                 def days_in_month(dt): return monthrange(
@@ -175,197 +175,1366 @@ class CreateExpenses(Resource):
 
         data = request.get_json()
         print('data', data)
-        if data['purchase_frequency'] == 'Monthly':
-            print('here monthly')
-            charge_date = date.today()
-            next_payment = date.fromisoformat(data['next_payment'])
-            print('here monthly', next_payment)
-            while charge_date <= next_payment:
-                charge_month = charge_date.strftime('%B')
-                with connect() as db:
-                    print('in new purchase')
-                    newPurchase = {
-                        "linked_bill_id": None,
-                        "pur_property_id": json.dumps([data['pur_property_id']]),
-                        "payer": json.dumps([data.get('payer')]),
-                        "receiver": data['receiver'],
-                        "purchase_type": data['purchase_type'].upper(),
-                        "description": data['description'],
-                        "amount_due": data["amount_due"],
-                        "amount_paid": data["amount_due"],
-                        "purchase_notes": charge_month,
-                        "purchase_date": charge_date,
-                        "purchase_frequency": data["purchase_frequency"],
-                        "payment_frequency": data["payment_frequency"],
-                        "next_payment": data["next_payment"]
-                    }
-                    newPurchaseID = db.call('new_purchase_id')[
-                        'result'][0]['new_id']
+        if data['payer'] == 'TENANT':
+            if data['splitPercentManager'] != '0' and data['splitPercentOwner'] != '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
 
-                    newPurchase['purchase_uid'] = newPurchaseID
-                    newPurchase['purchase_status'] = 'PAID'
-                    response = db.insert('purchases', newPurchase)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
 
-                    charge_date += relativedelta(months=1)
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
 
-        elif data['purchase_frequency'] == 'Annually':
-            print('here annually')
-            charge_date = date.today()
-            next_payment = date.fromisoformat(data['next_payment'])
-            while charge_date <= next_payment:
-                charge_month = charge_date.strftime('%B')
+                        charge_date += relativedelta(months=1)
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentOwner'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
 
-                with connect() as db:
-                    print('in new purchase')
-                    newPurchase = {
-                        "linked_bill_id": None,
-                        "pur_property_id": json.dumps([data['pur_property_id']]),
-                        "payer": json.dumps([data.get('payer')]),
-                        "receiver": data['receiver'],
-                        "purchase_type": data['purchase_type'].upper(),
-                        "description": data['description'],
-                        "amount_due": data["amount_due"],
-                        "amount_paid": data["amount_due"],
-                        "purchase_notes": charge_month,
-                        "purchase_date": charge_date,
-                        "purchase_frequency": data["purchase_frequency"],
-                        "payment_frequency": data["payment_frequency"],
-                        "next_payment": data["next_payment"]
-                    }
-                    newPurchaseID = db.call('new_purchase_id')[
-                        'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
 
-                    newPurchase['purchase_uid'] = newPurchaseID
-                    newPurchase['purchase_status'] = 'PAID'
-                    response = db.insert('purchases', newPurchase)
+                        charge_date += relativedelta(months=1)
 
-                    charge_date += relativedelta(months=12)
-                # return purchaseResponse
-        else:
-            print('here one-time')
-            charge_date = date.today()
-            with connect() as db:
-                print('in new purchase')
-                newPurchase = {
-                    "linked_bill_id": None,
-                    "pur_property_id": json.dumps([data['pur_property_id']]),
-                    "payer": json.dumps([data.get('payer')]),
-                    "receiver": data['receiver'],
-                    "purchase_type": data['purchase_type'].upper(),
-                    "description": data['description'],
-                    "amount_due": data["amount_due"],
-                    "amount_paid": data["amount_due"],
-                    "purchase_notes": '',
-                    "purchase_date": charge_date,
-                    "purchase_frequency": data["purchase_frequency"],
-                    "payment_frequency": data["payment_frequency"],
-                    "next_payment": data["next_payment"]
-                }
-                newPurchaseID = db.call('new_purchase_id')[
-                    'result'][0]['new_id']
-                newPurchase['purchase_uid'] = newPurchaseID
-                newPurchase['purchase_status'] = 'PAID'
-                response = db.insert('purchases', newPurchase)
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
 
-        return response
+                    charge_month = charge_date.strftime('%B')
 
+                    with connect() as db:
+                        print('in new purchase')
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
 
-class CreateRevenues(Resource):
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
 
-    def post(self):
+                        charge_date += relativedelta(months=12)
 
-        data = request.get_json()
-        print('data', data)
-        if data['purchase_frequency'] == 'Monthly':
-            print('here monthly')
-            charge_date = date.today()
-            next_payment = date.fromisoformat(data['next_payment'])
-            print('here monthly', next_payment)
-            while charge_date <= next_payment:
-                charge_month = charge_date.strftime('%B')
-                with connect() as db:
-                    print('in new purchase')
-                    newPurchase = {
-                        "linked_bill_id": None,
-                        "pur_property_id": json.dumps([data['pur_property_id']]),
-                        "payer": json.dumps([data.get('payer')]),
-                        "receiver": data['receiver'],
-                        "purchase_type": data['purchase_type'].upper(),
-                        "description": data['description'],
-                        "amount_due": data["amount_due"],
-                        "amount_paid": data["amount_due"],
-                        "purchase_notes": charge_month,
-                        "purchase_date": charge_date,
-                        "purchase_frequency": data["purchase_frequency"],
-                        "payment_frequency": data["payment_frequency"],
-                        "next_payment": data["next_payment"]
-                    }
-                    newPurchaseID = db.call('new_purchase_id')[
-                        'result'][0]['new_id']
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentOwner'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
 
-                    newPurchase['purchase_uid'] = newPurchaseID
-                    newPurchase['purchase_status'] = 'PAID'
-                    response = db.insert('purchases', newPurchase)
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
 
-                    charge_date += relativedelta(months=1)
+                        charge_date += relativedelta(months=12)
+                        # return purchaseResponse
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
 
-        elif data['purchase_frequency'] == 'Annually':
-            print('here annually')
-            charge_date = date.today()
-            next_payment = date.fromisoformat(data['next_payment'])
-            while charge_date <= next_payment:
-                charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
 
-                with connect() as db:
-                    print('in new purchase')
-                    newPurchase = {
-                        "linked_bill_id": None,
-                        "pur_property_id": json.dumps([data['pur_property_id']]),
-                        "payer": json.dumps([data.get('payer')]),
-                        "receiver": data['receiver'],
-                        "purchase_type": data['purchase_type'].upper(),
-                        "description": data['description'],
-                        "amount_due": data["amount_due"],
-                        "amount_paid": data["amount_due"],
-                        "purchase_notes": charge_month,
-                        "purchase_date": charge_date,
-                        "purchase_frequency": data["purchase_frequency"],
-                        "payment_frequency": data["payment_frequency"],
-                        "next_payment": data["next_payment"]
-                    }
-                    newPurchaseID = db.call('new_purchase_id')[
-                        'result'][0]['new_id']
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": data["amount_due"],
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
 
-                    newPurchase['purchase_uid'] = newPurchaseID
-                    newPurchase['purchase_status'] = 'PAID'
-                    response = db.insert('purchases', newPurchase)
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentOwner'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
 
-                    charge_date += relativedelta(months=12)
-                # return purchaseResponse
-        else:
-            print('here one-time')
-            charge_date = date.today()
-            with connect() as db:
-                print('in new purchase')
-                newPurchase = {
-                    "linked_bill_id": None,
-                    "pur_property_id": json.dumps([data['pur_property_id']]),
-                    "payer": json.dumps([data.get('payer')]),
-                    "receiver": data['receiver'],
-                    "purchase_type": data['purchase_type'].upper(),
-                    "description": data['description'],
-                    "amount_due": data["amount_due"],
-                    "amount_paid": data["amount_due"],
-                    "purchase_notes": '',
-                    "purchase_date": charge_date,
-                    "purchase_frequency": data["purchase_frequency"],
-                    "payment_frequency": data["payment_frequency"],
-                    "next_payment": data["next_payment"]
-                }
-                newPurchaseID = db.call('new_purchase_id')[
-                    'result'][0]['new_id']
-                newPurchase['purchase_uid'] = newPurchaseID
-                newPurchase['purchase_status'] = 'PAID'
-                response = db.insert('purchases', newPurchase)
+                        responseOwner = db.insert('purchases', newPurchase)
+            elif (data['splitPercentManager']) != '0' and data['splitPercentOwner'] == '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
 
-        return response
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": data["amount_due"],
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+            elif data['splitPercentOwner'] != '0' and data['splitPercentManager'] == '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    while charge_date <= next_payment:
+                        charge_month = charge_date.strftime('%B')
+                        with connect() as db:
+                            print('in new purchase')
+                            if data['purchase_status'] == 'PAID':
+                                amount_paid = data['amount_due']
+                            else:
+                                amount_paid = 0
+                            newPurchase = {
+                                "linked_bill_id": None,
+                                "pur_property_id": json.dumps([data['pur_property_id']]),
+                                "payer": json.dumps([data.get('payerID')]),
+                                "receiver": data['managerID'],
+                                "purchase_type": data['purchase_type'].upper(),
+                                "description": data['description'],
+                                "amount_due": data["amount_due"],
+                                "amount_paid": amount_paid,
+                                "purchase_notes": charge_month,
+                                "purchase_date": charge_date,
+                                "purchase_frequency": data["purchase_frequency"],
+                                "payment_frequency": data["payment_frequency"],
+                                "next_payment": data["next_payment"]
+                            }
+                            newPurchaseID = db.call('new_purchase_id')[
+                                'result'][0]['new_id']
+
+                            newPurchase['purchase_uid'] = newPurchaseID
+                            newPurchase['purchase_status'] = data['purchase_status']
+                            response = db.insert('purchases', newPurchase)
+
+                            charge_date += relativedelta(months=1)
+
+                            newPurchase = {
+                                "linked_bill_id": None,
+                                "pur_property_id": json.dumps([data['pur_property_id']]),
+                                "payer": json.dumps([data.get('managerID')]),
+                                "receiver": data['ownerID'],
+                                "purchase_type": data['purchase_type'].upper(),
+                                "description": data['description'],
+                                "amount_due": data["amount_due"],
+                                "amount_paid": amount_paid,
+                                "purchase_notes": charge_month,
+                                "purchase_date": charge_date,
+                                "purchase_frequency": data["purchase_frequency"],
+                                "payment_frequency": data["payment_frequency"],
+                                "next_payment": data["next_payment"]
+                            }
+                            newPurchaseID = db.call('new_purchase_id')[
+                                'result'][0]['new_id']
+
+                            newPurchase['purchase_uid'] = newPurchaseID
+                            newPurchase['purchase_status'] = data['purchase_status']
+                            response = db.insert('purchases', newPurchase)
+
+                            charge_date += relativedelta(months=1)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    while charge_date <= next_payment:
+                        charge_month = charge_date.strftime('%B')
+
+                        with connect() as db:
+                            print('in new purchase')
+                            if data['purchase_status'] == 'PAID':
+                                amount_paid = data['amount_due']
+                            else:
+                                amount_paid = 0
+                            newPurchase = {
+                                "linked_bill_id": None,
+                                "pur_property_id": json.dumps([data['pur_property_id']]),
+                                "payer": json.dumps([data.get('payerID')]),
+                                "receiver": data['managerID'],
+                                "purchase_type": data['purchase_type'].upper(),
+                                "description": data['description'],
+                                "amount_due": data["amount_due"],
+                                "amount_paid": amount_paid,
+                                "purchase_notes": charge_month,
+                                "purchase_date": charge_date,
+                                "purchase_frequency": data["purchase_frequency"],
+                                "payment_frequency": data["payment_frequency"],
+                                "next_payment": data["next_payment"]
+                            }
+                            newPurchaseID = db.call('new_purchase_id')[
+                                'result'][0]['new_id']
+
+                            newPurchase['purchase_uid'] = newPurchaseID
+                            newPurchase['purchase_status'] = data['purchase_status']
+                            response = db.insert('purchases', newPurchase)
+
+                            charge_date += relativedelta(months=12)
+
+                            newPurchase = {
+                                "linked_bill_id": None,
+                                "pur_property_id": json.dumps([data['pur_property_id']]),
+                                "payer": json.dumps([data.get('managerID')]),
+                                "receiver": data['ownerID'],
+                                "purchase_type": data['purchase_type'].upper(),
+                                "description": data['description'],
+                                "amount_due": data["amount_due"],
+                                "amount_paid": amount_paid,
+                                "purchase_notes": charge_month,
+                                "purchase_date": charge_date,
+                                "purchase_frequency": data["purchase_frequency"],
+                                "payment_frequency": data["payment_frequency"],
+                                "next_payment": data["next_payment"]
+                            }
+                            newPurchaseID = db.call('new_purchase_id')[
+                                'result'][0]['new_id']
+
+                            newPurchase['purchase_uid'] = newPurchaseID
+                            newPurchase['purchase_status'] = data['purchase_status']
+                            response = db.insert('purchases', newPurchase)
+
+                            charge_date += relativedelta(months=12)
+                        # return purchaseResponse
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+            else:
+                print('do nothing')
+        elif data['payer'] == 'PROPERTY MANAGER':
+            if data['splitPercentTenant'] != '0' and data['splitPercentOwner'] != '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentTenant'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=1)
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentOwner'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=1)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentTenant'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentOwner'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+                        # return purchaseResponse
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentTenant'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentOwner'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
+            elif (data['splitPercentTenant']) != '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": data["amount_due"],
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+            elif (data['splitPercentOwner']) != '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['ownerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": data["amount_due"],
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+        elif data['payer'] == 'OWNER':
+            if data['splitPercentTenant'] != '0' and data['splitPercentManager'] != '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=1)
+                        amount_due = amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentTenant'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=1)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentTenant'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+                        # return purchaseResponse
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due":  data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        amount_due = int(data["amount_due"]) * \
+                            (int(data['splitPercentTenant'])/100)
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = amount_due
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": amount_due,
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        responseOwner = db.insert('purchases', newPurchase)
+            elif (data['splitPercentTenant']) != '0' and data['splitPercentManager'] == '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": data["amount_due"],
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('managerID')]),
+                            "receiver": data['tenantID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": data["amount_due"],
+                            "purchase_notes": '',
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+            elif (data['splitPercentManager']) != '0':
+                if data['purchase_frequency'] == 'Monthly':
+                    print('here monthly')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+                    print('here monthly', next_payment)
+                    charge_month = charge_date.strftime('%B')
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                elif data['purchase_frequency'] == 'Annually':
+                    print('here annually')
+                    charge_date = date.today()
+                    next_payment = date.fromisoformat(data['next_payment'])
+
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data['amount_due'],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+
+                        charge_date += relativedelta(months=12)
+
+                else:
+                    print('here one-time')
+                    charge_date = date.fromisoformat(data['next_payment'])
+                    charge_month = charge_date.strftime('%B')
+
+                    with connect() as db:
+                        print('in new purchase')
+
+                        if data['purchase_status'] == 'PAID':
+                            amount_paid = data['amount_due']
+                        else:
+                            amount_paid = 0
+                        newPurchase = {
+                            "linked_bill_id": None,
+                            "pur_property_id": json.dumps([data['pur_property_id']]),
+                            "payer": json.dumps([data.get('payerID')]),
+                            "receiver": data['managerID'],
+                            "purchase_type": data['purchase_type'].upper(),
+                            "description": data['description'],
+                            "amount_due": data["amount_due"],
+                            "amount_paid": amount_paid,
+                            "purchase_notes": charge_month,
+                            "purchase_date": charge_date,
+                            "purchase_frequency": data["purchase_frequency"],
+                            "payment_frequency": data["payment_frequency"],
+                            "next_payment": data["next_payment"]
+                        }
+                        newPurchaseID = db.call('new_purchase_id')[
+                            'result'][0]['new_id']
+                        newPurchase['purchase_uid'] = newPurchaseID
+                        newPurchase['purchase_status'] = data['purchase_status']
+                        response = db.insert('purchases', newPurchase)
+            else:
+                print('do nothing')
+            return response

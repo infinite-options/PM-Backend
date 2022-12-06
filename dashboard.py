@@ -364,16 +364,17 @@ class OwnerDashboard(Resource):
                         quotes_res['result'])
 
                 # get utilities or maintenance/repair expenses
-                expense_res = db.execute("""SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
-                    FROM pm.purchases p
-                    LEFT JOIN payments pa
-                    ON pa.pay_purchase_id = p.purchase_uid
-                    LEFT JOIN pm.properties prop
-                    ON prop.property_uid LIKE '%""" + property_id + """%'
-                    WHERE p.pur_property_id LIKE '%""" + property_id + """%'
-                    AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
-                    AND (receiver = \'""" + user['user_uid'] + """\' OR payer LIKE '%""" + user['user_uid'] + """%')
-                    """)
+                expense_res = db.execute("""
+                SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
+                FROM pm.purchases p
+                LEFT JOIN payments pa
+                ON pa.pay_purchase_id = p.purchase_uid
+                LEFT JOIN pm.properties prop
+                ON prop.property_uid LIKE '%""" + property_id + """%'
+                WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                AND (purchase_type = 'UTILITY' OR  purchase_type = 'MAINTENANCE' OR purchase_type = 'REPAIRS')
+                AND (receiver = \'""" + user['user_uid'] + """\' OR payer LIKE '%""" + user['user_uid'] + """%')
+                """)
                 if len(expense_res['result']) > 0:
                     response['result'][i]['expenses'] = list(
                         expense_res['result'])
@@ -392,36 +393,38 @@ class OwnerDashboard(Resource):
                                         billRes['result'][j])
                                     # expense_res['result'][i] = (expense_res['result'][i]) + (
                                     #     billRes['result'][j])
-                        # if maintainence return all the details related to the maintenance requests
-                        elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
-                            # print('in maintenance')
-                            maintenanceRes = db.execute("""SELECT mq.*, mr.*, b.*
-                                                            FROM maintenanceQuotes mq
-                                                            LEFT JOIN pm.maintenanceRequests mr
-                                                            ON mr.maintenance_request_uid = mq.linked_request_uid
-                                                            LEFT JOIN pm.businesses b
-                                                            ON b.business_uid = mq.quote_business_uid)
-                                                            # WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                        # # if maintainence return all the details related to the maintenance requests
+                        # elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
+                        #     # print('in maintenance')
+                        #     maintenanceRes = db.execute("""
+                        #     SELECT mq.*, mr.*, b.*
+                        #     FROM maintenanceQuotes mq
+                        #     LEFT JOIN pm.maintenanceRequests mr
+                        #     ON mr.maintenance_request_uid = mq.linked_request_uid
+                        #     LEFT JOIN pm.businesses b
+                        #     ON b.business_uid = mq.quote_business_uid)
+                        #     # WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                            if(len(maintenanceRes['result']) > 0):
-                                for j in range(len(maintenanceRes['result'])):
-                                    expense_res['result'][i].update(
-                                        maintenanceRes['result'][j])
-                        # if repair return all the details related to the repair requests
-                        elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
-                            # print('in maintenance')
-                            repairRes = db.execute("""SELECT mq.*, mr.*, b.*
-                                                            FROM maintenanceQuotes mq
-                                                            LEFT JOIN pm.maintenanceRequests mr
-                                                            ON mr.maintenance_request_uid = mq.linked_request_uid
-                                                            LEFT JOIN pm.businesses b
-                                                            ON b.business_uid = mq.quote_business_uid
-                                                            WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                        #     if(len(maintenanceRes['result']) > 0):
+                        #         for j in range(len(maintenanceRes['result'])):
+                        #             expense_res['result'][i].update(
+                        #                 maintenanceRes['result'][j])
+                        # # if repair return all the details related to the repair requests
+                        # elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
+                        #     # print('in maintenance')
+                        #     repairRes = db.execute("""
+                        #     SELECT mq.*, mr.*, b.*
+                        #     FROM maintenanceQuotes mq
+                        #     LEFT JOIN pm.maintenanceRequests mr
+                        #     ON mr.maintenance_request_uid = mq.linked_request_uid
+                        #     LEFT JOIN pm.businesses b
+                        #     ON b.business_uid = mq.quote_business_uid
+                        #     WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                            if(len(repairRes['result']) > 0):
-                                for j in range(len(repairRes['result'])):
-                                    expense_res['result'][i].update(
-                                        repairRes['result'][j])
+                        #     if(len(repairRes['result']) > 0):
+                        #         for j in range(len(repairRes['result'])):
+                        #             expense_res['result'][i].update(
+                        #                 repairRes['result'][j])
                 else:
                     response['result'][i]['expenses'] = []
 
