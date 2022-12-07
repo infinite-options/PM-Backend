@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from security import createTokens
 
 class Refresh(Resource):
-    decorators = [jwt_required(refresh=True)]
+    decorators = [jwt_required]
     def get(self):
         response = {}
         user = get_jwt_identity()

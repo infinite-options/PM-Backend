@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 
 
 class TenantProperties(Resource):
-    decorators = [jwt_required()]
+    decorators = [jwt_required]
 
     def get(self):
         response = {}

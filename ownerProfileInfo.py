@@ -7,7 +7,7 @@ import json
 
 
 class OwnerProfileInfo(Resource):
-    decorators = [jwt_required()]
+    decorators = [jwt_required]
     def get(self):
         response = {}
         user = get_jwt_identity()

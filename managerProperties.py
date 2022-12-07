@@ -12,7 +12,7 @@ from purchases import newPurchase
 
 
 class ManagerProperties(Resource):
-    decorators = [jwt_required()]
+    decorators = [jwt_required]
 
     def get(self):
         response = {}

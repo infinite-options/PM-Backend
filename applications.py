@@ -53,7 +53,7 @@ def next_weekday_biweekly(d, weekday):
 
 
 class Applications(Resource):
-    decorators = [jwt_required(optional=True)]
+    decorators = [jwt_required]
 
     def get(self):
         response = {}

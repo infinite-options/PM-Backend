@@ -24,7 +24,7 @@ def getEmployeeBusinesses(user):
 
 
 class Businesses(Resource):
-    decorators = [jwt_required(optional=True)]
+    decorators = [jwt_required]
 
     def get(self):
         response = {}

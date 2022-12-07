@@ -11,7 +11,7 @@ import calendar
 
 
 class TenantDashboard(Resource):
-    decorators = [jwt_required()]
+    decorators = [jwt_required]
 
     def get(self):
         res = {}
@@ -210,7 +210,7 @@ class TenantDashboard(Resource):
 
 
 class OwnerDashboard(Resource):
-    decorators = [jwt_required()]
+    decorators = [jwt_required]
 
     def get(self):
         response = {}
@@ -433,7 +433,7 @@ class OwnerDashboard(Resource):
 
 class ManagerDashboard(Resource):
 
-    decorators = [jwt_required()]
+    decorators = [jwt_required]
 
     def get(self):
         response = {}
