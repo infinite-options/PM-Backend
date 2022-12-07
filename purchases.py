@@ -175,15 +175,16 @@ class CreateExpenses(Resource):
 
         data = request.get_json()
         print('data', data)
-        if data['payer'] == 'TENANT':
-            if data['splitPercentManager'] != '0' and data['splitPercentOwner'] != '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+        with connect() as db:
+            if data['payer'] == 'TENANT':
+                if data['splitPercentManager'] != '0' and data['splitPercentOwner'] != '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -243,14 +244,13 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=1)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -310,12 +310,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
                         # return purchaseResponse
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -370,14 +369,14 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_status'] = data['purchase_status']
 
                         responseOwner = db.insert('purchases', newPurchase)
-            elif (data['splitPercentManager']) != '0' and data['splitPercentOwner'] == '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+                elif (data['splitPercentManager']) != '0' and data['splitPercentOwner'] == '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -406,14 +405,13 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -444,12 +442,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
 
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -476,15 +473,15 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-            elif data['splitPercentOwner'] != '0' and data['splitPercentManager'] == '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    while charge_date <= next_payment:
-                        charge_month = charge_date.strftime('%B')
-                        with connect() as db:
+                elif data['splitPercentOwner'] != '0' and data['splitPercentManager'] == '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        while charge_date <= next_payment:
+                            charge_month = charge_date.strftime('%B')
+
                             print('in new purchase')
                             if data['purchase_status'] == 'PAID':
                                 amount_paid = data['amount_due']
@@ -538,14 +535,13 @@ class CreateExpenses(Resource):
 
                             charge_date += relativedelta(months=1)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    while charge_date <= next_payment:
-                        charge_month = charge_date.strftime('%B')
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        while charge_date <= next_payment:
+                            charge_month = charge_date.strftime('%B')
 
-                        with connect() as db:
                             print('in new purchase')
                             if data['purchase_status'] == 'PAID':
                                 amount_paid = data['amount_due']
@@ -598,13 +594,12 @@ class CreateExpenses(Resource):
                             response = db.insert('purchases', newPurchase)
 
                             charge_date += relativedelta(months=12)
-                        # return purchaseResponse
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                            # return purchaseResponse
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -651,17 +646,17 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-            else:
-                print('do nothing')
-        elif data['payer'] == 'PROPERTY MANAGER':
-            if data['splitPercentTenant'] != '0' and data['splitPercentOwner'] != '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+                else:
+                    print('do nothing')
+            elif data['payer'] == 'PROPERTY MANAGER':
+                if data['splitPercentTenant'] != '0' and data['splitPercentOwner'] != '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentTenant'])/100)
@@ -722,14 +717,13 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=1)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentTenant'])/100)
@@ -791,12 +785,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
                         # return purchaseResponse
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentTenant'])/100)
@@ -851,14 +844,14 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         responseOwner = db.insert('purchases', newPurchase)
-            elif (data['splitPercentTenant']) != '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+                elif (data['splitPercentTenant']) != '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -887,14 +880,13 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -925,12 +917,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
 
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -957,14 +948,14 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-            elif (data['splitPercentOwner']) != '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+                elif (data['splitPercentOwner']) != '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -993,14 +984,13 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1031,12 +1021,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
 
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1063,15 +1052,15 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-        elif data['payer'] == 'OWNER':
-            if data['splitPercentTenant'] != '0' and data['splitPercentManager'] != '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+            elif data['payer'] == 'OWNER':
+                if data['splitPercentTenant'] != '0' and data['splitPercentManager'] != '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1131,14 +1120,13 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=1)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1199,12 +1187,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
                         # return purchaseResponse
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1257,14 +1244,14 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         responseOwner = db.insert('purchases', newPurchase)
-            elif (data['splitPercentTenant']) != '0' and data['splitPercentManager'] == '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+                elif (data['splitPercentTenant']) != '0' and data['splitPercentManager'] == '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1315,14 +1302,13 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1376,12 +1362,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
 
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1428,14 +1413,14 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-            elif (data['splitPercentManager']) != '0':
-                if data['purchase_frequency'] == 'Monthly':
-                    print('here monthly')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
-                    print('here monthly', next_payment)
-                    charge_month = charge_date.strftime('%B')
-                    with connect() as db:
+                elif (data['splitPercentManager']) != '0':
+                    if data['purchase_frequency'] == 'Monthly':
+                        print('here monthly')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
+                        print('here monthly', next_payment)
+                        charge_month = charge_date.strftime('%B')
+
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1464,14 +1449,13 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
-                elif data['purchase_frequency'] == 'Annually':
-                    print('here annually')
-                    charge_date = date.today()
-                    next_payment = date.fromisoformat(data['next_payment'])
+                    elif data['purchase_frequency'] == 'Annually':
+                        print('here annually')
+                        charge_date = date.today()
+                        next_payment = date.fromisoformat(data['next_payment'])
 
-                    charge_month = charge_date.strftime('%B')
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1502,12 +1486,11 @@ class CreateExpenses(Resource):
 
                         charge_date += relativedelta(months=12)
 
-                else:
-                    print('here one-time')
-                    charge_date = date.fromisoformat(data['next_payment'])
-                    charge_month = charge_date.strftime('%B')
+                    else:
+                        print('here one-time')
+                        charge_date = date.fromisoformat(data['next_payment'])
+                        charge_month = charge_date.strftime('%B')
 
-                    with connect() as db:
                         print('in new purchase')
 
                         if data['purchase_status'] == 'PAID':
@@ -1534,8 +1517,8 @@ class CreateExpenses(Resource):
                         newPurchase['purchase_uid'] = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
+                else:
+                    print('do nothing')
             else:
                 print('do nothing')
-        else:
-            print('do nothing')
         return response

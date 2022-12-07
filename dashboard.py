@@ -449,6 +449,7 @@ class ManagerDashboard(Resource):
 
             today = date.today()
             print(buid)
+
             response = db.execute("""SELECT *
                                     FROM pm.propertyInfo
                                     WHERE management_status <> 'REJECTED'
