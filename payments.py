@@ -2,7 +2,6 @@
 from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from matplotlib.style import available
 
 from data import connect
 import json
@@ -65,9 +64,7 @@ class UserPayments(Resource):
         response = {}
         user = get_jwt_identity()
         with connect() as db:
-            print(user['user_uid'])
             user_id = user['user_uid']
-            filters = ['pur_property_id']
             response = db.execute("""
                 SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
                 WHERE p2.payer LIKE '%""" + user_id + """%'
@@ -4669,8 +4666,8 @@ def ManagerPayments_CRON():
                     'code': 200}
         payments = []
         response = db.execute("""
-            SELECT r.*, prop.*, propM.*,
-            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`, c.*
+            SELECT r.*, prop.*, propM.*, 
+            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`, c.* 
             FROM pm.rentals r
             LEFT JOIN pm.properties prop
             ON prop.property_uid = r.rental_property_id
@@ -4682,7 +4679,7 @@ def ManagerPayments_CRON():
             ON c.property_uid = prop.property_uid
             WHERE r.rental_status = 'ACTIVE'
             AND c.contract_status = 'ACTIVE'
-            AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')
+            AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')  
             GROUP BY lt.linked_rental_uid;  """)
 
         # getting all the previous rental payments
@@ -6373,4 +6370,5 @@ def ManagerPayments_CRON():
                                             )
                             else:
                                 print('payment frequency one-time %')
-    return response
+
+        return response
