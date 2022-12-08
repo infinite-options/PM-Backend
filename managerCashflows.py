@@ -821,8 +821,7 @@ class ManagerCashflow(Resource):
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (prm.management_status <> 'REJECTED'  OR prm.management_status <> 'TERMINATED' OR prm.management_status <> 'EXPIRED')
             AND (pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS' OR pu.purchase_type = "UTILITY" OR pu.purchase_type = "OWNER PAYMENT" )
-            AND (payer LIKE '%""" + filterValue + """%')
-            AND pu.purchase_status = 'PAID'""")
+            AND (payer LIKE '%""" + filterValue + """%')""")
             print(manager_expense)
             response['result']['manager_expense'] = (list(
                 manager_expense['result']))

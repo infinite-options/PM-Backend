@@ -29,30 +29,38 @@ class OwnerCashflow(Resource):
             rental_revenue = 0
             extra_revenue = 0
             utility_revenue = 0
+            management_revenue = 0
             rental_expected_revenue = 0
             extra_expected_revenue = 0
             utility_expected_revenue = 0
+            management_expected_revenue = 0
 
             rental_year_revenue = 0
             extra_year_revenue = 0
             utility_year_revenue = 0
+            management_year_revenue = 0
             rental_year_expected_revenue = 0
             extra_year_expected_revenue = 0
             utility_year_expected_revenue = 0
+            management_year_expected_revenue = 0
 
             amortized_rental_revenue = 0
             amortized_extra_revenue = 0
             amortized_utility_revenue = 0
+            amortized_management_revenue = 0
             amortized_rental_expected_revenue = 0
             amortized_extra_expected_revenue = 0
             amortized_utility_expected_revenue = 0
+            amortized_management_expected_revenue = 0
 
             amortized_rental_year_revenue = 0
             amortized_extra_year_revenue = 0
             amortized_utility_year_revenue = 0
+            amortized_management_year_revenue = 0
             amortized_rental_year_expected_revenue = 0
             amortized_extra_year_expected_revenue = 0
             amortized_utility_year_expected_revenue = 0
+            amortized_management_year_expected_revenue = 0
 
             # owner rental and extra charges revenue monthly
             owner_rental_revenue = db.execute("""
@@ -88,6 +96,26 @@ class OwnerCashflow(Resource):
 
             response['result']['owner_revenue'] = response['result']['owner_revenue'] + list(
                 owner_utility_revenue['result'])
+
+            # monthly REVENUE for the property
+            owner_management_revenue = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN pm.contracts c
+            ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND c.contract_status = 'ACTIVE'
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND pu.purchase_type= "OWNER PAYMENT"
+            AND pu.description != 'Rent';""")
+
+            response['result']['owner_revenue'] = response['result']['owner_revenue'] + list(
+                owner_management_revenue['result'])
 
             if len(response['result']['owner_revenue']) > 0:
                 for ore in range(len(response['result']['owner_revenue'])):
@@ -182,6 +210,34 @@ class OwnerCashflow(Resource):
 
                             utility_revenue = utility_revenue + \
                                 response['result']['owner_revenue'][ore]['amount_paid']
+                    if response['result']['owner_revenue'][ore]['purchase_type'] == 'OWNER PAYMENT':
+                        if response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Weekly':
+
+                            management_revenue = management_revenue + \
+                                weeks_current_month*int(response['result']['owner_revenue']
+                                                        [ore]['amount_paid'])
+                        elif response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Biweekly':
+
+                            management_revenue = management_revenue + \
+                                weeks_current_month/2 * \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_paid'])
+                        elif response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Monthly':
+
+                            management_revenue = management_revenue + \
+                                response['result']['owner_revenue'][ore]['amount_paid']
+                        elif response['result']['owner_revenue'][ore]['purchase_frequency'] == 'Annually':
+
+                            management_revenue = management_revenue + \
+                                response['result']['owner_revenue'][ore]['amount_paid']
+                            amortized_management_revenue = amortized_management_revenue + \
+                                int(response['result']['owner_revenue']
+                                    [ore]['amount_due'])/(datetime.now().month-1)
+
+                        else:
+
+                            management_revenue = management_revenue + \
+                                response['result']['owner_revenue'][ore]['amount_paid']
 
             response['result']['rental_revenue'] = round(
                 rental_revenue, 2)
@@ -200,6 +256,11 @@ class OwnerCashflow(Resource):
 
             response['result']['amortized_utility_revenue'] = round(
                 amortized_utility_revenue, 2)
+            response['result']['management_revenue'] = round(
+                management_revenue, 2)
+
+            response['result']['amortized_management_revenue'] = round(
+                amortized_management_revenue, 2)
 
             # owner rental and extra charged revenue yearly
             # owner rental and extra charges revenue monthly
@@ -238,7 +299,23 @@ class OwnerCashflow(Resource):
                 owner_utility_expected_revenue['result'])
             response['result']['owner_utility_expected_revenue'] = list(
                 owner_utility_expected_revenue['result'])
-
+            owner_management_expected_revenue = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN pm.contracts c
+            ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND c.contract_status = 'ACTIVE'
+            AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
+            AND pu.purchase_type= "OWNER PAYMENT"
+            AND pu.description != 'Rent';""")
+            response['result']['owner_expected_revenue'] = response['result']['owner_expected_revenue'] + list(
+                owner_management_expected_revenue['result'])
             if len(response['result']['owner_expected_revenue']) > 0:
                 for ore in range(len(response['result']['owner_expected_revenue'])):
                     # number of weeks in the current month
@@ -325,6 +402,31 @@ class OwnerCashflow(Resource):
                         else:
                             utility_expected_revenue = utility_expected_revenue + \
                                 response['result']['owner_expected_revenue'][ore]['amount_due']
+                    if response['result']['owner_expected_revenue'][ore]['purchase_type'] == 'OWNER PAYMENT':
+                        if response['result']['owner_expected_revenue'][ore]['purchase_frequency'] == 'Weekly':
+                            management_expected_revenue = management_expected_revenue + \
+                                weeks_current_month*int(response['result']['owner_expected_revenue']
+                                                        [ore]['amount_due'])
+
+                        elif response['result']['owner_expected_revenue'][ore]['purchase_frequency'] == 'Biweekly':
+                            management_expected_revenue = management_expected_revenue + \
+                                weeks_current_month/2 * \
+                                int(response['result']['owner_expected_revenue']
+                                    [ore]['amount_due'])
+
+                        elif response['result']['owner_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            management_expected_revenue = management_expected_revenue + \
+                                response['result']['owner_expected_revenue'][ore]['amount_due']
+
+                        elif response['result']['owner_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            management_expected_revenue = management_expected_revenue + \
+                                response['result']['owner_expected_revenue'][ore]['amount_due']
+                            amortized_management_expected_revenue = amortized_management_expected_revenue + \
+                                int(response['result']['owner_expected_revenue']
+                                    [ore]['amount_due'])/12
+                        else:
+                            management_expected_revenue = management_expected_revenue + \
+                                response['result']['owner_expected_revenue'][ore]['amount_due']
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
             response['result']['amortized_rental_expected_revenue'] = round(
@@ -337,6 +439,11 @@ class OwnerCashflow(Resource):
                 utility_expected_revenue, 2)
             response['result']['amortized_utility_expected_revenue'] = round(
                 amortized_utility_expected_revenue, 2)
+
+            response['result']['management_expected_revenue'] = round(
+                management_expected_revenue, 2)
+            response['result']['amortized_management_expected_revenue'] = round(
+                amortized_management_expected_revenue, 2)
 
             owner_rental_revenue_yearly = db.execute("""
             SELECT * FROM purchases pu
@@ -372,6 +479,23 @@ class OwnerCashflow(Resource):
             response['result']['owner_revenue_yearly'] = response['result']['owner_revenue_yearly'] + list(
                 owner_utility_revenue_yearly['result'])
 
+            owner_management_revenue_yearly = db.execute("""
+            SELECT * FROM purchases pu
+            LEFT JOIN payments pa
+            ON pa.pay_purchase_id = pu.purchase_uid
+            LEFT JOIN properties pr
+            ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN rentals r
+            ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
+            LEFT JOIN pm.contracts c
+            ON c.property_uid LIKE CONCAT('%', pr.property_uid, '%')
+            WHERE pr.owner_id = \'""" + filterValue + """\'
+            AND c.contract_status = 'ACTIVE'
+            AND  YEAR(pu.next_payment) = YEAR(now())
+            AND pu.purchase_type= "OWNER PAYMENT"
+            AND pu.description != 'Rent';""")
+            response['result']['owner_revenue_yearly'] = response['result']['owner_revenue_yearly'] + list(
+                owner_management_revenue_yearly['result'])
             if len(response['result']['owner_revenue_yearly']) > 0:
                 for ore in range(len(response['result']['owner_revenue_yearly'])):
 
@@ -537,6 +661,49 @@ class OwnerCashflow(Resource):
                                 response['result']['owner_revenue_yearly'][ore]['amount_due']
                             utility_year_revenue = utility_year_revenue + \
                                 response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                     # if revenue type is UTILITY
+                    if response['result']['owner_revenue_yearly'][ore]['purchase_type'] == 'OWNER PAYMENT':
+                        if response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Weekly':
+                            management_year_expected_revenue = management_year_expected_revenue + \
+                                weeks_leased*int(response['result']['owner_revenue_yearly']
+                                                         [ore]['amount_due'])
+                            management_year_revenue = management_year_revenue + \
+                                weeks_leased*int(response['result']['owner_revenue_yearly']
+                                                         [ore]['amount_paid'])
+                        elif response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Biweekly':
+                            management_year_expected_revenue = management_year_expected_revenue + \
+                                weeks_leased/2 * \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])
+                            management_year_revenue = management_year_revenue + \
+                                weeks_leased/2 * \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])
+                        elif response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Monthly':
+                            management_year_expected_revenue = management_year_expected_revenue + \
+                                months_leased * \
+                                int(response['result']
+                                    ['owner_revenue_yearly'][ore]['amount_due'])
+                            management_year_revenue = management_year_revenue + \
+                                months_leased * \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])
+                        elif response['result']['owner_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
+                            management_year_expected_revenue = management_year_expected_revenue + \
+                                response['result']['owner_revenue_yearly'][ore]['amount_due']
+                            management_year_revenue = management_year_revenue + \
+                                response['result']['owner_revenue_yearly'][ore]['amount_paid']
+                            amortized_management_year_expected_revenue = amortized_management_year_expected_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_due'])/12
+                            amortized_management_year_revenue = amortized_management_year_revenue + \
+                                int(response['result']['owner_revenue_yearly']
+                                    [ore]['amount_paid'])/12
+                        else:
+                            management_year_expected_revenue = management_year_expected_revenue + \
+                                response['result']['owner_revenue_yearly'][ore]['amount_due']
+                            management_year_revenue = management_year_revenue + \
+                                response['result']['owner_revenue_yearly'][ore]['amount_paid']
 
             response['result']['rental_year_revenue'] = round(
                 rental_year_revenue, 2)
@@ -562,6 +729,14 @@ class OwnerCashflow(Resource):
                 amortized_utility_year_revenue, 2)
             response['result']['amortized_utility_year_expected_revenue'] = round(
                 amortized_utility_year_expected_revenue, 2)
+            response['result']['management_year_revenue'] = round(
+                management_year_revenue, 2)
+            response['result']['management_year_expected_revenue'] = round(
+                management_year_expected_revenue, 2)
+            response['result']['amortized_management_year_revenue'] = round(
+                amortized_management_year_revenue, 2)
+            response['result']['amortized_management_year_expected_revenue'] = round(
+                amortized_management_year_expected_revenue, 2)
 
             # intialize expense variables
             utility_expense = 0
@@ -692,7 +867,8 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND pu.purchase_type= "OWNER PAYMENT";""")
+            AND pu.purchase_type= "OWNER PAYMENT"
+            AND pu.description = 'Rent';""")
             if len(owner_management_expense['result']) > 0:
                 print('here in mgmt')
                 for mex in range(len(owner_management_expense['result'])):
@@ -1001,7 +1177,8 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND c.contract_status = 'ACTIVE'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND pu.purchase_type= "OWNER PAYMENT";""")
+            AND pu.purchase_type= "OWNER PAYMENT"
+            AND pu.description = 'Rent';""")
             if len(owner_management_expected_expense['result']) > 0:
                 print('here in mgmt')
                 for mex in range(len(owner_management_expected_expense['result'])):
@@ -2071,7 +2248,7 @@ class OwnerCashflowProperty(Resource):
             ON r.rental_property_id LIKE CONCAT('%', pr.property_uid, '%')
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" )
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
 
             response['result']['owner_revenue'] = list(

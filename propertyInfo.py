@@ -1,6 +1,8 @@
 from flask import request
 from flask_restful import Resource
 
+from matplotlib.style import available
+# from matplotlib import style
 from data import connect
 from datetime import date, datetime
 
