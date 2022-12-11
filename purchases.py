@@ -175,7 +175,63 @@ class CreateExpenses(Resource):
 
         data = request.get_json()
         print('data', data)
+
         with connect() as db:
+            if data['next_payment'] != "0000-00-00 00:00:00":
+                print('do nothing date provided')
+            else:
+                print((data['pur_property_id'].split("\"")))
+                sql = """SELECT *
+                        FROM pm.rentals r
+                        LEFT JOIN pm.properties p
+                        ON p.property_uid = r.rental_property_id
+                        WHERE r.rental_property_id LIKE '%""" + data['pur_property_id'].split("\"")[1] + """%'
+                        AND r.rental_status = 'ACTIVE';"""
+                print('rentalRes',  sql)
+
+                rentalRes = db.execute("""SELECT *
+                                            FROM pm.rentals r
+                                            LEFT JOIN pm.properties p
+                                            ON p.property_uid = r.rental_property_id
+                                            WHERE r.rental_property_id LIKE '%""" + data['pur_property_id'].split("\"")[1] + """%'
+                                            AND r.rental_status = 'ACTIVE';""")
+
+                propertyRes = db.execute("""SELECT *
+                                        FROM properties
+                                        WHERE property_uid  LIKE '%""" + data['pur_property_id'].split("\"")[1] + """%' """)
+                print('rentalRes', (propertyRes['result']))
+
+                def days_in_month(dt): return monthrange(
+                    dt.year, dt.month)[1]
+                today = date.today()
+                if len(rentalRes['result']) > 0:
+                    print('tenants exist')
+                    if today < today.replace(day=int(rentalRes['result'][0]['due_by'])):
+                        payment_date = today.replace(
+                            day=int(rentalRes['result'][0]['due_by']))
+                        print(payment_date)
+                        data['next_payment'] = datetime.strftime(
+                            payment_date, '%Y-%m-%d %H:%M:%S')
+                    else:
+                        payment_date = today.replace(
+                            day=int(rentalRes['result'][0]['due_by'])) + timedelta(days_in_month(today))
+                        print(payment_date)
+                        data['next_payment'] = datetime.strftime(
+                            payment_date, '%Y-%m-%d %H:%M:%S')
+                else:
+                    payer = propertyRes['result'][0]['owner_id']
+                    if '[' in payer:
+                        payer = json.loads(payer)
+                    if type(payer) == str:
+                        payer = [payer]
+                    payer = json.dumps(payer)
+                    print(payer)
+
+                    first_day = today.replace(
+                        day=1) + timedelta(days_in_month(today))
+                    print(first_day)
+                    data['next_payment'] = datetime.strftime(
+                        first_day, '%Y-%m-%d %H:%M:%S')
             if data['payer'] == 'TENANT':
                 if data['splitPercentManager'] != '0' and data['splitPercentOwner'] != '0':
                     if data['purchase_frequency'] == 'Monthly':
