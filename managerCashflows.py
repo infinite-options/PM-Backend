@@ -771,6 +771,7 @@ class ManagerCashflow(Resource):
             maintenance_expense = 0
             management_expense = 0
             repairs_expense = 0
+
             maintenance_expected_expense = 0
             management_expected_expense = 0
             repairs_expected_expense = 0
@@ -780,6 +781,7 @@ class ManagerCashflow(Resource):
             management_year_expense = 0
             repairs_year_expense = 0
             utility_year_expense = 0
+
             utility_year_expected_expense = 0
             maintenance_year_expected_expense = 0
             management_year_expected_expense = 0
@@ -789,6 +791,7 @@ class ManagerCashflow(Resource):
             amortized_maintenance_expense = 0
             amortized_management_expense = 0
             amortized_repairs_expense = 0
+
             amortized_maintenance_expected_expense = 0
             amortized_management_expected_expense = 0
             amortized_repairs_expected_expense = 0
@@ -798,6 +801,7 @@ class ManagerCashflow(Resource):
             amortized_management_year_expense = 0
             amortized_repairs_year_expense = 0
             amortized_utility_year_expense = 0
+
             amortized_utility_year_expected_expense = 0
             amortized_maintenance_year_expected_expense = 0
             amortized_management_year_expected_expense = 0
@@ -1006,6 +1010,14 @@ class ManagerCashflow(Resource):
                 utility_expense, 2)
             response['result']['management_expense'] = round(
                 management_expense, 2)
+            response['result']['amortized_maintenance_expense'] = round(
+                amortized_maintenance_expense, 2)
+            response['result']['amortized_repairs_expense'] = round(
+                amortized_repairs_expense, 2)
+            response['result']['amortized_utility_expense'] = round(
+                amortized_utility_expense, 2)
+            response['result']['amortized_management_expense'] = round(
+                amortized_management_expense, 2)
 
             manager_expected_expense = db.execute("""
             SELECT *
@@ -1385,13 +1397,14 @@ class ManagerCashflow(Resource):
 
                             management_year_expense = management_year_expense + \
                                 manager_expense_yearly['result'][mex]['amount_paid']
-                            amortized_management_year_expense = amortized_management_year_expense + \
-                                (response['result']['manager_expense_yearly']
-                                 [mex]['amount_paid'])/12
+
                         elif manager_expense_yearly['result'][mex]['purchase_frequency'] == 'Annually':
 
                             management_year_expense = management_year_expense + \
                                 manager_expense_yearly['result'][mex]['amount_paid']
+                            amortized_management_year_expense = amortized_management_year_expense + \
+                                (response['result']['manager_expense_yearly']
+                                 [mex]['amount_paid'])/12
                         else:
 
                             management_year_expense = management_year_expense + \
@@ -1405,6 +1418,14 @@ class ManagerCashflow(Resource):
                 utility_year_expense, 2)
             response['result']['management_year_expense'] = round(
                 management_year_expense, 2)
+            response['result']['amortized_maintenance_year_expense'] = round(
+                amortized_maintenance_year_expense, 2)
+            response['result']['amortized_repairs_year_expense'] = round(
+                amortized_repairs_year_expense, 2)
+            response['result']['amortized_utility_year_expense'] = round(
+                amortized_utility_year_expense, 2)
+            response['result']['amortized_management_year_expense'] = round(
+                amortized_management_year_expense, 2)
 
             manager_expected_year_expense = db.execute("""
             SELECT *
@@ -1598,8 +1619,8 @@ class ManagerCashflow(Resource):
 
             response['result']['amortized_maintenance_year_expected_expense'] = round(
                 amortized_maintenance_year_expected_expense, 2)
-            response['result']['amortized_management_expected_expense'] = round(
-                amortized_management_expected_expense, 2)
+            response['result']['amortized_management_year_expected_expense'] = round(
+                amortized_management_year_expected_expense, 2)
             response['result']['amortized_repairs_year_expected_expense'] = round(
                 amortized_repairs_year_expected_expense, 2)
             response['result']['amortized_utility_year_expected_expense'] = round(
