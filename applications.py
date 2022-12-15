@@ -70,7 +70,7 @@ class Applications(Resource):
                 print('here', where['property_uid'], where)
 
                 response = db.execute("""
-                SELECT a.application_uid, a.message, a.application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT a.application_uid,a.application_date, a.message, a.application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 pm.applications a 
                 LEFT JOIN pm.tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 

@@ -28,7 +28,7 @@ from employees import Employees
 from leaseTenants import LeaseTenants
 from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes
-from managerCashflows import ManagerCashflow
+from managerCashflows import ManagerCashflow, ManagerCashflowProperty
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
 from managerProperties import ManagerProperties, ManagerContractFees_CLASS
 from ownerProfileInfo import OwnerProfileInfo
@@ -629,6 +629,8 @@ api.add_resource(OwnerMaintenanceRequestsandQuotes,
 api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
 # managerCashflows
 api.add_resource(ManagerCashflow, "/managerCashflow")
+api.add_resource(ManagerCashflowProperty, "/managerCashflowProperty")
+
 # managerProfileInfo
 api.add_resource(ManagerProfileInfo, '/managerProfileInfo')
 api.add_resource(ManagerClients, '/managerClients')
