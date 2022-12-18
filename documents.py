@@ -50,6 +50,9 @@ class ManagerDocuments(Resource):
                         for doc in lease_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
@@ -88,6 +91,9 @@ class ManagerDocuments(Resource):
                         for doc in past_lease_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
@@ -120,6 +126,9 @@ class ManagerDocuments(Resource):
                         for doc in manager_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['end_date']
                                     d['created_date'] = doc['start_date']
                                     d['created_by'] = doc['first_name'] + \
@@ -151,6 +160,9 @@ class ManagerDocuments(Resource):
                         for doc in past_manager_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['end_date']
                                     d['created_date'] = doc['start_date']
                                     d['created_by'] = doc['first_name'] + \
@@ -213,6 +225,9 @@ class OwnerDocuments(Resource):
                         for doc in lease_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
@@ -251,6 +266,9 @@ class OwnerDocuments(Resource):
                         for doc in past_lease_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
@@ -281,6 +299,9 @@ class OwnerDocuments(Resource):
                         for doc in manager_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['end_date']
                                     d['created_date'] = doc['start_date']
                                     d['created_by'] = doc['first_name'] + \
@@ -312,6 +333,9 @@ class OwnerDocuments(Resource):
                         for doc in past_manager_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['end_date']
                                     d['created_date'] = doc['start_date']
                                     d['created_by'] = doc['first_name'] + \
@@ -373,6 +397,7 @@ class TenantDocuments(Resource):
                         for doc in lease_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']
@@ -414,6 +439,9 @@ class TenantDocuments(Resource):
                         for doc in past_lease_docs['result']:
                             if len(json.loads(doc['documents'])) > 0:
                                 for d in json.loads(doc['documents']):
+                                    d['address'] = doc['address'] + ' ' + doc['unit'] + \
+                                        ', '+doc['city'] + ', ' + \
+                                        doc['state'] + ' ' + doc['zip']
                                     d['expiry_date'] = doc['lease_end']
                                     d['created_date'] = doc['lease_start']
                                     d['created_by'] = doc['business_name']

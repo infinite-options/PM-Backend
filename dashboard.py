@@ -513,7 +513,7 @@ class ManagerDashboard(Resource):
                                     quote_accepted_mr = quote_accepted_mr + 1
                         if mr['request_status'] == 'NEW':
                             new_mr = new_mr + 1
-                        elif mr['request_status'] == 'PROCESSING':
+                        elif mr['request_status'] == 'PROCESSING' and (quote_received_mr == 0 and quote_accepted_mr == 0):
                             process_mr = process_mr + 1
                         else:
                             print('do nothing')
@@ -578,11 +578,22 @@ class ManagerDashboard(Resource):
                     maintenance_res['result'][y]['quotes'] = list(
                         quotes_res['result'])
                     if len(quotes_res['result']) > 0:
+                        quotes_received = 0
                         for quote in quotes_res['result']:
                             if quote['quote_status'] == 'ACCEPTED':
                                 maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
                             else:
                                 maintenance_res['result'][y]['total_estimate'] = 0
+                            if quote['quote_status'] == 'SENT':
+                                maintenance_res['result'][y]['quotes_received'] = quotes_received + 1
+                            else:
+                                maintenance_res['result'][y]['quotes_received'] = 0
+                            if quote['quote_status'] == 'ACCEPTED':
+                                maintenance_res['result'][y]['tenant_status'] = 'IN PROGRESS'
+                            elif quote['quote_status'] == 'SENT':
+                                maintenance_res['result'][y]['tenant_status'] = 'QUOTE RECEIVED'
+                            else:
+                                maintenance_res['result'][y]['tenant_status'] = ""
                     else:
                         maintenance_res['result'][y]['total_estimate'] = 0
                     maintenance_res['result'][y]['total_quotes'] = len(

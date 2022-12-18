@@ -30,37 +30,57 @@ class ManagerCashflow(Resource):
             extra_revenue = 0
             utility_revenue = 0
             management_revenue = 0
+            maintenance_revenue = 0
+            repairs_revenue = 0
+
             rental_expected_revenue = 0
             extra_expected_revenue = 0
             utility_expected_revenue = 0
             management_expected_revenue = 0
+            maintenance_expected_revenue = 0
+            repairs_expected_revenue = 0
 
             rental_year_revenue = 0
             extra_year_revenue = 0
             utility_year_revenue = 0
             management_year_revenue = 0
+            maintenance_year_revenue = 0
+            repairs_year_revenue = 0
+
             rental_year_expected_revenue = 0
             extra_year_expected_revenue = 0
             utility_year_expected_revenue = 0
             management_year_expected_revenue = 0
+            maintenance_year_expected_revenue = 0
+            repairs_year_expected_revenue = 0
 
             amortized_rental_revenue = 0
             amortized_extra_revenue = 0
             amortized_management_revenue = 0
             amortized_utility_revenue = 0
+            amortized_maintenance_revenue = 0
+            amortized_repairs_revenue = 0
+
             amortized_rental_expected_revenue = 0
             amortized_extra_expected_revenue = 0
             amortized_management_expected_revenue = 0
             amortized_utility_expected_revenue = 0
+            amortized_maintenance_expected_revenue = 0
+            amortized_repairs_expected_revenue = 0
 
             amortized_rental_year_revenue = 0
             amortized_extra_year_revenue = 0
             amortized_utility_year_revenue = 0
             amortized_management_year_revenue = 0
+            amortized_maintenance_year_revenue = 0
+            amortized_repairs_year_revenue = 0
+
             amortized_rental_year_expected_revenue = 0
             amortized_extra_year_expected_revenue = 0
             amortized_management_year_expected_revenue = 0
             amortized_utility_year_expected_revenue = 0
+            amortized_maintenance_year_expected_revenue = 0
+            amortized_repairs_year_expected_revenue = 0
 
             # owner rental and extra charges revenue monthly
             manager_rental_revenue = db.execute("""
@@ -75,7 +95,7 @@ class ManagerCashflow(Resource):
             ON prm.linked_property_id = pr.property_uid
             WHERE prm.linked_business_id = \'""" + filterValue + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -99,7 +119,7 @@ class ManagerCashflow(Resource):
             AND pu.receiver = \'""" + filterValue + """\'
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED') 
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY') """)
-
+            print('utility', manager_utility_revenue['result'])
             response['result']['manager_revenue'] = response['result']['manager_revenue'] + list(
                 manager_utility_revenue['result'])
 
@@ -260,6 +280,115 @@ class ManagerCashflow(Resource):
                             amortized_management_revenue = amortized_management_revenue + \
                                 abs(int(response['result']['manager_revenue']
                                     [ore]['amount_paid']))/(datetime.now().month-1)
+                    if response['result']['manager_revenue'][ore]['purchase_type'] == 'MAINTENANCE':
+                        # if maintenance monthly
+                        # if maintenance monthly
+                        if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if maintenance monthly once a month
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])
+                                # if maintenance monthly twice a month
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a month':
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue']
+                                        [ore]['amount_paid'])
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])
+
+                            else:
+                                print('do nothing')
+                            # if maintenance annually
+                        elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if maintenance annually once a year
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])/12
+                            # if maintenance annually twice a year
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a year':
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])/6
+                            else:
+                                print('do nothing')
+                        # if maintenance one-time
+                        else:
+
+                            maintenance_revenue = maintenance_revenue + \
+                                response['result']['manager_revenue'][ore]['amount_paid']
+                            amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                (response['result']['manager_revenue']
+                                 [ore]['amount_paid'])/12
+
+                    if response['result']['manager_revenue'][ore]['purchase_type'] == 'REPAIRS':
+                        # if repairs monthly
+                        if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if repairs monthly once a month
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                repairs_revenue = repairs_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])
+                                # if repairs monthly twice a month
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a month':
+
+                                repairs_revenue = repairs_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue']
+                                        [ore]['amount_paid'])
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])
+                            else:
+                                print('do nothing')
+                            # if repairs annually
+                        elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if repairs annually once a year
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                repairs_revenue = repairs_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])/12
+                            # if repairs annually twice a year
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a year':
+
+                                repairs_revenue = repairs_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])/6
+                            else:
+                                print('do nothing')
+                        # if repairs one-time
+                        else:
+
+                            repairs_revenue = repairs_revenue + \
+                                response['result']['manager_revenue'][ore]['amount_paid']
+                            amortized_repairs_revenue = amortized_repairs_revenue + \
+                                float(
+                                    response['result']['manager_revenue'][ore]['amount_paid'])/12
 
             response['result']['rental_revenue'] = round(
                 rental_revenue, 2)
@@ -282,7 +411,18 @@ class ManagerCashflow(Resource):
                 management_revenue, 2)
 
             response['result']['amortized_management_revenue'] = round(
-                amortized_extra_revenue, 2)
+                amortized_management_revenue, 2)
+            response['result']['maintenance_revenue'] = round(
+                maintenance_revenue, 2)
+
+            response['result']['amortized_maintenance_revenue'] = round(
+                amortized_maintenance_revenue, 2)
+
+            response['result']['repairs_revenue'] = round(
+                repairs_revenue, 2)
+
+            response['result']['amortized_repairs_revenue'] = round(
+                amortized_repairs_revenue, 2)
 
             # owner rental and extra charged revenue yearly
             # owner rental and extra charges revenue monthly
@@ -298,7 +438,7 @@ class ManagerCashflow(Resource):
             ON prm.linked_property_id = pr.property_uid
             WHERE prm.linked_business_id = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY') """)
 
@@ -479,6 +619,115 @@ class ManagerCashflow(Resource):
                             amortized_management_expected_revenue = amortized_management_expected_revenue + \
                                 abs(int(response['result']['manager_expected_revenue']
                                     [ore]['amount_due']))/12
+                    if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'MAINTENANCE':
+                        # if maintenance monthly
+                        if response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if maintenance monthly once a month
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+
+                                maintenance_expected_revenue = maintenance_expected_revenue + \
+                                    response['result']['manager_expected_revenue'][ore]['amount_due']
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                # if maintenance monthly twice a month
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a month':
+
+                                maintenance_expected_revenue = maintenance_expected_revenue + 2 * \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                            else:
+                                print('do nothing')
+                            # if maintenance annually
+                        elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if maintenance annually once a year
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+                                maintenance_expected_revenue = maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+
+                            # if maintenance annually twice a year
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
+                                maintenance_expected_revenue = maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                            else:
+                                print('do nothing')
+                        # if maintenance one-time
+                        else:
+                            maintenance_expected_revenue = maintenance_expected_revenue + \
+                                response['result']['manager_expected_revenue'][ore]['amount_due']
+                            amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                (response['result']['manager_expected_revenue']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+
+                    if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'REPAIRS':
+                        # if repairs monthly
+                        if response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if repairs monthly once a month
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+                                repairs_expected_revenue = repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                # if repairs monthly twice a month
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a month':
+                                repairs_expected_revenue = repairs_expected_revenue + 2 * \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                            else:
+                                print('do nothing')
+                            # if repairs annually
+                        elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if repairs annually once a year
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+                                repairs_expected_revenue = repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+
+                            # if repairs annually twice a year
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
+                                repairs_expected_revenue = repairs_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+
+                            else:
+                                print('do nothing')
+                        # if repairs one-time
+                        else:
+                            repairs_expected_revenue = repairs_expected_revenue + \
+                                response['result']['manager_expected_revenue'][ore]['amount_due']
+                            amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                (response['result']['manager_expected_revenue']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
             response['result']['amortized_rental_expected_revenue'] = round(
@@ -496,6 +745,15 @@ class ManagerCashflow(Resource):
             response['result']['amortized_management_expected_revenue'] = round(
                 amortized_management_expected_revenue, 2)
 
+            response['result']['maintenance_expected_revenue'] = round(
+                maintenance_expected_revenue, 2)
+            response['result']['amortized_maintenance_expected_revenue'] = round(
+                amortized_maintenance_expected_revenue, 2)
+            response['result']['repairs_expected_revenue'] = round(
+                repairs_expected_revenue, 2)
+            response['result']['amortized_repairs_expected_revenue'] = round(
+                amortized_repairs_expected_revenue, 2)
+
             manager_rental_revenue_yearly = db.execute("""
             SELECT * FROM purchases pu
             LEFT JOIN payments pa
@@ -508,7 +766,7 @@ class ManagerCashflow(Resource):
             ON prm.linked_property_id = pr.property_uid
             WHERE prm.linked_business_id = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -810,6 +1068,176 @@ class ManagerCashflow(Resource):
                             amortized_management_year_revenue = amortized_management_year_revenue + \
                                 int(abs(response['result']['manager_revenue_yearly']
                                     [ore]['amount_paid']))/12
+                    # if maintenance
+                    if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'MAINTENANCE':
+                        # if maintenance monthly
+                        # if maintenance monthly
+                        if response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Monthly':
+                            # if maintenance monthly once a month
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])
+                                # if maintenance monthly twice a month
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a month':
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])
+                            else:
+                                print('do nothing')
+                            # if maintenance annually
+                        elif response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
+                            # if maintenance annually once a year
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])/12
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])/12
+                            # if maintenance annually twice a year
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a year':
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])/6
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])/6
+                            else:
+                                print('do nothing')
+                        # if maintenance one-time
+                        else:
+
+                            maintenance_year_revenue = maintenance_year_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                            amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                (response['result']['manager_revenue_yearly']
+                                 [ore]['amount_paid'])/12
+                            maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_due']
+                            amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                (response['result']['manager_revenue_yearly']
+                                 [ore]['amount_due'])/12
+
+                    if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'REPAIRS':
+                        # if repairs monthly
+                        print('in repairs')
+                        if response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Monthly':
+                            print('in repairs monthly')
+                            # if repairs monthly once a month
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+                                print('in repairs once a month')
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])
+                                # if repairs monthly twice a month
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a month':
+
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])
+                            else:
+                                print('do nothing')
+                            # if repairs annually
+                        elif response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
+                            # if repairs annually once a year
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])/12
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])/12
+                            # if repairs annually twice a year
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a year':
+
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])/6
+
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])/6
+                            else:
+                                print('do nothing')
+                        # if repairs one-time
+                        else:
+
+                            repairs_year_revenue = repairs_year_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                            amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                float(
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid'])/12
+                            repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_due']
+                            amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                float(
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due'])/12
 
             response['result']['rental_year_revenue'] = round(
                 rental_year_revenue, 2)
@@ -843,6 +1271,23 @@ class ManagerCashflow(Resource):
                 amortized_management_year_revenue, 2)
             response['result']['amortized_management_year_expected_revenue'] = round(
                 amortized_management_year_expected_revenue, 2)
+
+            response['result']['maintenance_year_revenue'] = round(
+                maintenance_year_revenue, 2)
+            response['result']['maintenance_year_expected_revenue'] = round(
+                maintenance_year_expected_revenue, 2)
+            response['result']['amortized_maintenance_year_revenue'] = round(
+                amortized_maintenance_year_revenue, 2)
+            response['result']['amortized_maintenance_year_expected_revenue'] = round(
+                amortized_maintenance_year_expected_revenue, 2)
+            response['result']['repairs_year_revenue'] = round(
+                repairs_year_revenue, 2)
+            response['result']['repairs_year_expected_revenue'] = round(
+                repairs_year_expected_revenue, 2)
+            response['result']['amortized_repairs_year_revenue'] = round(
+                amortized_repairs_year_revenue, 2)
+            response['result']['amortized_repairs_year_expected_revenue'] = round(
+                amortized_repairs_year_expected_revenue, 2)
 
             # intialize expense variables
             utility_expense = 0
@@ -964,7 +1409,7 @@ class ManagerCashflow(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expense'][mex]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense'][ore]['payment_frequency'] is None:
 
                                 maintenance_expense = maintenance_expense + \
                                     response['result']['manager_expense'][mex]['amount_paid']
@@ -1018,7 +1463,7 @@ class ManagerCashflow(Resource):
                             # if repairs annually
                         elif response['result']['manager_expense'][mex]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense'][ore]['payment_frequency'] is None:
 
                                 repairs_expense = repairs_expense + \
                                     response['result']['manager_expense'][mex]['amount_paid']
@@ -1190,7 +1635,7 @@ class ManagerCashflow(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expected_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_expense'][ore]['payment_frequency'] is None:
                                 maintenance_expected_expense = maintenance_expected_expense + \
                                     (response['result']['manager_expected_expense']
                                         [ore]['amount_due'])
@@ -1275,7 +1720,7 @@ class ManagerCashflow(Resource):
                             # if repairs annually
                         elif response['result']['manager_expected_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_expense'][ore]['payment_frequency'] is None:
                                 repairs_expected_expense = repairs_expected_expense +  \
                                     (response['result']['manager_expected_expense']
                                         [ore]['amount_due'])
@@ -1431,7 +1876,7 @@ class ManagerCashflow(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expense_yearly'][mex]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense_yearly'][ore]['payment_frequency'] is None:
 
                                 maintenance_year_expense = maintenance_year_expense + \
                                     response['result']['manager_expense_yearly'][mex]['amount_paid']
@@ -1485,7 +1930,7 @@ class ManagerCashflow(Resource):
                             # if repairs annually
                         elif response['result']['manager_expense_yearly'][mex]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense_yearly'][ore]['payment_frequency'] is None:
 
                                 repairs_year_expense = repairs_year_expense + \
                                     response['result']['manager_expense_yearly'][mex]['amount_paid']
@@ -1658,7 +2103,7 @@ class ManagerCashflow(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expected_year_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_year_expense'][ore]['payment_frequency'] is None:
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     (response['result']['manager_expected_year_expense']
                                         [ore]['amount_due'])
@@ -1741,7 +2186,7 @@ class ManagerCashflow(Resource):
                             # if repairs annually
                         elif response['result']['manager_expected_year_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_year_expense'][ore]['payment_frequency'] is None:
                                 repairs_year_expected_expense = repairs_year_expected_expense +  \
                                     (response['result']['manager_expected_year_expense']
                                         [ore]['amount_due'])
@@ -1856,37 +2301,57 @@ class ManagerCashflowProperty(Resource):
             extra_revenue = 0
             utility_revenue = 0
             management_revenue = 0
+            maintenance_revenue = 0
+            repairs_revenue = 0
+
             rental_expected_revenue = 0
             extra_expected_revenue = 0
             utility_expected_revenue = 0
             management_expected_revenue = 0
+            maintenance_expected_revenue = 0
+            repairs_expected_revenue = 0
 
             rental_year_revenue = 0
             extra_year_revenue = 0
             utility_year_revenue = 0
             management_year_revenue = 0
+            maintenance_year_revenue = 0
+            repairs_year_revenue = 0
+
             rental_year_expected_revenue = 0
             extra_year_expected_revenue = 0
             utility_year_expected_revenue = 0
             management_year_expected_revenue = 0
+            maintenance_year_expected_revenue = 0
+            repairs_year_expected_revenue = 0
 
             amortized_rental_revenue = 0
             amortized_extra_revenue = 0
             amortized_management_revenue = 0
             amortized_utility_revenue = 0
+            amortized_maintenance_revenue = 0
+            amortized_repairs_revenue = 0
+
             amortized_rental_expected_revenue = 0
             amortized_extra_expected_revenue = 0
             amortized_management_expected_revenue = 0
             amortized_utility_expected_revenue = 0
+            amortized_maintenance_expected_revenue = 0
+            amortized_repairs_expected_revenue = 0
 
             amortized_rental_year_revenue = 0
             amortized_extra_year_revenue = 0
             amortized_utility_year_revenue = 0
             amortized_management_year_revenue = 0
+            amortized_maintenance_year_revenue = 0
+            amortized_repairs_year_revenue = 0
+
             amortized_rental_year_expected_revenue = 0
             amortized_extra_year_expected_revenue = 0
             amortized_management_year_expected_revenue = 0
             amortized_utility_year_expected_revenue = 0
+            amortized_maintenance_year_expected_revenue = 0
+            amortized_repairs_year_expected_revenue = 0
 
             # owner rental and extra charges revenue monthly
             manager_rental_revenue = db.execute("""
@@ -1902,7 +2367,7 @@ class ManagerCashflowProperty(Resource):
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND prm.linked_business_id = \'""" + filterValue2 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -2089,6 +2554,115 @@ class ManagerCashflowProperty(Resource):
                             amortized_management_revenue = amortized_management_revenue + \
                                 abs(int(response['result']['manager_revenue']
                                     [ore]['amount_paid']))/(datetime.now().month-1)
+                    if response['result']['manager_revenue'][ore]['purchase_type'] == 'MAINTENANCE':
+                        # if maintenance monthly
+                        # if maintenance monthly
+                        if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if maintenance monthly once a month
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])
+                                # if maintenance monthly twice a month
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a month':
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue']
+                                        [ore]['amount_paid'])
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])
+
+                            else:
+                                print('do nothing')
+                            # if maintenance annually
+                        elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if maintenance annually once a year
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])/12
+                            # if maintenance annually twice a year
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a year':
+
+                                maintenance_revenue = maintenance_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                    (response['result']['manager_revenue']
+                                     [ore]['amount_paid'])/6
+                            else:
+                                print('do nothing')
+                        # if maintenance one-time
+                        else:
+
+                            maintenance_revenue = maintenance_revenue + \
+                                response['result']['manager_revenue'][ore]['amount_paid']
+                            amortized_maintenance_revenue = amortized_maintenance_revenue + \
+                                (response['result']['manager_revenue']
+                                 [ore]['amount_paid'])/12
+
+                    if response['result']['manager_revenue'][ore]['purchase_type'] == 'REPAIRS':
+                        # if repairs monthly
+                        if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if repairs monthly once a month
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                repairs_revenue = repairs_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])
+                                # if repairs monthly twice a month
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a month':
+
+                                repairs_revenue = repairs_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue']
+                                        [ore]['amount_paid'])
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])
+                            else:
+                                print('do nothing')
+                            # if repairs annually
+                        elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if repairs annually once a year
+                            if response['result']['manager_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue'][ore]['payment_frequency'] is None:
+
+                                repairs_revenue = repairs_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])/12
+                            # if repairs annually twice a year
+                            elif response['result']['manager_revenue'][ore]['payment_frequency'] == 'Twice a year':
+
+                                repairs_revenue = repairs_revenue + \
+                                    response['result']['manager_revenue'][ore]['amount_paid']
+
+                                amortized_repairs_revenue = amortized_repairs_revenue + \
+                                    float(
+                                        response['result']['manager_revenue'][ore]['amount_paid'])/6
+                            else:
+                                print('do nothing')
+                        # if repairs one-time
+                        else:
+
+                            repairs_revenue = repairs_revenue + \
+                                response['result']['manager_revenue'][ore]['amount_paid']
+                            amortized_repairs_revenue = amortized_repairs_revenue + \
+                                float(
+                                    response['result']['manager_revenue'][ore]['amount_paid'])/12
 
             response['result']['rental_revenue'] = round(
                 rental_revenue, 2)
@@ -2112,6 +2686,17 @@ class ManagerCashflowProperty(Resource):
 
             response['result']['amortized_management_revenue'] = round(
                 amortized_extra_revenue, 2)
+            response['result']['maintenance_revenue'] = round(
+                maintenance_revenue, 2)
+
+            response['result']['amortized_maintenance_revenue'] = round(
+                amortized_maintenance_revenue, 2)
+
+            response['result']['repairs_revenue'] = round(
+                repairs_revenue, 2)
+
+            response['result']['amortized_repairs_revenue'] = round(
+                amortized_repairs_revenue, 2)
 
             # owner rental and extra charged revenue yearly
             # owner rental and extra charges revenue monthly
@@ -2128,7 +2713,7 @@ class ManagerCashflowProperty(Resource):
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND prm.linked_business_id = \'""" + filterValue2 + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES"  OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY') """)
 
@@ -2311,6 +2896,114 @@ class ManagerCashflowProperty(Resource):
                             amortized_management_expected_revenue = amortized_management_expected_revenue + \
                                 abs(int(response['result']['manager_expected_revenue']
                                     [ore]['amount_due']))/12
+                    if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'MAINTENANCE':
+                        # if maintenance monthly
+                        if response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if maintenance monthly once a month
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+
+                                maintenance_expected_revenue = maintenance_expected_revenue + \
+                                    response['result']['manager_expected_revenue'][ore]['amount_due']
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                # if maintenance monthly twice a month
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a month':
+
+                                maintenance_expected_revenue = maintenance_expected_revenue + 2 * \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                            else:
+                                print('do nothing')
+                            # if maintenance annually
+                        elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if maintenance annually once a year
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+                                maintenance_expected_revenue = maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+
+                            # if maintenance annually twice a year
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
+                                maintenance_expected_revenue = maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                            else:
+                                print('do nothing')
+                        # if maintenance one-time
+                        else:
+                            maintenance_expected_revenue = maintenance_expected_revenue + \
+                                response['result']['manager_expected_revenue'][ore]['amount_due']
+                            amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
+                                (response['result']['manager_expected_revenue']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
+
+                    if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'REPAIRS':
+                        # if repairs monthly
+                        if response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
+                            # if repairs monthly once a month
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+                                repairs_expected_revenue = repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                # if repairs monthly twice a month
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a month':
+                                repairs_expected_revenue = repairs_expected_revenue + 2 * \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                            else:
+                                print('do nothing')
+                            # if repairs annually
+                        elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
+                            # if repairs annually once a year
+                            if response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_revenue'][ore]['payment_frequency'] is None:
+                                repairs_expected_revenue = repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/(datetime.now().month-1)
+
+                            # if repairs annually twice a year
+                            elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
+                                repairs_expected_revenue = repairs_expected_revenue + \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
+
+                                amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                    (response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+
+                            else:
+                                print('do nothing')
+                        # if repairs one-time
+                        else:
+                            repairs_expected_revenue = repairs_expected_revenue + \
+                                response['result']['manager_expected_revenue'][ore]['amount_due']
+                            amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
+                                (response['result']['manager_expected_revenue']
+                                 [ore]['amount_due'])/(datetime.now().month-1)
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
             response['result']['amortized_rental_expected_revenue'] = round(
@@ -2327,6 +3020,14 @@ class ManagerCashflowProperty(Resource):
                 management_expected_revenue, 2)
             response['result']['amortized_management_expected_revenue'] = round(
                 amortized_management_expected_revenue, 2)
+            response['result']['maintenance_expected_revenue'] = round(
+                maintenance_expected_revenue, 2)
+            response['result']['amortized_maintenance_expected_revenue'] = round(
+                amortized_maintenance_expected_revenue, 2)
+            response['result']['repairs_expected_revenue'] = round(
+                repairs_expected_revenue, 2)
+            response['result']['amortized_repairs_expected_revenue'] = round(
+                amortized_repairs_expected_revenue, 2)
 
             manager_rental_revenue_yearly = db.execute("""
             SELECT * FROM purchases pu
@@ -2341,7 +3042,7 @@ class ManagerCashflowProperty(Resource):
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND prm.linked_business_id = \'""" + filterValue2 + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES"  OR pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -2645,6 +3346,176 @@ class ManagerCashflowProperty(Resource):
                             amortized_management_year_revenue = amortized_management_year_revenue + \
                                 int(abs(response['result']['manager_revenue_yearly']
                                     [ore]['amount_paid']))/12
+                    # if maintenance
+                    if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'MAINTENANCE':
+                        # if maintenance monthly
+                        # if maintenance monthly
+                        if response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Monthly':
+                            # if maintenance monthly once a month
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])
+                                # if maintenance monthly twice a month
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a month':
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])
+                            else:
+                                print('do nothing')
+                            # if maintenance annually
+                        elif response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
+                            # if maintenance annually once a year
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])/12
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])/12
+                            # if maintenance annually twice a year
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a year':
+
+                                maintenance_year_revenue = maintenance_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_paid'])/6
+                                maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                    (response['result']['manager_revenue_yearly']
+                                     [ore]['amount_due'])/6
+                            else:
+                                print('do nothing')
+                        # if maintenance one-time
+                        else:
+
+                            maintenance_year_revenue = maintenance_year_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                            amortized_maintenance_year_revenue = amortized_maintenance_year_revenue + \
+                                (response['result']['manager_revenue_yearly']
+                                 [ore]['amount_paid'])/12
+                            maintenance_year_expected_revenue = maintenance_year_expected_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_due']
+                            amortized_maintenance_year_expected_revenue = amortized_maintenance_year_expected_revenue + \
+                                (response['result']['manager_revenue_yearly']
+                                 [ore]['amount_due'])/12
+
+                    if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'REPAIRS':
+                        # if repairs monthly
+                        print('in repairs')
+                        if response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Monthly':
+                            print('in repairs monthly')
+                            # if repairs monthly once a month
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a month' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+                                print('in repairs once a month')
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])
+                                # if repairs monthly twice a month
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a month':
+
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    2 * \
+                                    (response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])
+                            else:
+                                print('do nothing')
+                            # if repairs annually
+                        elif response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
+                            # if repairs annually once a year
+                            if response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_revenue_yearly'][ore]['payment_frequency'] is None:
+
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])/12
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])/12
+                            # if repairs annually twice a year
+                            elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a year':
+
+                                repairs_year_revenue = repairs_year_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid']
+
+                                amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_paid'])/6
+
+                                repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due']
+
+                                amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                    float(
+                                        response['result']['manager_revenue_yearly'][ore]['amount_due'])/6
+                            else:
+                                print('do nothing')
+                        # if repairs one-time
+                        else:
+
+                            repairs_year_revenue = repairs_year_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_paid']
+                            amortized_repairs_year_revenue = amortized_repairs_year_revenue + \
+                                float(
+                                    response['result']['manager_revenue_yearly'][ore]['amount_paid'])/12
+                            repairs_year_expected_revenue = repairs_year_expected_revenue + \
+                                response['result']['manager_revenue_yearly'][ore]['amount_due']
+                            amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
+                                float(
+                                    response['result']['manager_revenue_yearly'][ore]['amount_due'])/12
 
             response['result']['rental_year_revenue'] = round(
                 rental_year_revenue, 2)
@@ -2678,6 +3549,22 @@ class ManagerCashflowProperty(Resource):
                 amortized_management_year_revenue, 2)
             response['result']['amortized_management_year_expected_revenue'] = round(
                 amortized_management_year_expected_revenue, 2)
+            response['result']['maintenance_year_revenue'] = round(
+                maintenance_year_revenue, 2)
+            response['result']['maintenance_year_expected_revenue'] = round(
+                maintenance_year_expected_revenue, 2)
+            response['result']['amortized_maintenance_year_revenue'] = round(
+                amortized_maintenance_year_revenue, 2)
+            response['result']['amortized_maintenance_year_expected_revenue'] = round(
+                amortized_maintenance_year_expected_revenue, 2)
+            response['result']['repairs_year_revenue'] = round(
+                repairs_year_revenue, 2)
+            response['result']['repairs_year_expected_revenue'] = round(
+                repairs_year_expected_revenue, 2)
+            response['result']['amortized_repairs_year_revenue'] = round(
+                amortized_repairs_year_revenue, 2)
+            response['result']['amortized_repairs_year_expected_revenue'] = round(
+                amortized_repairs_year_expected_revenue, 2)
 
             # intialize expense variables
             utility_expense = 0
@@ -2799,7 +3686,7 @@ class ManagerCashflowProperty(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expense'][mex]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense'][mex]['payment_frequency'] is None:
 
                                 maintenance_expense = maintenance_expense + \
                                     response['result']['manager_expense'][mex]['amount_paid']
@@ -2853,7 +3740,7 @@ class ManagerCashflowProperty(Resource):
                             # if repairs annually
                         elif response['result']['manager_expense'][mex]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense'][mex]['payment_frequency'] is None:
 
                                 repairs_expense = repairs_expense + \
                                     response['result']['manager_expense'][mex]['amount_paid']
@@ -3025,7 +3912,7 @@ class ManagerCashflowProperty(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expected_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_expense'][ore]['payment_frequency'] is None:
                                 maintenance_expected_expense = maintenance_expected_expense + \
                                     (response['result']['manager_expected_expense']
                                         [ore]['amount_due'])
@@ -3110,7 +3997,7 @@ class ManagerCashflowProperty(Resource):
                             # if repairs annually
                         elif response['result']['manager_expected_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_expense'][ore]['payment_frequency'] is None:
                                 repairs_expected_expense = repairs_expected_expense +  \
                                     (response['result']['manager_expected_expense']
                                         [ore]['amount_due'])
@@ -3266,7 +4153,7 @@ class ManagerCashflowProperty(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expense_yearly'][mex]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense_yearly'][mex]['payment_frequency'] is None:
 
                                 maintenance_year_expense = maintenance_year_expense + \
                                     response['result']['manager_expense_yearly'][mex]['amount_paid']
@@ -3320,7 +4207,7 @@ class ManagerCashflowProperty(Resource):
                             # if repairs annually
                         elif response['result']['manager_expense_yearly'][mex]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expense_yearly'][mex]['payment_frequency'] == 'Once a year' or response['result']['manager_expense_yearly'][mex]['payment_frequency'] is None:
 
                                 repairs_year_expense = repairs_year_expense + \
                                     response['result']['manager_expense_yearly'][mex]['amount_paid']
@@ -3493,7 +4380,7 @@ class ManagerCashflowProperty(Resource):
                             # if maintenance annually
                         elif response['result']['manager_expected_year_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if maintenance annually once a year
-                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_year_expense'][ore]['payment_frequency'] is None:
                                 maintenance_year_expected_expense = maintenance_year_expected_expense + \
                                     (response['result']['manager_expected_year_expense']
                                         [ore]['amount_due'])
@@ -3576,7 +4463,7 @@ class ManagerCashflowProperty(Resource):
                             # if repairs annually
                         elif response['result']['manager_expected_year_expense'][ore]['purchase_frequency'] == 'Annually':
                             # if repairs annually once a year
-                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year':
+                            if response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Once a year' or response['result']['manager_expected_year_expense'][ore]['payment_frequency'] is None:
                                 repairs_year_expected_expense = repairs_year_expected_expense +  \
                                     (response['result']['manager_expected_year_expense']
                                         [ore]['amount_due'])
