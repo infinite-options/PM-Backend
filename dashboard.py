@@ -454,13 +454,14 @@ class ManagerDashboard(Resource):
             today = date.today()
             print(buid)
 
-            response = db.execute("""SELECT *
-                                    FROM pm.propertyInfo
-                                    WHERE management_status <> 'REJECTED'
-                                    AND management_status <> 'TERMINATED'
-                                    AND management_status <> 'EXPIRED'
-                                    AND management_status <> 'END EARLY'
-                                    AND manager_id = \'""" + buid + """\' """)
+            response = db.execute("""
+            SELECT *
+            FROM pm.propertyInfo
+            WHERE management_status <> 'REJECTED'
+            AND management_status <> 'TERMINATED'
+            AND management_status <> 'EXPIRED'
+            AND management_status <> 'END EARLY'
+            AND manager_id = \'""" + buid + """\' """)
             print(response)
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
@@ -592,8 +593,7 @@ class ManagerDashboard(Resource):
                                 maintenance_res['result'][y]['tenant_status'] = 'IN PROGRESS'
                             elif quote['quote_status'] == 'SENT':
                                 maintenance_res['result'][y]['tenant_status'] = 'QUOTE RECEIVED'
-                            else:
-                                maintenance_res['result'][y]['tenant_status'] = ""
+
                     else:
                         maintenance_res['result'][y]['total_estimate'] = 0
                     maintenance_res['result'][y]['total_quotes'] = len(

@@ -70,14 +70,14 @@ class Applications(Resource):
                 print('here', where['property_uid'], where)
 
                 response = db.execute("""
-                SELECT a.application_uid,a.application_date, a.message, a.application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT a.application_uid,application_date, a.message, a.application_status,a.adult_occupants,a.children_occupants, a.num_pets, a.type_pets, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 pm.applications a 
                 LEFT JOIN pm.tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
                 LEFT JOIN pm.properties p 
                 ON  p.property_uid = a.property_uid
                 LEFT JOIN pm.rentals r 
-                ON a.application_uid = r.linked_application_id 
+                ON r.linked_application_id LIKE CONCAT('%', a.application_uid, '%') 
                 LEFT JOIN pm.propertyManager pM 
                 ON pM.linked_property_id = p.property_uid
                 LEFT JOIN pm.businesses b 
@@ -86,21 +86,21 @@ class Applications(Resource):
                 """)
             elif 'tenant_id' in where:
                 response = db.execute("""
-                SELECT application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT application_uid, message,application_date, application_status,a.adult_occupants,a.children_occupants,  a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 applications a 
                 LEFT JOIN tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
                 LEFT JOIN properties p 
                 ON a.property_uid = p.property_uid 
                 LEFT JOIN rentals r 
-                ON a.application_uid = r.linked_application_id 
+                ON r.linked_application_id LIKE CONCAT('%', a.application_uid, '%')  
                 LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid
                 LEFT JOIN pm.businesses b 
                 ON b.business_uid = pM.linked_business_id
                 WHERE pM.management_status = 'ACCEPTED' and a.tenant_id=  \'""" + where['tenant_id'] + """\'
                 """)
             else:
-                cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
+                cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
                 tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid LEFT JOIN pm.businesses b ON b.business_uid = pM.linked_business_id'
                 response = db.select(cols=cols, tables=tables, where=where)
         return response
@@ -113,7 +113,7 @@ class Applications(Resource):
             if not user:
                 return 401, response
             fields = ['property_uid', 'message',
-                      'adult_occupants', 'children_occupants', 'documents']
+                      'adult_occupants', 'children_occupants', 'num_pets', 'type_pets', 'documents']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -136,7 +136,7 @@ class Applications(Resource):
             data = request.json
             application_uid = data.get('application_uid')
             fields = ['message', 'application_status',
-                      'property_uid', 'adult_occupants', 'children_occupants', "application_uid", "documents"]
+                      'property_uid', 'adult_occupants', 'children_occupants', 'num_pets', 'type_pets', "application_uid", "documents"]
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)

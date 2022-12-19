@@ -1171,6 +1171,7 @@ class ManagerCashflow(Resource):
                                 amortized_repairs_year_expected_revenue = amortized_repairs_year_expected_revenue + \
                                     float(
                                         response['result']['manager_revenue_yearly'][ore]['amount_due'])
+
                                 # if repairs monthly twice a month
                             elif response['result']['manager_revenue_yearly'][ore]['payment_frequency'] == 'Twice a month':
 

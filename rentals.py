@@ -50,7 +50,7 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants', 'num_pets', 'type_pets']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
@@ -58,6 +58,7 @@ class Rentals(Resource):
             newRentalID = db.call('new_rental_id')['result'][0]['new_id']
             newRental['rental_uid'] = newRentalID
             # newRental['rental_status'] = 'ACTIVE'
+
             documents = json.loads(data.get('documents'))
             for i in range(len(documents)):
                 filename = f'doc_{i}'
@@ -100,7 +101,7 @@ class Rentals(Resource):
             data = request.form
             rental_uid = data.get('rental_uid')
             fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'num_pets', 'type_pets', 'adult_occupants', 'children_occupants']
             newRental = {}
             for field in fields:
                 fieldValue = data.get(field)
