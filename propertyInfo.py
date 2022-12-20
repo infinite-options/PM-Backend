@@ -71,12 +71,23 @@ class AvailableProperties(Resource):
             rentals = []
             expired = []
             notRented = []
+            endingSoon = []
             if len(response['result']) > 0:
                 for rentals in response['result']:
                     # skip rental status ACTIVE
                     if rentals['rental_status'] == 'ACTIVE':
                         print('skip if rental_status active',
                               rentals['rental_status'])
+                        print('lease end', rentals['lease_end'])
+                        time_between_insertion = datetime.strptime(
+                            rentals['lease_end'], '%Y-%m-%d') - datetime.now()
+                        print(time_between_insertion)
+                        # if older than 30 days
+                        if time_between_insertion.days > 31:
+                            print('skip if over 30')
+                        else:
+                            print('make available')
+                            endingSoon.append(rentals)
                     # skip rental status PROCESSING
                     elif rentals['rental_status'] == 'PROCESSING':
                         print('skip if rental_status processing',
@@ -90,14 +101,15 @@ class AvailableProperties(Resource):
                         print('do something if rental_status terminated',
                               rentals['rental_status'])
                         # check if another lease active for the same property
-                        terminatedResponse = db.execute("""SELECT * FROM pm.rentals r
-                                                        LEFT JOIN  pm.properties p
-                                                        ON p.property_uid = r.rental_property_id
-                                                        LEFT JOIN pm.propertyManager pM
-                                                        ON pM.linked_property_id = p.property_uid
-                                                        WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
-                                                        AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
-                                                        AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY')   """)
+                        terminatedResponse = db.execute("""
+                        SELECT * FROM pm.rentals r
+                        LEFT JOIN  pm.properties p
+                        ON p.property_uid = r.rental_property_id
+                        LEFT JOIN pm.propertyManager pM
+                        ON pM.linked_property_id = p.property_uid
+                        WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
+                        AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
+                        AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY')   """)
 
                         if len(terminatedResponse['result']) > 0:
                             print('do not add terminated')
@@ -110,14 +122,15 @@ class AvailableProperties(Resource):
                         # print('do something if rental_status expired',
                         #   rentals['rental_status'])
                         # check if another lease active for the same property
-                        expiredResponse = db.execute("""SELECT * FROM pm.rentals r
-                                                        LEFT JOIN  pm.properties p
-                                                        ON p.property_uid = r.rental_property_id
-                                                        LEFT JOIN pm.propertyManager pM
-                                                        ON pM.linked_property_id = p.property_uid
-                                                        WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
-                                                        AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
-                                                        AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY')     """)
+                        expiredResponse = db.execute("""
+                        SELECT * FROM pm.rentals r
+                        LEFT JOIN  pm.properties p
+                        ON p.property_uid = r.rental_property_id
+                        LEFT JOIN pm.propertyManager pM
+                        ON pM.linked_property_id = p.property_uid
+                        WHERE (rental_status = 'ACTIVE' OR rental_status = 'PROCESSING' OR rental_status='TENANT APPROVED')
+                        AND r.rental_property_id = \'""" + rentals['rental_property_id'] + """\'
+                        AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY')     """)
 
                         if len(expiredResponse['result']) > 0:
                             print('do not add expired')
@@ -129,7 +142,7 @@ class AvailableProperties(Resource):
                         # print('do something if rental_status None',
                         #   rentals['rental_status'])
                         notRented.append(rentals)
-            availableProperties = terminated + expired + notRented
+            availableProperties = terminated + expired + notRented + endingSoon
             response['result'] = availableProperties
             # print(availableProperties, len(availableProperties))
         return response

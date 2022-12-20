@@ -578,6 +578,7 @@ class ManagerDashboard(Resource):
 
                     maintenance_res['result'][y]['quotes'] = list(
                         quotes_res['result'])
+                    maintenance_res['result'][y]['quotes_received'] = 0
                     if len(quotes_res['result']) > 0:
                         quotes_received = 0
                         for quote in quotes_res['result']:
