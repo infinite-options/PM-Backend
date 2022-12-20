@@ -588,10 +588,9 @@ class ManagerDashboard(Resource):
                                 maintenance_res['result'][y]['total_estimate'] = 0
                             if quote['quote_status'] == 'SENT':
                                 maintenance_res['result'][y]['quotes_received'] = quotes_received + 1
-                            else:
-                                maintenance_res['result'][y]['quotes_received'] = 0
+
                             if quote['quote_status'] == 'ACCEPTED':
-                                maintenance_res['result'][y]['tenant_status'] = 'IN PROGRESS'
+                                maintenance_res['result'][y]['tenant_status'] = 'QUOTE ACCEPTED'
                             elif quote['quote_status'] == 'SENT':
                                 maintenance_res['result'][y]['tenant_status'] = 'QUOTE RECEIVED'
 

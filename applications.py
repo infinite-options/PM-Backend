@@ -84,6 +84,23 @@ class Applications(Resource):
                 ON  pM.linked_business_id = b.business_uid
                 WHERE pM.management_status = 'ACCEPTED' and a.property_uid=  \'""" + where['property_uid'] + """\'
                 """)
+                if len(response['result']) > 0:
+                    print('here')
+                    for application in response['result']:
+                        if application['rental_uid'] is not None:
+
+                            print('rentals not none')
+                            leaseTenants = db.execute("""
+                            SELECT * FROM pm.leaseTenants lt
+                            LEFT JOIN pm.applications a
+                            ON lt.linked_tenant_id = a.tenant_id
+                            LEFT JOIN  pm.tenantProfileInfo t 
+                            ON lt.linked_tenant_id = t.tenant_id 
+                            WHERE lt.linked_rental_uid = \'""" + application['rental_uid'] + """\'
+                            AND a.property_uid =  \'""" + where['property_uid'] + """\'""")
+                            print(leaseTenants['result'])
+                            application['applicant_info'] = (
+                                leaseTenants['result'])
             elif 'tenant_id' in where:
                 response = db.execute("""
                 SELECT application_uid, message,application_date, application_status,a.adult_occupants,a.children_occupants,  a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM

@@ -72,6 +72,7 @@ class AvailableProperties(Resource):
             expired = []
             notRented = []
             endingSoon = []
+            processing = []
             if len(response['result']) > 0:
                 for rentals in response['result']:
                     # skip rental status ACTIVE
@@ -92,6 +93,7 @@ class AvailableProperties(Resource):
                     elif rentals['rental_status'] == 'PROCESSING':
                         print('skip if rental_status processing',
                               rentals['rental_status'])
+                        processing.append(rentals)
                     # skip rental status TENANT APPROVED
                     elif rentals['rental_status'] == 'TENANT APPROVED':
                         print('skip if rental_status tenant approved',
