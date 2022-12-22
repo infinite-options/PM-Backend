@@ -101,6 +101,15 @@ class Applications(Resource):
                             print(leaseTenants['result'])
                             application['applicant_info'] = (
                                 leaseTenants['result'])
+                        else:
+                            leaseTenants = db.execute("""
+                            SELECT * FROM pm.tenantProfileInfo t 
+                            LEFT JOIN pm.applications a
+                            ON t.tenant_id = a.tenant_id
+                            WHERE t.tenant_id = \'""" + application['tenant_id'] + """\'""")
+                            print(leaseTenants['result'])
+                            application['applicant_info'] = (
+                                leaseTenants['result'])
             elif 'tenant_id' in where:
                 response = db.execute("""
                 SELECT application_uid, message,application_date, application_status,a.adult_occupants,a.children_occupants,  a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
@@ -116,6 +125,32 @@ class Applications(Resource):
                 ON b.business_uid = pM.linked_business_id
                 WHERE pM.management_status = 'ACCEPTED' and a.tenant_id=  \'""" + where['tenant_id'] + """\'
                 """)
+                if len(response['result']) > 0:
+                    print('here')
+                    for application in response['result']:
+                        if application['rental_uid'] is not None:
+                            print('rentals not none',
+                                  application['rental_uid'], application['application_uid'])
+                            leaseTenants = db.execute("""
+                            SELECT * FROM pm.leaseTenants lt
+                            LEFT JOIN pm.applications a
+                            ON lt.linked_tenant_id = a.tenant_id
+                            LEFT JOIN  pm.tenantProfileInfo t 
+                            ON lt.linked_tenant_id = t.tenant_id 
+                            WHERE lt.linked_rental_uid = \'""" + application['rental_uid'] + """\'
+                            AND a.property_uid = \'""" + application['rental_property_id'] + """\'""")
+
+                            application['applicant_info'] = (
+                                leaseTenants['result'])
+                        else:
+                            leaseTenants = db.execute("""
+                            SELECT * FROM pm.tenantProfileInfo t 
+                            LEFT JOIN pm.applications a
+                            ON t.tenant_id = a.tenant_id
+                            WHERE t.tenant_id = \'""" + application['tenant_id'] + """\'""")
+                            print(leaseTenants['result'])
+                            application['applicant_info'] = (
+                                leaseTenants['result'])
             else:
                 cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
                 tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid LEFT JOIN pm.businesses b ON b.business_uid = pM.linked_business_id'

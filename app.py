@@ -402,20 +402,20 @@ class Announcement(Resource):
                         if len(res['receiver_properties']) > 0:
                             for prop in json.loads(res['receiver_properties']):
                                 print(prop)
-                                tenantResponse = db.execute("""SELECT tenant_id,
-                                                                t.tenant_first_name,
-                                                                t.tenant_last_name,
-                                                                t.tenant_email,
-                                                                t.tenant_phone_number, p.*
-                                                                FROM pm.tenantProfileInfo t
-                                                                LEFT JOIN leaseTenants lt
-                                                                ON t.tenant_id = lt.linked_tenant_id
-                                                                LEFT JOIN rentals r
-                                                                ON lt.linked_rental_uid = r.rental_uid
-                                                                LEFT JOIN properties p
-                                                                ON r.rental_property_id = p.property_uid
-                                                                WHERE
-                                                                tenant_id LIKE '%""" + filterValue + """%' AND p.property_uid = \'""" + prop + """\' ; """)
+                                tenantResponse = db.execute("""
+                                SELECT tenant_id,
+                                t.tenant_first_name,
+                                t.tenant_last_name,
+                                t.tenant_email,
+                                t.tenant_phone_number, p.*
+                                FROM pm.tenantProfileInfo t
+                                LEFT JOIN pm.leaseTenants lt
+                                ON t.tenant_id = lt.linked_tenant_id
+                                LEFT JOIN pm.rentals r
+                                ON lt.linked_rental_uid = r.rental_uid
+                                LEFT JOIN pm.properties p
+                                ON r.rental_property_id = p.property_uid
+                                WHERE t.tenant_id LIKE '%""" + filterValue + """%' AND p.property_uid = \'""" + prop + """\' ; """)
                                 print(tenantResponse)
                                 if(len(tenantResponse['result'])) > 0:
                                     tenantInfo.append(
@@ -446,20 +446,20 @@ class Announcement(Resource):
                                     if len(json.loads(res['receiver_properties'])) > 0:
                                         for prop in json.loads(res['receiver_properties']):
                                             print(prop)
-                                            tenantResponse = db.execute("""SELECT tenant_id, 
-                                                                            t.tenant_first_name,
-                                                                            t.tenant_last_name,
-                                                                            t.tenant_email,
-                                                                            t.tenant_phone_number, p.*
-                                                                            FROM pm.tenantProfileInfo t
-                                                                            LEFT JOIN leaseTenants lt
-                                                                            ON t.tenant_id = lt.linked_tenant_id
-                                                                            LEFT JOIN rentals r
-                                                                            ON lt.linked_rental_uid = r.rental_uid
-                                                                            LEFT JOIN properties p
-                                                                            ON r.rental_property_id = p.property_uid
-                                                                            WHERE
-                                                                            tenant_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
+                                            tenantResponse = db.execute("""
+                                            SELECT tenant_id, 
+                                            t.tenant_first_name,
+                                            t.tenant_last_name,
+                                            t.tenant_email,
+                                            t.tenant_phone_number, p.*
+                                            FROM pm.tenantProfileInfo t
+                                            LEFT JOIN leaseTenants lt
+                                            ON t.tenant_id = lt.linked_tenant_id
+                                            LEFT JOIN rentals r
+                                            ON lt.linked_rental_uid = r.rental_uid
+                                            LEFT JOIN properties p
+                                            ON r.rental_property_id = p.property_uid
+                                            WHERE tenant_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
                                             print(tenantResponse)
                                             if(len(tenantResponse['result'])) > 0:
                                                 tenantInfo.append(
@@ -474,19 +474,20 @@ class Announcement(Resource):
                             if len(json.loads(res['receiver_properties'])) > 0:
                                 for prop in json.loads(res['receiver_properties']):
                                     print(prop)
-                                    tenantResponse = db.execute("""SELECT tenant_id, 
-                                                                    t.tenant_first_name,
-                                                                    t.tenant_last_name,
-                                                                    t.tenant_email,
-                                                                    t.tenant_phone_number, p.*
-                                                                    FROM pm.tenantProfileInfo t
-                                                                    LEFT JOIN leaseTenants lt
-                                                                    ON t.tenant_id = lt.linked_tenant_id
-                                                                    LEFT JOIN rentals r
-                                                                    ON lt.linked_rental_uid = r.rental_uid
-                                                                    LEFT JOIN properties p
-                                                                    ON r.rental_property_id = p.property_uid
-                                                                    WHERE p.property_uid = \'""" + prop + """\' ; """)
+                                    tenantResponse = db.execute("""
+                                    SELECT tenant_id, 
+                                    t.tenant_first_name,
+                                    t.tenant_last_name,
+                                    t.tenant_email,
+                                    t.tenant_phone_number, p.*
+                                    FROM pm.tenantProfileInfo t
+                                    LEFT JOIN leaseTenants lt
+                                    ON t.tenant_id = lt.linked_tenant_id
+                                    LEFT JOIN rentals r
+                                    ON lt.linked_rental_uid = r.rental_uid
+                                    LEFT JOIN properties p
+                                    ON r.rental_property_id = p.property_uid
+                                    WHERE p.property_uid = \'""" + prop + """\' ; """)
                                     print(tenantResponse['result'])
                                     if(len(tenantResponse['result'])) > 0:
                                         for tenant in tenantResponse['result']:
@@ -524,14 +525,15 @@ class Announcement(Resource):
             if len(data['receiver']) > 0:
                 for info in data['receiver']:
                     print(info)
-                    tenantResponse = db.execute("""SELECT tenant_id, 
-                                                    tenant_first_name,
-                                                    tenant_last_name,
-                                                    tenant_email,
-                                                    tenant_phone_number
-                                                    FROM pm.tenantProfileInfo
-                                                    WHERE
-                                                    tenant_id =  \'""" + info + """\'; """)
+                    tenantResponse = db.execute("""
+                    SELECT tenant_id, 
+                    tenant_first_name,
+                    tenant_last_name,
+                    tenant_email,
+                    tenant_phone_number
+                    FROM pm.tenantProfileInfo
+                    WHERE
+                    tenant_id =  \'""" + info + """\'; """)
                     tenant_pno.append(
                         tenantResponse['result'][0]['tenant_phone_number'])
                     tenant_email.append(
@@ -584,6 +586,19 @@ class SendAnnouncement(Resource):
             Send_Twilio_SMS2(
                 text_msg, tenant_pno[e])
         return 'Email and Text Sent'
+
+
+class RequestMorePictures(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            request_pk = {
+                'maintenance_request_uid': data['maintenance_request_uid']
+            }
+            response = db.update(
+                'maintenanceRequests', request_pk, data)
+        return response
 
 
 # applepay
@@ -713,6 +728,7 @@ api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
 api.add_resource(MessageEmail, '/message')
 api.add_resource(Announcement, '/announcement')
+api.add_resource(RequestMorePictures, '/RequestMorePictures')
 
 
 if __name__ == '__main__':
