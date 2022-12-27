@@ -252,6 +252,29 @@ class ManagerContractFees_CLASS(Resource):
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date
                                         )
+                            elif payment['frequency'] == 'Move-Out Charge':
+                                print(
+                                    'payment fee purchase_type Move-Out Charge ')
+                                if today == end_date:
+                                    charge_date = start_date + \
+                                        relativedelta(months=12)
+                                    charge_month = charge_date.strftime('%B')
+                                    print('enter the fee to purchases')
+
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=json.dumps(
+                                            [contract['property_uid']]),
+                                        payer=payer,
+                                        receiver=contract['business_uid'],
+                                        purchase_type='MANAGEMENT',
+                                        description=payment['fee_name'],
+                                        amount_due=payment['charge'],
+                                        purchase_notes=charge_month,
+                                        purchase_date=today,
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=charge_date
+                                    )
                             else:
                                 print('payment frequency one-time $')
 
@@ -465,6 +488,30 @@ def ManagerContractFees():
                                         purchase_frequency=payment['frequency'],
                                         next_payment=charge_date
                                     )
+                        elif payment['frequency'] == 'Move-Out Charge':
+                            print(
+                                'payment fee purchase_type Move-Out Charge ')
+                            if today == end_date:
+                                charge_date = start_date + \
+                                    relativedelta(months=12)
+                                charge_month = charge_date.strftime('%B')
+                                print('enter the fee to purchases')
+
+                                purchaseResponse = newPurchase(
+                                    linked_bill_id=None,
+                                    pur_property_id=json.dumps(
+                                        [contract['property_uid']]),
+                                    payer=payer,
+                                    receiver=contract['business_uid'],
+                                    purchase_type='MANAGEMENT',
+                                    description=payment['fee_name'],
+                                    amount_due=payment['charge'],
+                                    purchase_notes=charge_month,
+                                    purchase_date=today,
+                                    purchase_frequency=payment['frequency'],
+                                    next_payment=charge_date
+                                )
+
                         else:
                             print('payment frequency one-time $')
 

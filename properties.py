@@ -327,8 +327,28 @@ class Properties(Resource):
                                             purchase_frequency=payment['frequency'],
                                             next_payment=charge_date
                                         )
+                                    elif payment['frequency'] == 'Move-in Charge':
+                                        print('payment frequency one-time $')
+                                        charge_date = date.fromisoformat(
+                                            contract['start_date'])
+                                        charge_month = charge_date.strftime(
+                                            '%B')
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [contract['property_uid']]),
+                                            payer=payer,
+                                            receiver=contract['owner_id'],
+                                            purchase_type='MANAGEMENT',
+                                            description=payment['fee_name'],
+                                            amount_due=-int(payment['charge']),
+                                            purchase_notes=charge_month,
+                                            purchase_date=today,
+                                            purchase_frequency=payment['frequency'],
+                                            next_payment=charge_date
+                                        )
 
-                                    else:
+                                    elif payment['frequency'] == 'One-time':
                                         print('payment frequency one-time $')
                                         charge_date = date.fromisoformat(
                                             contract['start_date'])
