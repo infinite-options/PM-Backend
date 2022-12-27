@@ -43,10 +43,11 @@ class Appliances(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            print(data)
+            print('data', data)
             property_uid = data.get('property_uid')
+            print('property_uid', property_uid)
             appliances = eval(data.get('appliances'))
-            print(appliances)
+            print('appliances', appliances)
             images = []
             i = -1
             imageFiles = {}

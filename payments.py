@@ -85,8 +85,13 @@ class OwnerPayments(Resource):
                 if filterValue is not None:
                     where[filter] = filterValue
                 response = db.execute("""
-                    SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
-                    WHERE p2.payer LIKE '%""" + filterValue + """%'
+                    SELECT * FROM pm.purchases pu 
+                    LEFT JOIN pm.payments pa
+                    ON pa.pay_purchase_id = pu.purchase_uid
+                    LEFT JOIN pm.properties pr
+                    ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+                    WHERE pu.payer LIKE '%""" + filterValue + """%'
+                    AND pr.owner_id = \'""" + filterValue + """\'
                 """)
                 # response = db.execute(sql, args)
         return response
