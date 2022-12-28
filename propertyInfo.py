@@ -172,14 +172,15 @@ class PropertiesManagerDetail(Resource):
                         pid = {'linked_property_id': property_id}
                         owner_id = response['result'][i]['owner_id']
                         # owner info for the property
-                        owner_res = db.execute("""SELECT
-                                                    o.owner_id AS owner_id,
-                                                    o.owner_first_name AS owner_first_name,
-                                                    o.owner_last_name AS owner_last_name,
-                                                    o.owner_email AS owner_email ,
-                                                    o.owner_phone_number AS owner_phone_number
-                                                    FROM pm.ownerProfileInfo o
-                                                    WHERE o.owner_id = \'""" + owner_id + """\'""")
+                        owner_res = db.execute("""
+                        SELECT
+                        o.owner_id AS owner_id,
+                        o.owner_first_name AS owner_first_name,
+                        o.owner_last_name AS owner_last_name,
+                        o.owner_email AS owner_email ,
+                        o.owner_phone_number AS owner_phone_number
+                        FROM pm.ownerProfileInfo o
+                        WHERE o.owner_id = \'""" + owner_id + """\'""")
                         response['result'][i]['owner'] = list(
                             owner_res['result'])
                         application_res = db.execute("""SELECT
@@ -310,9 +311,33 @@ class PropertiesManagerDetail(Resource):
                         GROUP BY lt.linked_rental_uid""")
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
+                        response['result'][i]['rent_paid'] = ''
                         if len(rental_res['result']) > 0:
                             response['result'][i]['rental_status'] = rental_res['result'][0]['rental_status']
+                            if len(rental_res['result'][0]['tenant_id'].split(',')) > 0:
+                                print('in if')
+                                for r in rental_res['result'][0]['tenant_id'].split(','):
+                                    rentPayment = db.execute("""
+                                    SELECT * FROM pm.purchases pur
+                                    WHERE (DATE_FORMAT(pur.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pur.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pur.next_payment) = YEAR(now()))
+                                    AND pur.payer  LIKE '%""" + r + """%'
+                                    AND pur.purchase_type= "RENT"
+                                    AND pur.pur_property_id LIKE '%""" + property_id + """%'
+                                    """)
+                                    if len(rentPayment['result']) > 0:
+                                        response['result'][i]['rent_paid'] = rentPayment['result'][0]['purchase_status']
+                            else:
+                                rentPayment = db.execute("""
+                                SELECT * FROM pm.purchases pur
+                                WHERE (DATE_FORMAT(pur.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pur.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pur.next_payment) = YEAR(now()))
+                                AND  pur.payer  LIKE '%""" + rental_res['result'][0]['tenant_id'] + """%'
+                                AND pur.purchase_type= "RENT"
+                                AND pur.pur_property_id LIKE '%""" + property_id + """%'
+                                """)
+                                if len(rentPayment['result']) > 0:
+                                    response['result'][i]['rent_paid'] = rentPayment['result'][0]['purchase_status']
                         else:
                             response['result'][i]['rental_status'] = ""
+                            response['result'][i]['rent_paid'] = ""
 
         return response

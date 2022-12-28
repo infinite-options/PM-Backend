@@ -56,6 +56,32 @@ class Payments(Resource):
             updatePurchase(linkedPurchase)
         return response
 
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            fields = [
+                'pay_purchase_id',
+                'amount',
+                'payment_notes',
+                'charge_id',
+                'payment_type',
+                'payment_verify'
+            ]
+            paymentInfo = {}
+            print(data)
+            for field in fields:
+                fieldValue = data.get(field)
+                if fieldValue:
+                    paymentInfo[field] = fieldValue
+            print(paymentInfo)
+            primaryKey = {'payment_uid': data['payment_uid']}
+
+            response = db.update('payments',
+                                 primaryKey, paymentInfo)
+
+        return response
+
 
 class UserPayments(Resource):
     decorators = [jwt_required()]
@@ -116,6 +142,7 @@ class ManagerPayments(Resource):
                     LEFT JOIN pm.properties pr
                     ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
                     WHERE pu.payer LIKE '%""" + filterValue + """%'
+                    OR pu.receiver =  \'""" + filterValue + """\'
                 """)
                 # response = db.execute(sql, args)
         return response

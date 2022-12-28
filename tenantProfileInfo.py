@@ -48,7 +48,7 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             data = request.form
             fields = ['tenant_first_name', 'tenant_last_name', 'tenant_phone_number', 'tenant_email', 'tenant_ssn', 'tenant_current_salary', 'tenant_salary_frequency', 'tenant_current_job_title',
-                      'tenant_current_job_company', 'tenant_drivers_license_number', 'tenant_drivers_license_state', 'tenant_current_address', 'tenant_previous_address']
+                      'tenant_current_job_company', 'tenant_drivers_license_number', 'tenant_drivers_license_state', 'tenant_current_address', 'tenant_previous_address', 'tenant_adult_occupants', 'tenant_children_occupants', 'tenant_pet_occupants', 'tenant_vehicle_info', 'tenant_references']
             newProfileInfo = {'tenant_id': user['user_uid']}
             for field in fields:
                 fieldValue = data.get(field)
@@ -91,7 +91,7 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             data = request.form
             fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address']
+                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address', 'adult_occupants', 'children_occupants', 'pet_occupants', 'vehicle_info', 'references']
             newProfileInfo = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -138,7 +138,7 @@ class TenantDetails(Resource):
                     LEFT JOIN pm.tenantProfileInfo tpi
                     ON tpi.tenant_id = lt.linked_tenant_id
                     WHERE tpi.tenant_id = \'""" + filterValue + """\'
-                    AND r.rental_status = 'ACTIVE'
+                    AND (r.rental_status = 'ACTIVE' OR r.rental_status='PROCESSING')
                 """)
                 if len(response['result']) > 0:
                     for i in range(len(response['result'])):
