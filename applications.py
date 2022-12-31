@@ -70,7 +70,7 @@ class Applications(Resource):
                 print('here', where['property_uid'], where)
 
                 response = db.execute("""
-                SELECT a.application_uid,application_date, a.message, a.application_status,a.adult_occupants,a.children_occupants, a.num_pets, a.type_pets, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT a.application_uid,application_date, a.message, a.application_status,a.adults,a.children, a.pets, a.vehicles, a.references, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 pm.applications a 
                 LEFT JOIN pm.tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
@@ -112,7 +112,7 @@ class Applications(Resource):
                                 leaseTenants['result'])
             elif 'tenant_id' in where:
                 response = db.execute("""
-                SELECT application_uid, message,application_date, application_status,a.adult_occupants,a.children_occupants,  a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT application_uid, message,application_date, application_status,a.adults,a.children,  a.pets, a.vehicles, a.references,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 applications a 
                 LEFT JOIN tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
@@ -152,7 +152,7 @@ class Applications(Resource):
                             application['applicant_info'] = (
                                 leaseTenants['result'])
             else:
-                cols = 'application_uid, message, application_status,a.adult_occupants,a.children_occupants, a.num_pets, a.type_pets,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
+                cols = 'application_uid, message, application_status,a.adults,a.children, a.pets, a.vehicles, a.references,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
                 tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid LEFT JOIN pm.businesses b ON b.business_uid = pM.linked_business_id'
                 response = db.select(cols=cols, tables=tables, where=where)
         return response
@@ -165,7 +165,7 @@ class Applications(Resource):
             if not user:
                 return 401, response
             fields = ['property_uid', 'message',
-                      'adult_occupants', 'children_occupants', 'num_pets', 'type_pets', 'documents']
+                      'adults', 'children', 'pets', 'vehicles', 'references', 'documents']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -173,12 +173,30 @@ class Applications(Resource):
                     newApplication[field] = fieldValue
             newApplicationID = db.call('new_application_id')[
                 'result'][0]['new_id']
+
             newApplication['application_uid'] = newApplicationID
+            adults = (data.get('adults'))
+            if len(adults) > 0:
+                newApplication['adults'] = json.dumps(adults)
+            children = (data.get('children'))
+            if len(children) > 0:
+                newApplication['children'] = json.dumps(children)
+            pets = (data.get('pets'))
+            if len(pets) > 0:
+                newApplication['pets'] = json.dumps(pets)
+            vehicles = (data.get('vehicles'))
+            if len(vehicles) > 0:
+                newApplication['vehicles'] = json.dumps(vehicles)
+            references = (data.get('references'))
+            if len(references) > 0:
+                newApplication['references'] = json.dumps(references)
             documents = (data.get('documents'))
             newApplication['documents'] = json.dumps(documents)
-            print('newApplication', newApplication)
+
+            print('newApplication 1', newApplication)
             newApplication['tenant_id'] = user['user_uid']
             newApplication['application_status'] = 'NEW'
+            print('newApplication 2', newApplication)
             response = db.insert('applications', newApplication)
         return response
 
@@ -188,7 +206,7 @@ class Applications(Resource):
             data = request.json
             application_uid = data.get('application_uid')
             fields = ['message', 'application_status',
-                      'property_uid', 'adult_occupants', 'children_occupants', 'num_pets', 'type_pets', "application_uid", "documents"]
+                      'property_uid', 'adults', 'children', 'pets', 'vehicles', "references", "application_uid", "documents"]
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)

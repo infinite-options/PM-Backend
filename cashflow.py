@@ -1381,7 +1381,7 @@ class OwnerCashflow(Resource):
             WHERE pr.owner_id = \'""" + filterValue + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
-            AND pu.receiver LIKE '%""" + filterValue + """%' """)
+            AND pu.payer LIKE '%""" + filterValue + """%' """)
             response['result']['owner_utility_expense_individual'] = (list(
                 owner_utility_expense_individual['result']))
             # response['result']['owner_utility_expense'] = (
@@ -4293,7 +4293,7 @@ class OwnerCashflowProperty(Resource):
             AND  pr.owner_id = \'""" + filterValue2 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
             AND (pu.purchase_type="UTILITY")
-            AND pu.receiver LIKE '%""" + filterValue2 + """%' """)
+            AND pu.payer LIKE '%""" + filterValue2 + """%' """)
             response['result']['owner_utility_expense_individual'] = (list(
                 owner_utility_expense_individual['result']))
             # response['result']['owner_utility_expense'] = (

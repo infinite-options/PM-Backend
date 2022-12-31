@@ -50,15 +50,16 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants', 'num_pets', 'type_pets']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adults', 'children', 'pets', 'vehicles', 'referred']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
 
             newRentalID = db.call('new_rental_id')['result'][0]['new_id']
             newRental['rental_uid'] = newRentalID
-            # newRental['rental_status'] = 'ACTIVE'
 
+            # newRental['rental_status'] = 'ACTIVE'
+            print('newRental', newRental)
             documents = json.loads(data.get('documents'))
             for i in range(len(documents)):
                 filename = f'doc_{i}'
@@ -72,7 +73,9 @@ class Rentals(Resource):
             newRental['documents'] = json.dumps(documents)
             print('newRental', newRental)
             response = db.insert('rentals', newRental)
+            print(response)
             # adding leaseTenants
+
             tenants = data.get('tenant_id')
             print('tenants1', tenants)
             if '[' in tenants:
@@ -101,7 +104,7 @@ class Rentals(Resource):
             data = request.form
             rental_uid = data.get('rental_uid')
             fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'num_pets', 'type_pets', 'adult_occupants', 'children_occupants']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children']
             newRental = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -176,7 +179,7 @@ class ExtendLease(Resource):
         with connect() as db:
             data = request.form
             fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adult_occupants', 'children_occupants']
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'adults', 'children']
             newRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
