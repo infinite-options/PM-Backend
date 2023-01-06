@@ -1,4 +1,37 @@
 
+from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
+from tenantProperties import TenantProperties
+from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenantDetail
+from socialLogin import UserSocialLogin, UserSocialSignup
+from security import createSalt, createHash
+from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
+    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFee, LateFee, LateFeeExtraCharges, PerDay_LateFeeExtraCharges, ExtendLeaseCRON, LeasetoMonth
+from refresh import Refresh
+from purchases import Purchases, CreateExpenses
+from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
+from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
+from ownerProfileInfo import OwnerProfileInfo
+from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
+from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
+from managerCashflows import ManagerCashflow, ManagerCashflowProperty
+from maintenanceQuotes import MaintenanceQuotes
+from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
+from leaseTenants import LeaseTenants
+from employees import Employees
+from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
+from data import connect
+from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
+from contracts import Contracts
+from contact import Contact
+from cashflow import OwnerCashflow, OwnerCashflowProperty
+from businessProfileInfo import BusinessProfileInfo
+from businesses import Businesses
+from bills import Bills
+from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
+from appliances import Appliances, RemoveAppliance
+from applepay import ApplePay
 from twilio.rest import Client
 from flask import Flask
 from flask_restful import Api
@@ -11,44 +44,12 @@ from flask_restful import Resource
 import os
 import stripe
 import json
-
+import string
+import random
 from datetime import date, timedelta, datetime
 import calendar
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
-
-from applepay import ApplePay
-from appliances import Appliances, RemoveAppliance
-from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
-from bills import Bills
-from businesses import Businesses
-from businessProfileInfo import BusinessProfileInfo
-from cashflow import OwnerCashflow, OwnerCashflowProperty
-from contact import Contact
-from contracts import Contracts
-from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
-from data import connect
-from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
-from employees import Employees
-from leaseTenants import LeaseTenants
-from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
-from maintenanceQuotes import MaintenanceQuotes
-from managerCashflows import ManagerCashflow, ManagerCashflowProperty
-from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
-from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
-from ownerProfileInfo import OwnerProfileInfo
-from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
-from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
-from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
-from purchases import Purchases, CreateExpenses
-from refresh import Refresh
-from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
-    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFee, LateFee, LateFeeExtraCharges, PerDay_LateFeeExtraCharges, ExtendLeaseCRON, LeasetoMonth
-from socialLogin import UserSocialLogin, UserSocialSignup
-from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenantDetail
-from tenantProperties import TenantProperties
-from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 
 app = Flask(__name__)
 
@@ -302,6 +303,83 @@ class SignUpForm(Resource):
             # mail.send(msg)
             sendEmail(recipient, subject, body)
             print('sending')
+
+        return response
+
+
+class set_temp_password(Resource):
+    def get_random_string(self, stringLength=8):
+        lettersAndDigits = string.ascii_letters + string.digits
+        return "".join([random.choice(lettersAndDigits) for i in range(stringLength)])
+
+    def post(self):
+        response = {}
+        with connect() as db:
+            data = request.get_json(force=True)
+            email = data['email']
+
+            user_lookup = db.execute("""
+            SELECT * FROM pm.users
+            WHERE email =\'""" + email + """\';""")
+
+            if not user_lookup['result']:
+                user_lookup['message'] = 'No such email exists'
+                return user_lookup
+
+            user_uid = {'user_uid': user_lookup['result'][0]['user_uid']}
+            print('user', user_uid)
+            pass_temp = self.get_random_string()
+            passwordSalt = createSalt()
+            passwordHash = createHash(pass_temp, passwordSalt)
+            passwordSet = {
+                'password_hash': passwordHash,
+                'password_salt': passwordSalt
+            }
+
+            query_result = db.update('users', user_uid, passwordSet)
+
+            msg = Message("Email Verification", sender=app.config["MAIL_USERNAME"],
+                          recipients=[email], bcc=app.config["MAIL_USERNAME"])
+            msg.body = "Your temporary password is {}. Please use it to reset your password".format(
+                pass_temp)
+
+            mail.send(msg)
+            response['message'] = "A temporary password has been sent"
+        return response
+
+
+class update_email_password(Resource):
+    def post(self):
+        response = {}
+        with connect() as db:
+            conn = connect()
+            data = request.get_json(force=True)
+
+            response = db.execute("""
+            SELECT *
+            FROM pm.users 
+            WHERE user_uid = \'""" + data['user_uid'] + """\'
+            """)
+
+            if not response['result']:
+
+                response['message'] = "User UID doesn't exists"
+                response['result'] = response['result']
+                response['code'] = 404
+                return response
+
+            salt = createSalt()
+            password = createHash(data['password'], salt)
+
+            passwordSet = {
+                'email': data['email'],
+                'password_hash': password,
+                'password_salt': salt
+            }
+            user_uid = {'user_uid': data['user_uid']}
+            response = db.update('users', user_uid, passwordSet)
+
+            response['message'] = 'User email and password updated successfully'
 
         return response
 
@@ -2097,6 +2175,7 @@ api.add_resource(Announcement, '/announcement')
 api.add_resource(RequestMorePictures, '/RequestMorePictures')
 api.add_resource(TenantEmailNotifications_CLASS,
                  '/TenantEmailNotifications_CLASS')
-
+api.add_resource(set_temp_password, "/set_temp_password")
+api.add_resource(update_email_password, '/update_email_password')
 if __name__ == '__main__':
     app.run(debug=True)
