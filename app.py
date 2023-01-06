@@ -12,9 +12,14 @@ import os
 import stripe
 import json
 
+from datetime import date, timedelta, datetime
+import calendar
+from calendar import monthrange
+from dateutil.relativedelta import relativedelta
+
 from applepay import ApplePay
 from appliances import Appliances, RemoveAppliance
-from applications import Applications, EndEarly,  TenantRentalEnd_CLASS
+from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
 from bills import Bills
 from businesses import Businesses
 from businessProfileInfo import BusinessProfileInfo
@@ -30,16 +35,16 @@ from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuote
 from maintenanceQuotes import MaintenanceQuotes
 from managerCashflows import ManagerCashflow, ManagerCashflowProperty
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
-from managerProperties import ManagerProperties, ManagerContractFees_CLASS
+from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
 from ownerProfileInfo import OwnerProfileInfo
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
 from purchases import Purchases, CreateExpenses
 from refresh import Refresh
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
-    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS
+    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFee, LateFee, LateFeeExtraCharges, PerDay_LateFeeExtraCharges, ExtendLeaseCRON, LeasetoMonth
 from socialLogin import UserSocialLogin, UserSocialSignup
 from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenantDetail
 from tenantProperties import TenantProperties
@@ -97,6 +102,28 @@ def sendEmail(recipient, subject, body):
             body=body
         )
         mail.send(msg)
+
+
+def diff_month(d1, d2):
+    return (d1.year - d2.year) * 12 + d1.month - d2.month
+
+
+def days_in_month(dt): return monthrange(
+    dt.year, dt.month)[1]
+
+
+def next_weekday(d, weekday):
+    days_ahead = weekday - d.weekday()
+    if days_ahead <= 0:  # Target day already happened this week
+        days_ahead += 7
+    return d + timedelta(days_ahead)
+
+
+def next_weekday_biweekly(d, weekday):
+    days_ahead = weekday - d.weekday()
+    if days_ahead <= 0:  # Target day already happened this week
+        days_ahead += 14
+    return d + timedelta(days_ahead)
 
 
 class stripe_key(Resource):
@@ -447,7 +474,7 @@ class Announcement(Resource):
                                         for prop in json.loads(res['receiver_properties']):
                                             print(prop)
                                             tenantResponse = db.execute("""
-                                            SELECT tenant_id, 
+                                            SELECT tenant_id,
                                             t.tenant_first_name,
                                             t.tenant_last_name,
                                             t.tenant_email,
@@ -475,7 +502,7 @@ class Announcement(Resource):
                                 for prop in json.loads(res['receiver_properties']):
                                     print(prop)
                                     tenantResponse = db.execute("""
-                                    SELECT tenant_id, 
+                                    SELECT tenant_id,
                                     t.tenant_first_name,
                                     t.tenant_last_name,
                                     t.tenant_email,
@@ -526,7 +553,7 @@ class Announcement(Resource):
                 for info in data['receiver']:
                     print(info)
                     tenantResponse = db.execute("""
-                    SELECT tenant_id, 
+                    SELECT tenant_id,
                     tenant_first_name,
                     tenant_last_name,
                     tenant_email,
@@ -598,6 +625,1345 @@ class RequestMorePictures(Resource):
             }
             response = db.update(
                 'maintenanceRequests', request_pk, data)
+        return response
+
+
+class TenantEmailNotifications_CLASS(Resource):
+
+    def get(self):
+        response = {}
+        with connect() as db:
+            payments = []
+            response = db.execute("""
+            SELECT r.*, prop.*, propM.*,
+            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`, GROUP_CONCAT(tpi.tenant_email) as 'tenant_emails'
+            FROM pm.rentals r
+            LEFT JOIN pm.properties prop
+            ON prop.property_uid = r.rental_property_id
+            LEFT JOIN pm.leaseTenants lt
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN pm.propertyManager propM
+            ON propM.linked_property_id = r.rental_property_id
+            LEFT JOIN pm.tenantProfileInfo tpi
+            ON tpi.tenant_id = lt.linked_tenant_id
+            WHERE r.rental_status = 'ACTIVE'
+            AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')
+            GROUP BY lt.linked_rental_uid;  """)
+
+            # getting all the previous rental payments
+            if len(response['result']) > 0:
+
+                for i in range(len(response['result'])):
+                    print(
+                        len((response['result'][i]['tenant_emails']).split(',')))
+                    purRes = db.execute("""
+                    SELECT * FROM purchases pur
+                    WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                    AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                    # print('purRes', purRes['result'])
+                    response['result'][i]['prevPurchases'] = list(
+                        purRes['result'])
+             # getting all the expenses and calculating the expense amount
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    response['result'][i]['expense_amount'] = 0
+                    purRes = db.execute("""
+                    SELECT * FROM purchases pur
+                    WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                    AND (pur.purchase_type = 'UTILITY' OR pur.purchase_type = 'MAINTENANCE' OR pur.purchase_type = 'REPAIRS') """)
+                    response['result'][i]['expenses'] = list(
+                        purRes['result'])
+                    if len(purRes['result']) > 0:
+                        for ore in range(len(purRes['result'])):
+                            response['result'][i]['expense_amount'] = response['result'][i]['expense_amount'] + int(
+                                purRes['result'][ore]['amount_due'])
+
+            if len(response['result']) > 0:
+                # today's date
+                today = date.today()
+                for lease in response['result']:
+                    # creating purchases
+                    tenantPayments = json.loads(lease['rent_payments'])
+                    payer = lease['tenants'].split(',')
+                    payer = json.dumps(payer)
+                    for payment in tenantPayments:
+                        # if fee_type is $, put the charge amount directly
+                        print(lease['property_uid'], payment)
+
+                        if(payment['fee_name'] == 'Rent'):
+                            print('payment fee purchase_type RENT')
+                            if payment['frequency'] == 'Weekly':
+                                print('payment frequency weekly $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # check if today's date is before lease end
+                                if today < lease_end:
+                                    # get previous purchases
+                                    if lease['prevPurchases'] != []:
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    # set charge date as friday of every week
+                                        due_date = next_weekday(
+                                            prevPurchaseDate,  int(payment['due_by']))
+                                        if len(payment['available_topay']) == 0:
+                                            charge_date = due_date
+                                        else:
+                                            charge_date = due_date - \
+                                                timedelta(
+                                                    days=int(payment['available_topay']))
+                                        charge_month = due_date.strftime(
+                                            '%B')
+                                        rent = int(payment['charge'])
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('here send email')
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        if due_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+
+                            elif payment['frequency'] == 'Biweekly':
+                                print('payment frequency biweekly $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # check if today's date is before lease end
+                                if today < lease_end:
+                                    # get previous purchases
+                                    if lease['prevPurchases'] != []:
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    # set charge date as friday of every 2 week
+                                        due_date = next_weekday_biweekly(
+                                            prevPurchaseDate,  int(payment['due_by']))
+                                        if len(payment['available_topay']) == 0:
+                                            charge_date = due_date
+                                        else:
+                                            charge_date = due_date - \
+                                                timedelta(
+                                                    days=int(payment['available_topay']))
+                                        charge_month = due_date.strftime(
+                                            '%B')
+                                        rent = int(payment['charge'])
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('here send email')
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        if due_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                            elif payment['frequency'] == 'Monthly':
+                                print('payment frequency monthly $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # check if today's date is before lease end
+                                if today < lease_end:
+                                    # get previous purchases
+                                    if lease['prevPurchases'] != []:
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+
+                                        due_date = prevPurchaseDate.replace(
+                                            day=int(payment['due_by'])) + relativedelta(months=1)
+
+                                        if len(payment['available_topay']) == 0:
+                                            charge_date = due_date
+
+                                        else:
+                                            charge_date = due_date - \
+                                                timedelta(
+                                                    days=int(payment['available_topay']))
+
+                                        charge_month = due_date.strftime(
+                                            '%B')
+
+                                        daily_charge_end = round(
+                                            int(payment['charge']) / days_in_month(lease_end), 2)
+                                        num_days_active_end = lease_end.day
+                                        prorated_charge_end = num_days_active_end * daily_charge_end
+                                        print('charge_date',
+                                              charge_date, due_date)
+                                        if charge_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+
+                                        elif lease_end.month == charge_date.month and lease_end.year == charge_date.year:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        if due_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        elif lease_end.month == due_date.month and lease_end.year == due_date.year:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = "Rent due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                            elif payment['frequency'] == 'Annually':
+                                print('payment frequency annually $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+
+                                diff = diff_month(lease_end, lease_start)
+
+                                if diff > 12 and today < lease_end:
+                                    print('lease longer than 1 year')
+                                    due_date = lease_start.replace(
+                                        day=int(payment['due_by'])) + relativedelta(months=12)
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    rent = int(payment['charge'])
+                                    # check if today's date == the charge date
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                            else:
+                                print('payment frequency one-time $')
+                        elif payment['frequency'] == 'Move-Out Charge':
+                            print(
+                                'payment fee purchase_type Move-Out Charge ')
+
+                            print('payment frequency one-time $')
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    charge_month = (
+                                        lease_end).strftime('%B')
+
+                                    due_date = lease_end
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                        elif payment['frequency'] == 'Move-in Charge':
+                            print(
+                                'payment fee purchase_type EXTRA CHARGES')
+                            print('skip')
+
+                        else:
+                            print(
+                                'payment fee purchase_type EXTRA CHARGES')
+                            if payment['frequency'] == 'Weekly':
+                                print('payment frequency weekly $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # check if today's date is before lease end
+                                if today < lease_end:
+                                    # get previous purchases
+                                    if lease['prevPurchases'] != []:
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    # set charge date as friday of every week
+                                        due_date = next_weekday(
+                                            prevPurchaseDate,  int(payment['due_by']))
+                                        if len(payment['available_topay']) == 0:
+                                            charge_date = due_date
+                                        else:
+                                            charge_date = due_date - \
+                                                timedelta(
+                                                    days=int(payment['available_topay']))
+                                        charge_month = due_date.strftime(
+                                            '%B')
+                                        print('due_date',
+                                              due_date, charge_month, charge_date)
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('here send email')
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = payment['description'] + \
+                                                    " available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your " +
+                                                    payment['description'] +
+                                                    " is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        if due_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = payment['description'] + \
+                                                    " due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" +
+                                                    "This email is to notify your " +
+                                                    payment['description'] +
+                                                    " is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                            elif payment['frequency'] == 'Biweekly':
+                                print('payment frequency biweekly $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # check if today's date is before lease end
+                                if today < lease_end:
+                                    # get previous purchases
+                                    if lease['prevPurchases'] != []:
+                                        if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    # set charge date as friday of every 2 week
+                                        due_date = next_weekday_biweekly(
+                                            prevPurchaseDate,  int(payment['due_by']))
+                                        if len(payment['available_topay']) == 0:
+                                            charge_date = due_date
+                                        else:
+                                            charge_date = due_date - \
+                                                timedelta(
+                                                    days=int(payment['available_topay']))
+                                        charge_month = due_date.strftime(
+                                            '%B')
+                                        print('due_date',
+                                              due_date, charge_month, charge_date)
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('here send email')
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = payment['description'] + \
+                                                    " available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your " +
+                                                    payment['description'] +
+                                                    " is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        if due_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = payment['description'] + \
+                                                    "due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your " +
+                                                    payment['description'] +
+                                                    " is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+
+                            elif payment['frequency'] == 'Monthly':
+                                print('payment frequency monthly $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # check if today's date is before lease end
+                                if today < lease_end:
+                                    # get previous purchases
+                                    if lease['prevPurchases'] != []:
+                                        for prev in lease['prevPurchases']:
+                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                                prevPurchaseDate = datetime.strptime(
+                                                    prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                        # set charge date as first of every month
+                                        due_date = prevPurchaseDate.replace(
+                                            day=int(payment['due_by'])) + relativedelta(months=1)
+                                        if len(payment['available_topay']) == 0:
+                                            charge_date = due_date
+                                        else:
+                                            charge_date = due_date - \
+                                                timedelta(
+                                                    days=int(payment['available_topay']))
+                                        charge_month = due_date.strftime(
+                                            '%B')
+                                        print('due_date',
+                                              due_date, charge_month, charge_date)
+                                        # if charge date == today then enter the monthly fee
+                                        if charge_date == today:
+                                            print('here send email')
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = payment['description'] + \
+                                                    " available to pay"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your " +
+                                                    payment['description'] +
+                                                    " is availablle to pay" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+                                        if due_date == today:
+                                            print(
+                                                'here send email', lease['tenant_emails'])
+                                            for e in range(len((lease['tenant_emails']).split(','))):
+                                                recipient = (
+                                                    lease['tenant_emails']).split(',')[e]
+                                                subject = payment['description'] + \
+                                                    " due today"
+                                                body = (
+                                                    "Hello " + "\n"
+                                                    "\n" + "This email is to notify your " +
+                                                    payment['description'] +
+                                                    " is due today" + "\n"
+                                                    "\n"
+                                                    "Thank you - Team Manifest MySpace"
+                                                )
+
+                                                sendEmail(
+                                                    recipient, subject, body)
+
+                            elif payment['frequency'] == 'Annually':
+                                print('payment frequency annually $')
+                                lease_start = date.fromisoformat(
+                                    lease['lease_start'])
+                                lease_end = date.fromisoformat(
+                                    lease['lease_end'])
+                                # calculate the lease length
+                                diff = diff_month(lease_end, lease_start)
+                                # check if lease is at least an year long and today's date is before the lease ends
+                                if diff > 12 and today < lease_end:
+                                    print('lease longer than 1 year')
+                                    # create a charge date for 1 year from start date
+                                    due_date = lease_start.replace(
+                                        day=int(payment['due_by'])) + relativedelta(months=12)
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    # check if today's date == the charge date
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                            else:
+                                print('payment frequency one-time $')
+
+        return response
+
+
+def TenantEmailNotifications(self):
+    print("In TenantEmailNotifications")
+
+    from datetime import date, timedelta, datetime
+    from dateutil.relativedelta import relativedelta
+
+    with connect() as db:
+        print("In TenantEmailNotifications")
+        response = {'message': 'Successfully committed SQL query',
+                    'code': 200}
+        payments = []
+        response = db.execute("""
+        SELECT r.*, prop.*, propM.*,
+        GROUP_CONCAT(lt.linked_tenant_id) as `tenants`, GROUP_CONCAT(tpi.tenant_email) as 'tenant_emails'
+        FROM pm.rentals r
+        LEFT JOIN pm.properties prop
+        ON prop.property_uid = r.rental_property_id
+        LEFT JOIN pm.leaseTenants lt
+        ON lt.linked_rental_uid = r.rental_uid
+        LEFT JOIN pm.propertyManager propM
+        ON propM.linked_property_id = r.rental_property_id
+        LEFT JOIN pm.tenantProfileInfo tpi
+        ON tpi.tenant_id = lt.linked_tenant_id
+        WHERE r.rental_status = 'ACTIVE'
+        AND (propM.management_status = 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')
+        GROUP BY lt.linked_rental_uid;  """)
+
+        # getting all the previous rental payments
+        if len(response['result']) > 0:
+
+            for i in range(len(response['result'])):
+                print(
+                    len((response['result'][i]['tenant_emails']).split(',')))
+                purRes = db.execute("""
+                SELECT * FROM purchases pur
+                WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
+                AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                # print('purRes', purRes['result'])
+                response['result'][i]['prevPurchases'] = list(
+                    purRes['result'])
+            # getting all the expenses and calculating the expense amount
+        if len(response['result']) > 0:
+            for i in range(len(response['result'])):
+                response['result'][i]['expense_amount'] = 0
+                purRes = db.execute("""
+                SELECT * FROM purchases pur
+                WHERE pur.pur_property_id= \'""" + response['result'][i]['property_uid'] + """\'
+                AND (pur.purchase_type = 'UTILITY' OR pur.purchase_type = 'MAINTENANCE' OR pur.purchase_type = 'REPAIRS') """)
+                response['result'][i]['expenses'] = list(
+                    purRes['result'])
+                if len(purRes['result']) > 0:
+                    for ore in range(len(purRes['result'])):
+                        response['result'][i]['expense_amount'] = response['result'][i]['expense_amount'] + int(
+                            purRes['result'][ore]['amount_due'])
+
+        if len(response['result']) > 0:
+            # today's date
+            today = date.today()
+            for lease in response['result']:
+                # creating purchases
+                tenantPayments = json.loads(lease['rent_payments'])
+                payer = lease['tenants'].split(',')
+                payer = json.dumps(payer)
+                for payment in tenantPayments:
+                    # if fee_type is $, put the charge amount directly
+                    print(lease['property_uid'], payment)
+
+                    if(payment['fee_name'] == 'Rent'):
+                        print('payment fee purchase_type RENT')
+                        if payment['frequency'] == 'Weekly':
+                            print('payment frequency weekly $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # check if today's date is before lease end
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                # set charge date as friday of every week
+                                    due_date = next_weekday(
+                                        prevPurchaseDate,  int(payment['due_by']))
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    rent = int(payment['charge'])
+                                    # if charge date == today then enter the monthly fee
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+
+                        elif payment['frequency'] == 'Biweekly':
+                            print('payment frequency biweekly $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # check if today's date is before lease end
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                # set charge date as friday of every 2 week
+                                    due_date = next_weekday_biweekly(
+                                        prevPurchaseDate,  int(payment['due_by']))
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    rent = int(payment['charge'])
+                                    # if charge date == today then enter the monthly fee
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                        elif payment['frequency'] == 'Monthly':
+                            print('payment frequency monthly $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # check if today's date is before lease end
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+
+                                    due_date = prevPurchaseDate.replace(
+                                        day=int(payment['due_by'])) + relativedelta(months=1)
+
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+
+                                    charge_month = due_date.strftime(
+                                        '%B')
+
+                                    daily_charge_end = round(
+                                        int(payment['charge']) / days_in_month(lease_end), 2)
+                                    num_days_active_end = lease_end.day
+                                    prorated_charge_end = num_days_active_end * daily_charge_end
+                                    print('charge_date',
+                                          charge_date, due_date)
+                                    if charge_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+
+                                    elif lease_end.month == charge_date.month and lease_end.year == charge_date.year:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    elif lease_end.month == due_date.month and lease_end.year == due_date.year:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = "Rent due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                        elif payment['frequency'] == 'Annually':
+                            print('payment frequency annually $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+
+                            diff = diff_month(lease_end, lease_start)
+
+                            if diff > 12 and today < lease_end:
+                                print('lease longer than 1 year')
+                                due_date = lease_start.replace(
+                                    day=int(payment['due_by'])) + relativedelta(months=12)
+                                if len(payment['available_topay']) == 0:
+                                    charge_date = due_date
+                                else:
+                                    charge_date = due_date - \
+                                        timedelta(
+                                            days=int(payment['available_topay']))
+                                charge_month = due_date.strftime(
+                                    '%B')
+                                rent = int(payment['charge'])
+                                # check if today's date == the charge date
+                                if charge_date == today:
+                                    print('here send email')
+                                    for e in range(len((lease['tenant_emails']).split(','))):
+                                        recipient = (
+                                            lease['tenant_emails']).split(',')[e]
+                                        subject = "Rent available to pay"
+                                        body = (
+                                            "Hello " + "\n"
+                                            "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                            "\n"
+                                            "Thank you - Team Manifest MySpace"
+                                        )
+
+                                        sendEmail(
+                                            recipient, subject, body)
+                                if due_date == today:
+                                    print(
+                                        'here send email', lease['tenant_emails'])
+                                    for e in range(len((lease['tenant_emails']).split(','))):
+                                        recipient = (
+                                            lease['tenant_emails']).split(',')[e]
+                                        subject = "Rent due today"
+                                        body = (
+                                            "Hello " + "\n"
+                                            "\n" + "This email is to notify your rent is due today" + "\n"
+                                            "\n"
+                                            "Thank you - Team Manifest MySpace"
+                                        )
+
+                                        sendEmail(
+                                            recipient, subject, body)
+                        else:
+                            print('payment frequency one-time $')
+                    elif payment['frequency'] == 'Move-Out Charge':
+                        print(
+                            'payment fee purchase_type Move-Out Charge ')
+
+                        print('payment frequency one-time $')
+                        if today < lease_end:
+                            # get previous purchases
+                            if lease['prevPurchases'] != []:
+                                for prev in lease['prevPurchases']:
+                                    if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                        prevPurchaseDate = datetime.strptime(
+                                            prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                charge_month = (
+                                    lease_end).strftime('%B')
+
+                                due_date = lease_end
+                                if len(payment['available_topay']) == 0:
+                                    charge_date = due_date
+                                else:
+                                    charge_date = due_date - \
+                                        timedelta(
+                                            days=int(payment['available_topay']))
+                                if charge_date == today:
+                                    print('here send email')
+                                    for e in range(len((lease['tenant_emails']).split(','))):
+                                        recipient = (
+                                            lease['tenant_emails']).split(',')[e]
+                                        subject = payment['description'] + \
+                                            " available to pay"
+                                        body = (
+                                            "Hello " + "\n"
+                                            "\n" + "This email is to notify your " +
+                                            payment['description'] +
+                                            " is availablle to pay" + "\n"
+                                            "\n"
+                                            "Thank you - Team Manifest MySpace"
+                                        )
+
+                                        sendEmail(
+                                            recipient, subject, body)
+                                if due_date == today:
+                                    print(
+                                        'here send email', lease['tenant_emails'])
+                                    for e in range(len((lease['tenant_emails']).split(','))):
+                                        recipient = (
+                                            lease['tenant_emails']).split(',')[e]
+                                        subject = payment['description'] + \
+                                            " due today"
+                                        body = (
+                                            "Hello " + "\n"
+                                            "\n" + "This email is to notify your " +
+                                            payment['description'] +
+                                            " is due today" + "\n"
+                                            "\n"
+                                            "Thank you - Team Manifest MySpace"
+                                        )
+
+                                        sendEmail(
+                                            recipient, subject, body)
+                    elif payment['frequency'] == 'Move-in Charge':
+                        print(
+                            'payment fee purchase_type EXTRA CHARGES')
+                        print('skip')
+
+                    else:
+                        print(
+                            'payment fee purchase_type EXTRA CHARGES')
+                        if payment['frequency'] == 'Weekly':
+                            print('payment frequency weekly $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # check if today's date is before lease end
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                # set charge date as friday of every week
+                                    due_date = next_weekday(
+                                        prevPurchaseDate,  int(payment['due_by']))
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    print('due_date',
+                                          due_date, charge_month, charge_date)
+                                    # if charge date == today then enter the monthly fee
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" +
+                                                "This email is to notify your " +
+                                                payment['description'] +
+                                                " is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                        elif payment['frequency'] == 'Biweekly':
+                            print('payment frequency biweekly $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # check if today's date is before lease end
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                        prevPurchaseDate = datetime.strptime(
+                                            prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                # set charge date as friday of every 2 week
+                                    due_date = next_weekday_biweekly(
+                                        prevPurchaseDate,  int(payment['due_by']))
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    print('due_date',
+                                          due_date, charge_month, charge_date)
+                                    # if charge date == today then enter the monthly fee
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                "due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+
+                        elif payment['frequency'] == 'Monthly':
+                            print('payment frequency monthly $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # check if today's date is before lease end
+                            if today < lease_end:
+                                # get previous purchases
+                                if lease['prevPurchases'] != []:
+                                    for prev in lease['prevPurchases']:
+                                        if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                            prevPurchaseDate = datetime.strptime(
+                                                prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+                                    # set charge date as first of every month
+                                    due_date = prevPurchaseDate.replace(
+                                        day=int(payment['due_by'])) + relativedelta(months=1)
+                                    if len(payment['available_topay']) == 0:
+                                        charge_date = due_date
+                                    else:
+                                        charge_date = due_date - \
+                                            timedelta(
+                                                days=int(payment['available_topay']))
+                                    charge_month = due_date.strftime(
+                                        '%B')
+                                    print('due_date',
+                                          due_date, charge_month, charge_date)
+                                    # if charge date == today then enter the monthly fee
+                                    if charge_date == today:
+                                        print('here send email')
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " available to pay"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is availablle to pay" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+                                    if due_date == today:
+                                        print(
+                                            'here send email', lease['tenant_emails'])
+                                        for e in range(len((lease['tenant_emails']).split(','))):
+                                            recipient = (
+                                                lease['tenant_emails']).split(',')[e]
+                                            subject = payment['description'] + \
+                                                " due today"
+                                            body = (
+                                                "Hello " + "\n"
+                                                "\n" + "This email is to notify your " +
+                                                payment['description'] +
+                                                " is due today" + "\n"
+                                                "\n"
+                                                "Thank you - Team Manifest MySpace"
+                                            )
+
+                                            sendEmail(
+                                                recipient, subject, body)
+
+                        elif payment['frequency'] == 'Annually':
+                            print('payment frequency annually $')
+                            lease_start = date.fromisoformat(
+                                lease['lease_start'])
+                            lease_end = date.fromisoformat(
+                                lease['lease_end'])
+                            # calculate the lease length
+                            diff = diff_month(lease_end, lease_start)
+                            # check if lease is at least an year long and today's date is before the lease ends
+                            if diff > 12 and today < lease_end:
+                                print('lease longer than 1 year')
+                                # create a charge date for 1 year from start date
+                                due_date = lease_start.replace(
+                                    day=int(payment['due_by'])) + relativedelta(months=12)
+                                if len(payment['available_topay']) == 0:
+                                    charge_date = due_date
+                                else:
+                                    charge_date = due_date - \
+                                        timedelta(
+                                            days=int(payment['available_topay']))
+                                charge_month = due_date.strftime(
+                                    '%B')
+                                # check if today's date == the charge date
+                                if charge_date == today:
+                                    print('here send email')
+                                    for e in range(len((lease['tenant_emails']).split(','))):
+                                        recipient = (
+                                            lease['tenant_emails']).split(',')[e]
+                                        subject = payment['description'] + \
+                                            " available to pay"
+                                        body = (
+                                            "Hello " + "\n"
+                                            "\n" + "This email is to notify your " +
+                                            payment['description'] +
+                                            " is availablle to pay" + "\n"
+                                            "\n"
+                                            "Thank you - Team Manifest MySpace"
+                                        )
+
+                                        sendEmail(
+                                            recipient, subject, body)
+                                if due_date == today:
+                                    print(
+                                        'here send email', lease['tenant_emails'])
+                                    for e in range(len((lease['tenant_emails']).split(','))):
+                                        recipient = (
+                                            lease['tenant_emails']).split(',')[e]
+                                        subject = payment['description'] + \
+                                            " due today"
+                                        body = (
+                                            "Hello " + "\n"
+                                            "\n" + "This email is to notify your " +
+                                            payment['description'] +
+                                            " is due today" + "\n"
+                                            "\n"
+                                            "Thank you - Team Manifest MySpace"
+                                        )
+
+                                        sendEmail(
+                                            recipient, subject, body)
+                        else:
+                            print('payment frequency one-time $')
+
         return response
 
 
@@ -729,7 +2095,8 @@ api.add_resource(SignUpForm, '/signUpForm')
 api.add_resource(MessageEmail, '/message')
 api.add_resource(Announcement, '/announcement')
 api.add_resource(RequestMorePictures, '/RequestMorePictures')
-
+api.add_resource(TenantEmailNotifications_CLASS,
+                 '/TenantEmailNotifications_CLASS')
 
 if __name__ == '__main__':
     app.run(debug=True)
