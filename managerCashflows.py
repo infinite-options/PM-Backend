@@ -175,7 +175,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_rental_revenue = amortized_rental_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                         else:
 
@@ -183,7 +183,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_rental_revenue = amortized_rental_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'EXTRA CHARGES':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -207,13 +207,13 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_extra_revenue = amortized_extra_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
                         else:
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_extra_revenue = amortized_extra_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -236,13 +236,13 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_utility_revenue = amortized_utility_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
                         else:
                             utility_revenue = utility_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_utility_revenue = amortized_utility_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'MANAGEMENT':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -271,7 +271,7 @@ class ManagerCashflow(Resource):
                                     [ore]['amount_paid'])
                             amortized_management_revenue = amortized_management_revenue + \
                                 abs(int(response['result']['manager_revenue']
-                                    [ore]['amount_paid']))/(datetime.now().month-1)
+                                    [ore]['amount_paid']))/(datetime.now().month)
 
                         else:
                             management_revenue = management_revenue + \
@@ -279,7 +279,7 @@ class ManagerCashflow(Resource):
                                     [ore]['amount_paid'])
                             amortized_management_revenue = amortized_management_revenue + \
                                 abs(int(response['result']['manager_revenue']
-                                    [ore]['amount_paid']))/(datetime.now().month-1)
+                                    [ore]['amount_paid']))/(datetime.now().month)
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'MAINTENANCE':
                         # if maintenance monthly
                         # if maintenance monthly
@@ -653,7 +653,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if maintenance annually twice a year
                             elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
@@ -662,7 +662,7 @@ class ManagerCashflow(Resource):
                                         [ore]['amount_due'])
                                 amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -671,7 +671,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
                             amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
                                 (response['result']['manager_expected_revenue']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -706,7 +706,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if repairs annually twice a year
                             elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
@@ -716,7 +716,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
 
                             else:
                                 print('do nothing')
@@ -726,7 +726,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
                             amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
                                 (response['result']['manager_expected_revenue']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
@@ -1643,7 +1643,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if maintenance annually twice a year
                             elif response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -1652,7 +1652,7 @@ class ManagerCashflow(Resource):
                                         [ore]['amount_due'])
                                 amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -1661,7 +1661,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_expense'][ore]['amount_due']
                             amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
                                 (response['result']['manager_expected_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
                     # if management
                     if response['result']['manager_expected_expense'][ore]['purchase_type'] == 'OWNER PAYMENT':
@@ -1685,7 +1685,7 @@ class ManagerCashflow(Resource):
 
                             amortized_management_expected_expense = amortized_management_expected_expense +  \
                                 (response['result']['manager_expected_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                         # if management one-time
                         else:
@@ -1693,7 +1693,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_expense'][ore]['amount_due']
                             amortized_management_expected_expense = amortized_management_expected_expense +  \
                                 (response['result']['manager_expected_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -1728,7 +1728,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if repairs annually twice a year
                             elif response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -1738,7 +1738,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
 
                             else:
                                 print('do nothing')
@@ -1748,7 +1748,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_expense'][ore]['amount_due']
                             amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
                                 (response['result']['manager_expected_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
                     # if revenue type is UTILITY
                     if response['result']['manager_expected_expense'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_expected_expense'][ore]['purchase_frequency'] == 'Weekly':
@@ -2111,7 +2111,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if maintenance annually twice a year
                             elif response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -2120,7 +2120,7 @@ class ManagerCashflow(Resource):
                                         [ore]['amount_due'])
                                 amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -2129,7 +2129,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_year_expense'][ore]['amount_due']
                             amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
                                 (response['result']['manager_expected_year_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
                     # if management
                     if response['result']['manager_expected_year_expense'][ore]['purchase_type'] == 'OWNER PAYMENT':
@@ -2151,7 +2151,7 @@ class ManagerCashflow(Resource):
 
                             amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
                                 (response['result']['manager_expected_year_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                         # if management one-time
                         else:
@@ -2159,7 +2159,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_year_expense'][ore]['amount_due']
                             amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
                                 (response['result']['manager_expected_year_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_year_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -2194,7 +2194,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense +  \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if repairs annually twice a year
                             elif response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -2204,7 +2204,7 @@ class ManagerCashflow(Resource):
 
                                 amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense +  \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
 
                             else:
                                 print('do nothing')
@@ -2214,7 +2214,7 @@ class ManagerCashflow(Resource):
                                 response['result']['manager_expected_year_expense'][ore]['amount_due']
                             amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense +  \
                                 (response['result']['manager_expected_year_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
                     if response['result']['manager_expected_year_expense'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_expected_year_expense'][ore]['purchase_frequency'] == 'Weekly':
                             utility_year_expected_expense = utility_year_expected_expense + \
@@ -2450,7 +2450,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_rental_revenue = amortized_rental_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                         else:
 
@@ -2458,7 +2458,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_rental_revenue = amortized_rental_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'EXTRA CHARGES':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -2482,13 +2482,13 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_extra_revenue = amortized_extra_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
                         else:
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_extra_revenue = amortized_extra_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -2511,13 +2511,13 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_utility_revenue = amortized_utility_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
                         else:
                             utility_revenue = utility_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
                             amortized_utility_revenue = amortized_utility_revenue + \
                                 int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month-1)
+                                    [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'MANAGEMENT':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -2546,7 +2546,7 @@ class ManagerCashflowProperty(Resource):
                                     [ore]['amount_paid'])
                             amortized_management_revenue = amortized_management_revenue + \
                                 abs(int(response['result']['manager_revenue']
-                                    [ore]['amount_paid']))/(datetime.now().month-1)
+                                    [ore]['amount_paid']))/(datetime.now().month)
 
                         else:
                             management_revenue = management_revenue + \
@@ -2554,7 +2554,7 @@ class ManagerCashflowProperty(Resource):
                                     [ore]['amount_paid'])
                             amortized_management_revenue = amortized_management_revenue + \
                                 abs(int(response['result']['manager_revenue']
-                                    [ore]['amount_paid']))/(datetime.now().month-1)
+                                    [ore]['amount_paid']))/(datetime.now().month)
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'MAINTENANCE':
                         # if maintenance monthly
                         # if maintenance monthly
@@ -2931,7 +2931,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if maintenance annually twice a year
                             elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
@@ -2940,7 +2940,7 @@ class ManagerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -2949,7 +2949,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
                             amortized_maintenance_expected_revenue = amortized_maintenance_expected_revenue + \
                                 (response['result']['manager_expected_revenue']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -2984,7 +2984,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if repairs annually twice a year
                             elif response['result']['manager_expected_revenue'][ore]['payment_frequency'] == 'Twice a year':
@@ -2994,7 +2994,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
                                     (response['result']['manager_expected_revenue']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
 
                             else:
                                 print('do nothing')
@@ -3004,7 +3004,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
                             amortized_repairs_expected_revenue = amortized_repairs_expected_revenue +  \
                                 (response['result']['manager_expected_revenue']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
             response['result']['rental_expected_revenue'] = round(
                 rental_expected_revenue, 2)
             response['result']['amortized_rental_expected_revenue'] = round(
@@ -3920,7 +3920,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if maintenance annually twice a year
                             elif response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -3929,7 +3929,7 @@ class ManagerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -3938,7 +3938,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_expense'][ore]['amount_due']
                             amortized_maintenance_expected_expense = amortized_maintenance_expected_expense + \
                                 (response['result']['manager_expected_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
                     # if management
                     if response['result']['manager_expected_expense'][ore]['purchase_type'] == 'OWNER PAYMENT':
@@ -3962,7 +3962,7 @@ class ManagerCashflowProperty(Resource):
 
                             amortized_management_expected_expense = amortized_management_expected_expense +  \
                                 (response['result']['manager_expected_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                         # if management one-time
                         else:
@@ -3970,7 +3970,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_expense'][ore]['amount_due']
                             amortized_management_expected_expense = amortized_management_expected_expense +  \
                                 (response['result']['manager_expected_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -4005,7 +4005,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if repairs annually twice a year
                             elif response['result']['manager_expected_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -4015,7 +4015,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
                                     (response['result']['manager_expected_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
 
                             else:
                                 print('do nothing')
@@ -4025,7 +4025,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_expense'][ore]['amount_due']
                             amortized_repairs_expected_expense = amortized_repairs_expected_expense +  \
                                 (response['result']['manager_expected_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
                     # if revenue type is UTILITY
                     if response['result']['manager_expected_expense'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_expected_expense'][ore]['purchase_frequency'] == 'Weekly':
@@ -4388,7 +4388,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if maintenance annually twice a year
                             elif response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -4397,7 +4397,7 @@ class ManagerCashflowProperty(Resource):
                                         [ore]['amount_due'])
                                 amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
                             else:
                                 print('do nothing')
                         # if maintenance one-time
@@ -4406,7 +4406,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_year_expense'][ore]['amount_due']
                             amortized_maintenance_year_expected_expense = amortized_maintenance_year_expected_expense + \
                                 (response['result']['manager_expected_year_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
 
                     # if management
                     if response['result']['manager_expected_year_expense'][ore]['purchase_type'] == 'OWNER PAYMENT':
@@ -4428,7 +4428,7 @@ class ManagerCashflowProperty(Resource):
 
                             amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
                                 (response['result']['manager_expected_year_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                         # if management one-time
                         else:
@@ -4436,7 +4436,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_year_expense'][ore]['amount_due']
                             amortized_management_year_expected_expense = amortized_management_year_expected_expense +  \
                                 (response['result']['manager_expected_year_expense']
-                                    [ore]['amount_due'])/(datetime.now().month-1)
+                                    [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_year_expense'][ore]['purchase_type'] == 'REPAIRS':
                         # if repairs monthly
@@ -4471,7 +4471,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense +  \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/(datetime.now().month-1)
+                                        [ore]['amount_due'])/(datetime.now().month)
 
                             # if repairs annually twice a year
                             elif response['result']['manager_expected_year_expense'][ore]['payment_frequency'] == 'Twice a year':
@@ -4481,7 +4481,7 @@ class ManagerCashflowProperty(Resource):
 
                                 amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense +  \
                                     (response['result']['manager_expected_year_expense']
-                                        [ore]['amount_due'])/((datetime.now().month-1)/2)
+                                        [ore]['amount_due'])/((datetime.now().month)/2)
 
                             else:
                                 print('do nothing')
@@ -4491,7 +4491,7 @@ class ManagerCashflowProperty(Resource):
                                 response['result']['manager_expected_year_expense'][ore]['amount_due']
                             amortized_repairs_year_expected_expense = amortized_repairs_year_expected_expense +  \
                                 (response['result']['manager_expected_year_expense']
-                                 [ore]['amount_due'])/(datetime.now().month-1)
+                                 [ore]['amount_due'])/(datetime.now().month)
                     if response['result']['manager_expected_year_expense'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_expected_year_expense'][ore]['purchase_frequency'] == 'Weekly':
                             utility_year_expected_expense = utility_year_expected_expense + \

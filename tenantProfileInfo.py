@@ -10,24 +10,44 @@ from datetime import date, datetime, timedelta
 
 
 def updateDocuments(documents, tenant_id):
-    for i, doc in enumerate(documents):
-        if 'link' in doc:
+    for filename in documents:
+        if type(documents[filename]) == str:
             bucket = 'io-pm'
-            key = doc['link'].split('/io-pm/')[1]
+            key = documents[filename].split('/io-pm/')[1]
             data = s3.get_object(
                 Bucket=bucket,
                 Key=key
             )
-            doc['file'] = data['Body']
+            documents[filename] = data['Body']
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
-    bucket.objects.filter(Prefix=f'tenants/{tenant_id}/').delete()
-    for i, doc in enumerate(documents):
-        filename = f'doc_{i}'
+    bucket.objects.filter(
+        Prefix=f'tenants/{tenant_id}/').delete()
+    docs = []
+    for i in range(len(documents.keys())):
+        filename = f'doc{i}'
         key = f'tenants/{tenant_id}/{filename}'
-        link = uploadImage(doc['file'], key)
-        doc['link'] = link
-        del doc['file']
+        doc = uploadImage(documents[filename], key)
+        docs.append(doc)
+
+    # for i, doc in enumerate(documents):
+    #     if 'link' in doc:
+    #         bucket = 'io-pm'
+    #         key = doc['link'].split('/io-pm/')[1]
+    #         data = s3.get_object(
+    #             Bucket=bucket,
+    #             Key=key
+    #         )
+    #         doc['file'] = data['Body']
+    # s3Resource = boto3.resource('s3')
+    # bucket = s3Resource.Bucket('io-pm')
+    # bucket.objects.filter(Prefix=f'tenants/{tenant_id}/').delete()
+    # for i, doc in enumerate(documents):
+    #     filename = f'doc_{i}'
+    #     key = f'tenants/{tenant_id}/{filename}'
+    #     link = uploadImage(doc['file'], key)
+    #     doc['link'] = link
+    #     del doc['file']
     return documents
 
 
@@ -91,25 +111,44 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             data = request.form
             fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address', 'adults', 'children', 'pet_occupants', 'vehicle_info', 'references']
+                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address', 'adult_occupants', 'children_occupants', 'pet_occupants', 'vehicle_info', 'references']
             newProfileInfo = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     newProfileInfo['tenant_'+field] = fieldValue
-            documents = json.loads(data.get('documents'))
-            for i, doc in enumerate(documents):
+            images = []
+            i = -1
+            imageFiles = {}
+
+            while True:
+                print('if true')
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
-                s3Link = doc.get('link')
+                s3Link = data.get(filename)
                 if file:
-                    doc['file'] = file
+                    imageFiles[filename] = file
                 elif s3Link:
-                    doc['link'] = s3Link
+                    imageFiles[filename] = s3Link
                 else:
                     break
-            documents = updateDocuments(documents, user['user_uid'])
-            newProfileInfo['documents'] = json.dumps(documents)
+                i += 1
+            print('"yay, linear imageFilesBuild --> imageFile: ', imageFiles)
+            images = updateDocuments(imageFiles,  user['user_uid'])
+            print(images)
+            # documents = json.loads(data.get('documents'))
+            # for i, doc in enumerate(documents):
+            #     filename = f'doc_{i}'
+            #     file = request.files.get(filename)
+            #     s3Link = doc.get('link')
+            #     if file:
+            #         doc['file'] = file
+            #     elif s3Link:
+            #         doc['link'] = s3Link
+            #     else:
+            #         break
+            # documents = updateDocuments(documents, user['user_uid'])
+            # newProfileInfo['documents'] = json.dumps(documents)
             primaryKey = {'tenant_id': user['user_uid']}
             response = db.update('tenantProfileInfo',
                                  primaryKey, newProfileInfo)
