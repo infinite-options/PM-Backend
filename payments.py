@@ -771,7 +771,7 @@ class TenantPayments_CLASS(Resource):
                                             elif lease_end.month == charge_date.month and lease_end.year == charge_date.year:
                                                 print(
                                                     'monthly chargedate == today')
-                                                rent = prorated_charge_end
+                                                rent =  int(payment['charge'])
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -780,7 +780,9 @@ class TenantPayments_CLASS(Resource):
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
-                                                    amount_due=prorated_charge_end,
+                                                    # amount_due=prorated_charge_end,
+
+                                                    amount_due=int(payment['charge']),
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
                                                     purchase_frequency=payment['frequency'],
@@ -3573,7 +3575,7 @@ class ManagerPayments_CLASS(Resource):
                                             elif lease_end.month == charge_date.month and lease_end.year == charge_date.year:
                                                 print(
                                                     'monthly chargedate == today')
-                                                rent = prorated_charge_end
+                                                rent = int(payment['charge'])
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -3582,7 +3584,9 @@ class ManagerPayments_CLASS(Resource):
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
-                                                    amount_due=prorated_charge_end,
+                                                    # amount_due=prorated_charge_end,
+                                                    
+                                                    amount_due=int(payment['charge']),
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
                                                     purchase_frequency=payment['frequency'],
@@ -5293,7 +5297,7 @@ def ManagerPayments_CRON():
                                         elif lease_end.month == charge_date.month and lease_end.year == charge_date.year:
                                             print(
                                                 'monthly chargedate == today')
-                                            rent = prorated_charge_end
+                                            rent = int(payment['charge'])
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -5302,7 +5306,8 @@ def ManagerPayments_CRON():
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='RENT',
                                                 description=payment['fee_name'],
-                                                amount_due=prorated_charge_end,
+                                                # amount_due=prorated_charge_end,
+                                                amount_due=int(payment['charge']),
                                                 purchase_notes=charge_month,
                                                 purchase_date=charge_date,
                                                 purchase_frequency=payment['frequency'],
