@@ -8,6 +8,7 @@ import json
 
 
 def updateDocuments(documents, contract_uid):
+    print(documents)
     for i, doc in enumerate(documents):
         if 'link' in doc:
             bucket = 'io-pm'
@@ -20,13 +21,16 @@ def updateDocuments(documents, contract_uid):
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'contracts/{contract_uid}/').delete()
+    print(documents)
+    docs = []
     for i, doc in enumerate(documents):
         filename = f'doc_{i}'
         key = f'contracts/{contract_uid}/{filename}'
         link = uploadImage(doc['file'], key)
         doc['link'] = link
         del doc['file']
-    return documents
+        docs.append(doc)
+    return docs
 
 
 class Contracts(Resource):

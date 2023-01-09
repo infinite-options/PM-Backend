@@ -63,7 +63,7 @@ class Properties(Resource):
         response = {}
         filters = ['property_uid', 'active_date', 'owner_id', 'manager_id', 'address', 'city',
                    'state', 'zip', 'type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                   'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description', 'available_to_rent']
+                   'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description', 'available_to_rent', 'featured']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -83,7 +83,7 @@ class Properties(Resource):
             data = request.form
             fields = ['owner_id', 'active_date', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description', 'available_to_rent']
+                      'appliances', 'utilities', 'pets_allowed', 'deposit_for_rent', 'description', 'available_to_rent', 'featured']
             boolFields = ['pets_allowed',
                           'deposit_for_rent', 'available_to_rent']
             newProperty = {}
@@ -131,7 +131,7 @@ class Properties(Resource):
             fields = ['owner_id', 'active_date', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
                       'appliances', 'utilities', 'taxes', 'mortgages', 'insurance', 'description', 'pets_allowed',
-                      'deposit_for_rent', 'available_to_rent']
+                      'deposit_for_rent', 'available_to_rent', 'featured']
             newProperty = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -385,7 +385,7 @@ class Property(Resource):
             data = request.form
             fields = ['owner_id', 'manager_id', 'address', 'unit', 'city', 'state',
                       'zip', 'property_type', 'num_beds', 'num_baths', 'area', 'listed_rent', 'deposit',
-                      'appliances', 'utilities', 'taxes', 'mortgages', 'description', 'pets_allowed', 'deposit_for_rent', 'available_to_rent']
+                      'appliances', 'utilities', 'taxes', 'mortgages', 'description', 'pets_allowed', 'deposit_for_rent', 'available_to_rent', 'featured']
             boolFields = ['pets_allowed',
                           'deposit_for_rent', 'available_to_rent']
             newProperty = {}
