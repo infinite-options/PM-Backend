@@ -11,6 +11,7 @@ from text_to_num import alpha2digit
 
 
 def updateDocuments(documents, rental_uid):
+    print(documents)
     for i, doc in enumerate(documents):
         if 'link' in doc:
             bucket = 'io-pm'
@@ -23,13 +24,16 @@ def updateDocuments(documents, rental_uid):
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'rentals/{rental_uid}/').delete()
+    print(documents)
+    docs = []
     for i, doc in enumerate(documents):
         filename = f'doc_{i}'
         key = f'rentals/{rental_uid}/{filename}'
         link = uploadImage(doc['file'], key)
         doc['link'] = link
         del doc['file']
-    return documents
+        docs.append(doc)
+    return docs
 
 
 class Rentals(Resource):
@@ -103,28 +107,24 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             rental_uid = data.get('rental_uid')
-            fields = ['rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children']
+            fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children']
             newRental = {}
             for field in fields:
-                fieldValue = data.get(field)
-                if fieldValue:
-                    newRental[field] = fieldValue
-                    print('fieldvalue', fieldValue)
-                if field == 'documents':
-                    documents = json.loads(data.get('documents'))
-                    for i, doc in enumerate(documents):
-                        filename = f'doc_{i}'
-                        file = request.files.get(filename)
-                        s3Link = doc.get('link')
-                        if file:
-                            doc['file'] = file
-                        elif s3Link:
-                            doc['link'] = s3Link
-                        else:
-                            break
-                    documents = updateDocuments(documents, rental_uid)
-                    newRental['documents'] = json.dumps(documents)
+                newRental[field] = data.get(field)
+            documents = json.loads(data.get('documents'))
+            for i, doc in enumerate(documents):
+                filename = f'doc_{i}'
+                file = request.files.get(filename)
+                s3Link = doc.get('link')
+                if file:
+                    doc['file'] = file
+                elif s3Link:
+                    doc['link'] = s3Link
+                else:
+                    break
+            documents = updateDocuments(documents, rental_uid)
+            newRental['documents'] = json.dumps(documents)
 
             primaryKey = {'rental_uid': rental_uid}
             print('newRental', newRental)
@@ -244,7 +244,7 @@ class ExtendLease(Resource):
         with connect() as db:
             data = request.json
             fields = ['rental_uid', 'rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
-                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by' 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
+                      'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
                       'message', 'application_status']
             newRental = {}
             for field in fields:
