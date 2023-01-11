@@ -70,7 +70,7 @@ class Applications(Resource):
                 print('here', where['property_uid'], where)
 
                 response = db.execute("""
-                SELECT a.application_uid,application_date, a.message, a.application_status,a.adults,a.children, a.pets, a.vehicles, a.references, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT a.application_uid,application_date, a.message, a.application_status,a.adults,a.children, a.pets, a.vehicles, a.referred, a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 pm.applications a 
                 LEFT JOIN pm.tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
@@ -112,7 +112,7 @@ class Applications(Resource):
                                 leaseTenants['result'])
             elif 'tenant_id' in where:
                 response = db.execute("""
-                SELECT application_uid, message,application_date, application_status,a.adults,a.children,  a.pets, a.vehicles, a.references,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
+                SELECT application_uid, message,application_date, application_status,a.adults,a.children,  a.pets, a.vehicles, a.referred,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.* FROM
                 applications a 
                 LEFT JOIN tenantProfileInfo t 
                 ON a.tenant_id = t.tenant_id 
@@ -131,6 +131,17 @@ class Applications(Resource):
                         if application['rental_uid'] is not None:
                             print('rentals not none',
                                   application['rental_uid'], application['application_uid'])
+
+                            sql = """ SELECT * FROM pm.leaseTenants lt
+                            LEFT JOIN pm.applications a
+                            ON lt.linked_tenant_id = a.tenant_id
+                            LEFT JOIN  pm.tenantProfileInfo t 
+                            ON lt.linked_tenant_id = t.tenant_id 
+                            WHERE lt.linked_rental_uid = \'""" + application['rental_uid'] + """\'
+                            AND \'""" + application['linked_application_id'] + """\' LIKE CONCAT('%', application_uid, '%')  
+                            AND a.property_uid = \'""" + application['rental_property_id'] + """\'"""
+                            print(sql)
+
                             leaseTenants = db.execute("""
                             SELECT * FROM pm.leaseTenants lt
                             LEFT JOIN pm.applications a
@@ -138,21 +149,25 @@ class Applications(Resource):
                             LEFT JOIN  pm.tenantProfileInfo t 
                             ON lt.linked_tenant_id = t.tenant_id 
                             WHERE lt.linked_rental_uid = \'""" + application['rental_uid'] + """\'
+                            AND \'""" + application['linked_application_id'] + """\' LIKE CONCAT('%', application_uid, '%') 
                             AND a.property_uid = \'""" + application['rental_property_id'] + """\'""")
-
+                            print(len(leaseTenants['result']))
                             application['applicant_info'] = (
                                 leaseTenants['result'])
                         else:
+                            print(
+                                'rental null', application['rental_uid'], application['application_uid'])
                             leaseTenants = db.execute("""
                             SELECT * FROM pm.tenantProfileInfo t 
                             LEFT JOIN pm.applications a
                             ON t.tenant_id = a.tenant_id
-                            WHERE t.tenant_id = \'""" + application['tenant_id'] + """\'""")
-                            print(leaseTenants['result'])
+                            WHERE t.tenant_id = \'""" + application['tenant_id'] + """\'
+                            AND application_uid =  \'""" + application['application_uid'] + """\'""")
+                            print(len(leaseTenants['result']))
                             application['applicant_info'] = (
                                 leaseTenants['result'])
             else:
-                cols = 'application_uid, message, application_status,a.adults,a.children, a.pets, a.vehicles, a.references,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
+                cols = 'application_uid, message, application_status,a.adults,a.children, a.pets, a.vehicles, a.referred,a.documents, t.tenant_id,t.tenant_first_name,t.tenant_last_name,t.tenant_email,t.tenant_phone_number,t.tenant_ssn,t.tenant_current_salary,t.tenant_salary_frequency,t.tenant_current_job_title,t.tenant_current_job_company,t.tenant_drivers_license_number,t.tenant_drivers_license_state, p.*, r.*, b.*, pM.*'
                 tables = 'applications a LEFT JOIN tenantProfileInfo t ON a.tenant_id = t.tenant_id LEFT JOIN properties p ON a.property_uid = p.property_uid LEFT JOIN rentals r ON a.application_uid = r.linked_application_id LEFT JOIN pm.propertyManager pM ON pM.linked_property_id = p.property_uid LEFT JOIN pm.businesses b ON b.business_uid = pM.linked_business_id'
                 response = db.select(cols=cols, tables=tables, where=where)
         return response
@@ -165,7 +180,7 @@ class Applications(Resource):
             if not user:
                 return 401, response
             fields = ['property_uid', 'message',
-                      'adults', 'children', 'pets', 'vehicles', 'references', 'documents']
+                      'adults', 'children', 'pets', 'vehicles', 'referred', 'documents']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -187,9 +202,9 @@ class Applications(Resource):
             vehicles = (data.get('vehicles'))
             if len(vehicles) > 0:
                 newApplication['vehicles'] = json.dumps(vehicles)
-            references = (data.get('references'))
-            if len(references) > 0:
-                newApplication['references'] = json.dumps(references)
+            referred = (data.get('referred'))
+            if len(referred) > 0:
+                newApplication['referred'] = json.dumps(referred)
             documents = (data.get('documents'))
             newApplication['documents'] = json.dumps(documents)
 
@@ -206,13 +221,31 @@ class Applications(Resource):
             data = request.json
             application_uid = data.get('application_uid')
             fields = ['message', 'application_status',
-                      'property_uid', 'adults', 'children', 'pets', 'vehicles', "references", "application_uid", "documents"]
+                      'property_uid', 'adults', 'children', 'pets', 'vehicles', "referred", "application_uid", "documents"]
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
                     newApplication[field] = fieldValue
 
+            adults = (data.get('adults'))
+            if adults is not None and len(adults) > 0:
+                newApplication['adults'] = json.dumps(adults)
+            children = (data.get('children'))
+            if children is not None and len(children) > 0:
+                newApplication['children'] = json.dumps(children)
+            pets = (data.get('pets'))
+            if pets is not None and len(pets) > 0:
+                newApplication['pets'] = json.dumps(pets)
+            vehicles = (data.get('vehicles'))
+            if vehicles is not None and len(vehicles) > 0:
+                newApplication['vehicles'] = json.dumps(vehicles)
+            referred = (data.get('referred'))
+            if referred is not None and len(referred) > 0:
+                newApplication['referred'] = json.dumps(referred)
+            documents = (data.get('documents'))
+            if documents is not None and len(documents) > 0:
+                newApplication['documents'] = json.dumps(documents)
             # tenant approves lease aggreement
             if newApplication['application_status'] == 'RENTED':
                 response = db.execute(
@@ -822,7 +855,7 @@ class Applications(Resource):
             primaryKey = {
                 'application_uid': data.get('application_uid')
             }
-            # print('newAppl', newApplication)
+            print('newAppl', newApplication, primaryKey)
             response = db.update('applications', primaryKey, newApplication)
         return response
 
