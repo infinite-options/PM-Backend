@@ -828,64 +828,70 @@ class LateFee_CLASS(Resource):
         with connect() as db:
             purchaseResponse = {'message': 'Successfully committed SQL query',
                                 'code': 200}
-            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                    FROM pm.rentals r 
-                                    LEFT JOIN
-                                    pm.leaseTenants lt 
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
-                                    GROUP BY lt.linked_rental_uid  ; """)
+            response = db.execute("""
+            SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
+            FROM pm.rentals r 
+            LEFT JOIN
+            pm.leaseTenants lt 
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN
+            pm.propertyManager p 
+            ON p.linked_property_id = r.rental_property_id
+            WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.rental_status='ACTIVE' 
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+            GROUP BY lt.linked_rental_uid  ; """)
 
             if len(response['result']) > 0:
-                for i in range(len(response['result'])):
+                for lease in response['result']:
                     # today date
                     today_date = date.today()
-                    # convert due_by to due_date
-                    print('')
-                    # calculate rent due date
-                    due_date = today_date.replace(
-                        day=int(response['result'][i]['due_by']))
-                    print('due_date', due_date)
-                    # calculate the date rent will be late
-                    late_date = due_date + \
-                        relativedelta(
-                            days=int(response['result'][i]['late_by']))
-                    print(response['result'][i]['late_by'], late_date)
-                    tenants = response['result'][i]['tenants']
+                    tenants = lease['tenants']
+                    tenantPayments = json.loads(lease['rent_payments'])
                     # get unpaid rent for the current month from purchases
-                    res = db.execute("""SELECT *
-                                    FROM pm.purchases p
-                                    WHERE p.purchase_status='UNPAID' 
-                                    AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES') 
-                                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
+                    res = db.execute("""
+                    SELECT *
+                    FROM pm.purchases p
+                    WHERE p.purchase_status='UNPAID' 
+                    AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES')
+                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
+                    AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
-                        for j in range(len(res['result'])):
-                            # if late date == today's date enter late fee info in the payments
-                            if late_date == today_date:
-                                print(today_date, late_date)
+                        for unpaid in res['result']:
+                            for payment in tenantPayments:
+                                # if fee name matches the current unpaid purchase, calculate the late date n fee
+                                if payment['fee_name'] == unpaid['description']:
+                                    # calculate rent due date
+                                    due_date = today_date.replace(
+                                        day=int(payment['due_by']))
+                                    print('due_date', due_date)
+                                    # calculate the date rent will be late
+                                    late_date = due_date + \
+                                        relativedelta(
+                                            days=int(payment['late_by']))
+                                    print('late date',
+                                          payment['late_by'], late_date)
+                                    # if late date == today's date enter late fee info in the payments
+                                    if late_date == today_date:
+                                        print(today_date, late_date)
 
-                                purchaseResponse = newPurchase(
-                                    linked_bill_id=None,
-                                    pur_property_id=json.dumps(
-                                        [response['result'][i]['rental_property_id']]),
-                                    payer=json.dumps([tenants]),
-                                    receiver=response['result'][i]['linked_business_id'],
-                                    purchase_type='EXTRA CHARGES',
-                                    description='Late Fee',
-                                    amount_due=response['result'][i]['late_fee'],
-                                    purchase_notes=today_date.strftime('%B'),
-                                    purchase_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                    purchase_frequency='One-time',
-                                    next_payment=today_date.isoformat()
-                                )
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [lease['rental_property_id']]),
+                                            payer=json.dumps([tenants]),
+                                            receiver=lease['linked_business_id'],
+                                            purchase_type='LATE FEE',
+                                            description=unpaid['description'],
+                                            amount_due=lease['late_fee'],
+                                            purchase_notes=today_date.strftime(
+                                                '%B'),
+                                            purchase_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            purchase_frequency='One-time',
+                                            next_payment=today_date.isoformat()
+                                        )
 
         return purchaseResponse
 
@@ -900,66 +906,70 @@ def LateFee():
         print("In Late Fee CRON Function")
         purchaseResponse = {'message': 'Successfully committed SQL query',
                             'code': 200}
-        response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                FROM pm.rentals r 
-                                LEFT JOIN
-                                pm.leaseTenants lt 
-                                ON lt.linked_rental_uid = r.rental_uid
-                                LEFT JOIN
-                                pm.propertyManager p 
-                                ON p.linked_property_id = r.rental_property_id
-                                WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                AND r.rental_status='ACTIVE' 
-                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY') 
-                                GROUP BY lt.linked_rental_uid ; """)
+        response = db.execute("""
+        SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
+        FROM pm.rentals r 
+        LEFT JOIN
+        pm.leaseTenants lt 
+        ON lt.linked_rental_uid = r.rental_uid
+        LEFT JOIN
+        pm.propertyManager p 
+        ON p.linked_property_id = r.rental_property_id
+        WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+        AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+        AND r.rental_status='ACTIVE' 
+        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY') 
+        GROUP BY lt.linked_rental_uid ; """)
 
         if len(response['result']) > 0:
-            for i in range(len(response['result'])):
+            for lease in response['result']:
                 # today date
                 today_date = date.today()
-                # convert due_by to due_date
-                print(response['result'][i])
-
-                # calculate rent due date
-                due_date = today_date.replace(
-                    day=int(response['result'][i]['due_by']))
-                print('due_date', due_date)
-                # calculate the date rent will be late
-                late_date = due_date + \
-                    relativedelta(
-                        days=int(response['result'][i]['late_by']))
-                print(response['result'][i]['late_by'], late_date)
-                tenants = response['result'][i]['tenants']
-
+                tenants = lease['tenants']
+                tenantPayments = json.loads(lease['rent_payments'])
                 # get unpaid rent for the current month from purchases
-                res = db.execute("""SELECT *
-                                FROM pm.purchases p
-                                WHERE p.purchase_status='UNPAID' 
-                                AND p.purchase_type='RENT' 
-                                AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
+                res = db.execute("""
+                SELECT *
+                FROM pm.purchases p
+                WHERE p.purchase_status='UNPAID' 
+                AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES')
+                AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
+                AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
                 if len(res['result']) > 0:
-                    for j in range(len(res['result'])):
-                        # if late date == today's date enter late fee info in the payments
-                        if late_date == today_date:
-                            print(today_date, late_date)
+                    for unpaid in res['result']:
+                        for payment in tenantPayments:
+                            # if fee name matches the current unpaid purchase, calculate the late date n fee
+                            if payment['fee_name'] == unpaid['description']:
+                                # calculate rent due date
+                                due_date = today_date.replace(
+                                    day=int(payment['due_by']))
+                                print('due_date', due_date)
+                                # calculate the date rent will be late
+                                late_date = due_date + \
+                                    relativedelta(
+                                        days=int(payment['late_by']))
+                                print('late date',
+                                      payment['late_by'], late_date)
+                                # if late date == today's date enter late fee info in the payments
+                                if late_date == today_date:
+                                    print(today_date, late_date)
 
-                            purchaseResponse = newPurchase(
-                                linked_bill_id=None,
-                                pur_property_id=json.dumps(
-                                    [response['result'][i]['rental_property_id']]),
-                                payer=json.dumps([tenants]),
-                                receiver=response['result'][i]['linked_business_id'],
-                                purchase_type='EXTRA CHARGES',
-                                description='Late Fee',
-                                amount_due=response['result'][i]['late_fee'],
-                                purchase_notes=today_date.strftime('%B'),
-                                purchase_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                purchase_frequency='One-time',
-                                next_payment=today_date.isoformat()
-                            )
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=json.dumps(
+                                            [lease['rental_property_id']]),
+                                        payer=json.dumps([tenants]),
+                                        receiver=lease['linked_business_id'],
+                                        purchase_type='LATE FEE',
+                                        description=unpaid['description'],
+                                        amount_due=lease['late_fee'],
+                                        purchase_notes=today_date.strftime(
+                                            '%B'),
+                                        purchase_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        purchase_frequency='One-time',
+                                        next_payment=today_date.isoformat()
+                                    )
 
     return purchaseResponse
 
@@ -969,70 +979,70 @@ class PerDay_LateFee_CLASS(Resource):
         updateLF = {'message': 'Successfully committed SQL query',
                     'code': 200}
         with connect() as db:
-            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                    FROM pm.rentals r 
-                                    LEFT JOIN
-                                    pm.leaseTenants lt 
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
-                                    GROUP BY lt.linked_rental_uid  ; """)
+            response = db.execute("""
+            SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
+            FROM pm.rentals r 
+            LEFT JOIN
+            pm.leaseTenants lt 
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN
+            pm.propertyManager p 
+            ON p.linked_property_id = r.rental_property_id
+            WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.rental_status='ACTIVE' 
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+            GROUP BY lt.linked_rental_uid  ; """)
 
             if len(response['result']) > 0:
-                for i in range(len(response['result'])):
+                for lease in response['result']:
                     # today date
                     today_date = date.today()
-                    # convert due_by to due_date
-                    print(response['result'][i])
-
-                    # calculate rent due date
-                    due_date = today_date.replace(
-                        day=int(response['result'][i]['due_by']))
-                    # print('due_date', payment_date, due_date)
-                    # calculate the date rent will be late
-                    late_date = due_date + \
-                        relativedelta(
-                            days=int(response['result'][i]['late_by']))
-                    # print(response['result'][i]['late_by'], late_date)
+                    # get tenant payments
+                    tenantPayments = json.loads(lease['rent_payments'])
+                    print(lease['rental_property_id'])
                     # get unpaid rent for the current month from purchases
-                    res = db.execute("""SELECT *
-                                    FROM pm.purchases p
-                                    WHERE p.purchase_status='UNPAID' 
-                                    AND p.purchase_type='RENT' 
-                                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
+                    res = db.execute("""
+                    SELECT *
+                    FROM pm.purchases p
+                    WHERE p.purchase_status='UNPAID' 
+                    AND (p.purchase_type='RENT' OR p.purchase_type= 'EXTRA CHARGES')
+                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
+                    AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
-                        for j in range(len(res['result'])):
-                            if response['result'][i]['perDay_late_fee'] == 0:
-                                print('Do nothing')
-                            else:
-                                latePurResponse = db.execute("""SELECT *
-                                                                FROM pm.purchases p
-                                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'
-                                                                AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
-                                                                AND p.description = 'Late Fee'
-                                                                AND p.purchase_status='UNPAID'; """)
+                        for unpaid in res['result']:
+                            for payment in tenantPayments:
+                                print(payment['fee_name'],
+                                      unpaid['description'])
+                                if payment['fee_name'] == unpaid['description']:
+                                    if payment['perDay_late_fee'] == 0:
+                                        print('Do nothing')
+                                    else:
+                                        latePurResponse = db.execute("""
+                                        SELECT *
+                                        FROM pm.purchases p
+                                        WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
+                                        AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
+                                        AND p.purchase_type= 'LATE FEE'
+                                        AND p.description = \'""" + unpaid['description'] + """\'
+                                        AND p.purchase_status='UNPAID'; """)
 
-                                if len(latePurResponse['result']) > 0:
-                                    for k in range(len(latePurResponse['result'])):
-                                        pk = {
-                                            "purchase_uid": latePurResponse['result'][k]['purchase_uid']
-                                        }
-                                        print(pk)
-                                        updateLateFee = {
-                                            "amount_due": int(latePurResponse['result'][k]['amount_due']) + int(response['result'][i]['perDay_late_fee']),
-                                            "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        }
-                                        updateLF = db.update(
-                                            'purchases', pk, updateLateFee)
-                                else:
-                                    print('do nothing')
+                                        if len(latePurResponse['result']) > 0:
+                                            for latePur in latePurResponse['result']:
+                                                pk = {
+                                                    "purchase_uid": latePur['purchase_uid']
+                                                }
+                                                print(pk)
+                                                updateLateFee = {
+                                                    "amount_due": int(latePur['amount_due']) + int(payment['perDay_late_fee']),
+                                                    "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                }
+                                                print(updateLateFee)
+                                                updateLF = db.update(
+                                                    'purchases', pk, updateLateFee)
+                                        else:
+                                            print('do nothing')
 
         return updateLF
 
@@ -1046,71 +1056,71 @@ def PerDay_LateFee():
         print("In per day late fee CRON Function")
         updateLF = {'message': 'Successfully committed SQL query',
                     'code': 200}
-        with connect() as db:
-            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                    FROM pm.rentals r 
-                                    LEFT JOIN
-                                    pm.leaseTenants lt 
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY') 
-                                    GROUP BY lt.linked_rental_uid ; """)
 
-            if len(response['result']) > 0:
-                for i in range(len(response['result'])):
-                    # today date
-                    today_date = date.today()
-                    # convert due_by to due_date
-                    print(response['result'][i])
+        response = db.execute("""
+        SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
+        FROM pm.rentals r 
+        LEFT JOIN
+        pm.leaseTenants lt 
+        ON lt.linked_rental_uid = r.rental_uid
+        LEFT JOIN
+        pm.propertyManager p 
+        ON p.linked_property_id = r.rental_property_id
+        WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+        AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+        AND r.rental_status='ACTIVE' 
+        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+        GROUP BY lt.linked_rental_uid  ; """)
 
-                    # calculate rent due date
-                    due_date = today_date.replace(
-                        day=int(response['result'][i]['due_by']))
-                    # print('due_date', payment_date, due_date)
-                    # calculate the date rent will be late
-                    late_date = due_date + \
-                        relativedelta(
-                            days=int(response['result'][i]['late_by']))
-                    # print(response['result'][i]['late_by'], late_date)
-                    # get unpaid rent for the current month from purchases
-                    res = db.execute("""SELECT *
-                                    FROM pm.purchases p
-                                    WHERE p.purchase_status='UNPAID' 
-                                    AND p.purchase_type='RENT' 
-                                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'; """)
+        if len(response['result']) > 0:
+            for lease in response['result']:
+                # today date
+                today_date = date.today()
+                # get tenant payments
+                tenantPayments = json.loads(lease['rent_payments'])
+                print(lease['rental_property_id'])
+                # get unpaid rent for the current month from purchases
+                res = db.execute("""
+                SELECT *
+                FROM pm.purchases p
+                WHERE p.purchase_status='UNPAID' 
+                AND (p.purchase_type='RENT' OR p.purchase_type= 'EXTRA CHARGES')
+                AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
+                AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
-                    if len(res['result']) > 0:
-                        for j in range(len(res['result'])):
-                            if response['result'][i]['perDay_late_fee'] == 0:
-                                print('Do nothing')
-                            else:
-                                latePurResponse = db.execute("""SELECT *
-                                                                FROM pm.purchases p
-                                                                WHERE p.pur_property_id LIKE '%""" + response['result'][i]['rental_property_id'] + """%'
-                                                                AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
-                                                                AND p.description = 'Late Fee'
-                                                                AND p.purchase_status='UNPAID'; """)
-
-                                if len(latePurResponse['result']) > 0:
-                                    for k in range(len(latePurResponse['result'])):
-                                        pk = {
-                                            "purchase_uid": latePurResponse['result'][k]['purchase_uid']
-                                        }
-                                        print(pk)
-                                        updateLateFee = {
-                                            "amount_due": int(latePurResponse['result'][k]['amount_due']) + int(response['result'][i]['perDay_late_fee']),
-                                            "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        }
-                                        updateLF = db.update(
-                                            'purchases', pk, updateLateFee)
+                if len(res['result']) > 0:
+                    for unpaid in res['result']:
+                        for payment in tenantPayments:
+                            print(payment['fee_name'],
+                                  unpaid['description'])
+                            if payment['fee_name'] == unpaid['description']:
+                                if payment['perDay_late_fee'] == 0:
+                                    print('Do nothing')
                                 else:
-                                    print('do nothing')
+                                    latePurResponse = db.execute("""
+                                    SELECT *
+                                    FROM pm.purchases p
+                                    WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
+                                    AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
+                                    AND p.purchase_type= 'LATE FEE'
+                                    AND p.description = \'""" + unpaid['description'] + """\'
+                                    AND p.purchase_status='UNPAID'; """)
+
+                                    if len(latePurResponse['result']) > 0:
+                                        for latePur in latePurResponse['result']:
+                                            pk = {
+                                                "purchase_uid": latePur['purchase_uid']
+                                            }
+                                            print(pk)
+                                            updateLateFee = {
+                                                "amount_due": int(latePur['amount_due']) + int(payment['perDay_late_fee']),
+                                                "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            }
+                                            print(updateLateFee)
+                                            updateLF = db.update(
+                                                'purchases', pk, updateLateFee)
+                                    else:
+                                        print('do nothing')
 
         return updateLF
 
@@ -1121,19 +1131,20 @@ class LateFeeExtraCharges_CLASS(Resource):
         with connect() as db:
             purchaseResponse = {'message': 'Successfully committed SQL query',
                                 'code': 200}
-            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                    FROM pm.rentals r 
-                                    LEFT JOIN
-                                    pm.leaseTenants lt 
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
-                                    GROUP BY lt.linked_rental_uid  ; """)
+            response = db.execute("""
+            SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
+            FROM pm.rentals r 
+            LEFT JOIN
+            pm.leaseTenants lt 
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN
+            pm.propertyManager p 
+            ON p.linked_property_id = r.rental_property_id
+            WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.rental_status='ACTIVE' 
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+            GROUP BY lt.linked_rental_uid  ; """)
 
             if len(response['result']) > 0:
                 for lease in response['result']:
@@ -1141,15 +1152,17 @@ class LateFeeExtraCharges_CLASS(Resource):
                     today_date = date.today()
                     # creating purchases
                     tenantPayments = json.loads(lease['rent_payments'])
-                    payer = response['result'][0]['tenants'].split(',')
-                    payer = json.dumps(payer)
+                    # payer = response['result'][0]['tenants'].split(',')
+                    # payer = json.dumps(payer)
+                    tenants = lease['tenants']
                     print(lease['rental_property_id'])
-                    res = db.execute("""SELECT *
-                                        FROM pm.purchases p
-                                        WHERE p.purchase_status='UNPAID' 
-                                        AND p.purchase_type='EXTRA CHARGES' 
-                                        AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                        AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
+                    res = db.execute("""
+                    SELECT *
+                    FROM pm.purchases p
+                    WHERE p.purchase_status='UNPAID' 
+                    AND p.purchase_type='EXTRA CHARGES' 
+                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
+                    AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
                         for unpaid in res['result']:
@@ -1174,10 +1187,10 @@ class LateFeeExtraCharges_CLASS(Resource):
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [lease['rental_property_id']]),
-                                            payer=(payer),
+                                            payer=json.dumps([tenants]),
                                             receiver=lease['linked_business_id'],
-                                            purchase_type='EXTRA CHARGES',
-                                            description='Late Fee',
+                                            purchase_type='LATE FEE',
+                                            description=unpaid['description'],
                                             amount_due=payment['late_fee'],
                                             purchase_notes=today_date.strftime(
                                                 '%B'),
@@ -1198,19 +1211,20 @@ def LateFeeExtraCharges():
         print("In Late Fee Extra Charges CRON Function")
         purchaseResponse = {'message': 'Successfully committed SQL query',
                             'code': 200}
-        response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
+        response = db.execute("""
+        SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
                                 FROM pm.rentals r 
-                                LEFT JOIN
-                                pm.leaseTenants lt 
-                                ON lt.linked_rental_uid = r.rental_uid
-                                LEFT JOIN
-                                pm.propertyManager p 
-                                ON p.linked_property_id = r.rental_property_id
-                                WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                AND r.rental_status='ACTIVE' 
-                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
-                                GROUP BY lt.linked_rental_uid  ; """)
+        LEFT JOIN
+        pm.leaseTenants lt 
+        ON lt.linked_rental_uid = r.rental_uid
+        LEFT JOIN
+        pm.propertyManager p 
+        ON p.linked_property_id = r.rental_property_id
+        WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+        AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+        AND r.rental_status='ACTIVE' 
+        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+        GROUP BY lt.linked_rental_uid  ; """)
 
         if len(response['result']) > 0:
             for lease in response['result']:
@@ -1218,15 +1232,15 @@ def LateFeeExtraCharges():
                 today_date = date.today()
                 # creating purchases
                 tenantPayments = json.loads(lease['rent_payments'])
-                payer = response['result'][0]['tenants'].split(',')
-                payer = json.dumps(payer)
+                tenants = lease['tenants']
                 print(lease['rental_property_id'])
-                res = db.execute("""SELECT *
-                                    FROM pm.purchases p
-                                    WHERE p.purchase_status='UNPAID' 
-                                    AND p.purchase_type='EXTRA CHARGES' 
-                                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                    AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
+                res = db.execute("""
+                SELECT *
+                FROM pm.purchases p
+                WHERE p.purchase_status='UNPAID' 
+                AND p.purchase_type='EXTRA CHARGES' 
+                AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
+                AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
                 if len(res['result']) > 0:
                     for unpaid in res['result']:
@@ -1251,7 +1265,7 @@ def LateFeeExtraCharges():
                                         linked_bill_id=None,
                                         pur_property_id=json.dumps(
                                             [lease['rental_property_id']]),
-                                        payer=(payer),
+                                        payer=json.dumps([tenants]),
                                         receiver=lease['linked_business_id'],
                                         purchase_type='EXTRA CHARGES',
                                         description='Late Fee',
@@ -1271,51 +1285,53 @@ class PerDay_LateFeeExtraCharges_CLASS(Resource):
         updateLF = {'message': 'Successfully committed SQL query',
                     'code': 200}
         with connect() as db:
-            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                    FROM pm.rentals r 
-                                    LEFT JOIN
-                                    pm.leaseTenants lt 
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
-                                    GROUP BY lt.linked_rental_uid  ; """)
+            response = db.execute("""
+            SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+            FROM pm.rentals r
+            LEFT JOIN
+            pm.leaseTenants lt
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN
+            pm.propertyManager p
+            ON p.linked_property_id = r.rental_property_id
+            WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+            AND r.rental_status='ACTIVE'
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+            GROUP BY lt.linked_rental_uid  ; """)
 
             if len(response['result']) > 0:
                 for lease in response['result']:
                     # today date
                     today_date = date.today()
-                    # creating purchases
+                    # get tenant payments
                     tenantPayments = json.loads(lease['rent_payments'])
-                    payer = response['result'][0]['tenants'].split(',')
-                    payer = json.dumps(payer)
                     print(lease['rental_property_id'])
-                    res = db.execute("""SELECT *
-                                        FROM pm.purchases p
-                                        WHERE p.purchase_status='UNPAID' 
-                                        AND p.purchase_type='EXTRA CHARGES' 
-                                        AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                        AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
+                    # get unpaid extra charges for the current month from purchases
+                    res = db.execute("""
+                    SELECT *
+                    FROM pm.purchases p
+                    WHERE p.purchase_status='UNPAID'
+                    AND p.purchase_type='EXTRA CHARGES'
+                    AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\'
+                    AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
                     if len(res['result']) > 0:
                         for unpaid in res['result']:
                             for payment in tenantPayments:
-                                # get unpaid rent for the current month from purchases
+                                print(payment['fee_name'],
+                                      unpaid['description'])
                                 if payment['fee_name'] == unpaid['description']:
                                     if payment['perDay_late_fee'] == 0:
                                         print('Do nothing')
                                     else:
-
-                                        latePurResponse = db.execute("""SELECT *
-                                                                        FROM pm.purchases p
-                                                                        WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
-                                                                        AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
-                                                                        AND p.description = 'Late Fee'
-                                                                        AND p.purchase_status='UNPAID'; """)
+                                        latePurResponse = db.execute("""
+                                        SELECT *
+                                        FROM pm.purchases p
+                                        WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
+                                        AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
+                                        AND p.description = 'Late Fee'
+                                        AND p.purchase_status='UNPAID'; """)
 
                                         if len(latePurResponse['result']) > 0:
                                             for latePur in latePurResponse['result']:
@@ -1327,6 +1343,7 @@ class PerDay_LateFeeExtraCharges_CLASS(Resource):
                                                     "amount_due": int(latePur['amount_due']) + int(payment['perDay_late_fee']),
                                                     "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                                 }
+                                                print(updateLateFee)
                                                 updateLF = db.update(
                                                     'purchases', pk, updateLateFee)
                                         else:
@@ -1335,75 +1352,78 @@ class PerDay_LateFeeExtraCharges_CLASS(Resource):
         return updateLF
 
 
-def PerDay_LateFeeExtraCharges():
-    print("In Per day Late Fee")
-    from datetime import date, datetime
-    from dateutil.relativedelta import relativedelta
+# def PerDay_LateFeeExtraCharges():
+#     print("In Per day Late Fee")
+#     from datetime import date, datetime
+#     from dateutil.relativedelta import relativedelta
 
-    with connect() as db:
-        print("In per day late fee CRON Function")
-        updateLF = {'message': 'Successfully committed SQL query',
-                    'code': 200}
-        with connect() as db:
-            response = db.execute("""SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants` 
-                                    FROM pm.rentals r 
-                                    LEFT JOIN
-                                    pm.leaseTenants lt 
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE' 
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY') 
-                                    GROUP BY lt.linked_rental_uid ; """)
+#     with connect() as db:
+#         print("In per day late fee CRON Function")
+#         updateLF = {'message': 'Successfully committed SQL query',
+#                     'code': 200}
+#         with connect() as db:
+#             response = db.execute("""
+#             SELECT r.*, lt.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+#             FROM pm.rentals r
+#             LEFT JOIN
+#             pm.leaseTenants lt
+#             ON lt.linked_rental_uid = r.rental_uid
+#             LEFT JOIN
+#             pm.propertyManager p
+#             ON p.linked_property_id = r.rental_property_id
+#             WHERE r.lease_start < DATE_FORMAT(NOW(), "%Y-%m-%d")
+#             AND r.lease_end > DATE_FORMAT(NOW(), "%Y-%m-%d")
+#             AND r.rental_status='ACTIVE'
+#             AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+#             GROUP BY lt.linked_rental_uid ; """)
 
-            if len(response['result']) > 0:
-                for lease in response['result']:
-                    # today date
-                    today_date = date.today()
-                    # creating purchases
-                    tenantPayments = json.loads(lease['rent_payments'])
-                    payer = response['result'][0]['tenants'].split(',')
-                    payer = json.dumps(payer)
-                    print(lease['rental_property_id'])
-                    res = db.execute("""SELECT *
-                                        FROM pm.purchases p
-                                        WHERE p.purchase_status='UNPAID' 
-                                        AND p.purchase_type='EXTRA CHARGES' 
-                                        AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
-                                        AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
+#             if len(response['result']) > 0:
+#                 for lease in response['result']:
+#                     # today date
+#                     today_date = date.today()
+#                     # creating purchases
+#                     tenantPayments = json.loads(lease['rent_payments'])
+#                     payer = response['result'][0]['tenants'].split(',')
+#                     payer = json.dumps(payer)
+#                     print(lease['rental_property_id'])
+#                     res = db.execute("""
+#                     SELECT *
+#                     FROM pm.purchases p
+#                     WHERE p.purchase_status='UNPAID'
+#                     AND p.purchase_type='EXTRA CHARGES'
+#                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\'
+#                     AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
-                    if len(res['result']) > 0:
-                        for unpaid in res['result']:
-                            for payment in tenantPayments:
-                                # get unpaid rent for the current month from purchases
-                                if payment['fee_name'] == unpaid['description']:
-                                    if payment['perDay_late_fee'] == 0:
-                                        print('Do nothing')
-                                    else:
+#                     if len(res['result']) > 0:
+#                         for unpaid in res['result']:
+#                             for payment in tenantPayments:
+#                                 # get unpaid rent for the current month from purchases
+#                                 if payment['fee_name'] == unpaid['description']:
+#                                     if payment['perDay_late_fee'] == 0:
+#                                         print('Do nothing')
+#                                     else:
 
-                                        latePurResponse = db.execute("""SELECT *
-                                                                        FROM pm.purchases p
-                                                                        WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
-                                                                        AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
-                                                                        AND p.description = 'Late Fee'
-                                                                        AND p.purchase_status='UNPAID'; """)
+#                                         latePurResponse = db.execute("""
+#                                         SELECT *
+#                                         FROM pm.purchases p
+#                                         WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
+#                                         AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
+#                                         AND p.description = 'Late Fee'
+#                                         AND p.purchase_status='UNPAID'; """)
 
-                                        if len(latePurResponse['result']) > 0:
-                                            for latePur in latePurResponse['result']:
-                                                pk = {
-                                                    "purchase_uid": latePur['purchase_uid']
-                                                }
-                                                print(pk)
-                                                updateLateFee = {
-                                                    "amount_due": int(latePur['amount_due']) + int(payment['perDay_late_fee']),
-                                                    "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                                }
-                                                updateLF = db.update(
-                                                    'purchases', pk, updateLateFee)
-                                        else:
-                                            print('do nothing')
+#                                         if len(latePurResponse['result']) > 0:
+#                                             for latePur in latePurResponse['result']:
+#                                                 pk = {
+#                                                     "purchase_uid": latePur['purchase_uid']
+#                                                 }
+#                                                 print(pk)
+#                                                 updateLateFee = {
+#                                                     "amount_due": int(latePur['amount_due']) + int(payment['perDay_late_fee']),
+#                                                     "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#                                                 }
+#                                                 updateLF = db.update(
+#                                                     'purchases', pk, updateLateFee)
+#                                         else:
+#                                             print('do nothing')
 
-        return updateLF
+#         return updateLF

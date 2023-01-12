@@ -129,7 +129,7 @@ class TenantDashboard(Resource):
                 ON pu.pur_property_id LIKE CONCAT('%', p.property_uid, '%')
                 WHERE pu.pur_property_id LIKE '%""" + property_id + """%'
                 AND pu.payer LIKE '%""" + user['user_uid'] + """%'
-                AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "UTILITY" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")""")
+                AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "UTILITY" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS" OR pu.purchase_type="LATE FEE")""")
                 response['result'][i]['tenantExpenses'] = []
                 if len(tenant_expenses['result']) > 0:
                     num_days = []

@@ -5,7 +5,7 @@ from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenant
 from socialLogin import UserSocialLogin, UserSocialSignup
 from security import createSalt, createHash
 from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
-    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFee, LateFee, LateFeeExtraCharges, PerDay_LateFeeExtraCharges, ExtendLeaseCRON, LeasetoMonth
+    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFee, LateFee,  ExtendLeaseCRON, LeasetoMonth
 from refresh import Refresh
 from purchases import Purchases, CreateExpenses
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail

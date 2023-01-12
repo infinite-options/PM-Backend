@@ -39,6 +39,22 @@ def updateImagesAppliances(imageFiles, property_uid, appliance):
 
 
 class Appliances(Resource):
+    def get(self):
+        response = {}
+        with connect() as db:
+            filters = ['property_uid']
+            print(filters)
+            where = {}
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+            print(where)
+            response = db.execute(
+                """SELECT appliances FROM pm.properties WHERE property_uid= \'""" + where['property_uid'] + """\'""")
+
+        return response
+
     def put(self):
         response = {}
         with connect() as db:
