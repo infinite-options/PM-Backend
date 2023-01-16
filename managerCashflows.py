@@ -28,12 +28,14 @@ class ManagerCashflow(Resource):
 
             rental_revenue = 0
             extra_revenue = 0
+            latefee_revenue = 0
             utility_revenue = 0
             management_revenue = 0
             maintenance_revenue = 0
             repairs_revenue = 0
 
             rental_expected_revenue = 0
+            latefee_expected_revenue = 0
             extra_expected_revenue = 0
             utility_expected_revenue = 0
             management_expected_revenue = 0
@@ -42,6 +44,7 @@ class ManagerCashflow(Resource):
 
             rental_year_revenue = 0
             extra_year_revenue = 0
+            latefee_year_revenue = 0
             utility_year_revenue = 0
             management_year_revenue = 0
             maintenance_year_revenue = 0
@@ -49,6 +52,7 @@ class ManagerCashflow(Resource):
 
             rental_year_expected_revenue = 0
             extra_year_expected_revenue = 0
+            latefee_year_expected_revenue = 0
             utility_year_expected_revenue = 0
             management_year_expected_revenue = 0
             maintenance_year_expected_revenue = 0
@@ -56,6 +60,7 @@ class ManagerCashflow(Resource):
 
             amortized_rental_revenue = 0
             amortized_extra_revenue = 0
+            amortized_latefee_revenue = 0
             amortized_management_revenue = 0
             amortized_utility_revenue = 0
             amortized_maintenance_revenue = 0
@@ -63,6 +68,7 @@ class ManagerCashflow(Resource):
 
             amortized_rental_expected_revenue = 0
             amortized_extra_expected_revenue = 0
+            amortized_latefee_expected_revenue = 0
             amortized_management_expected_revenue = 0
             amortized_utility_expected_revenue = 0
             amortized_maintenance_expected_revenue = 0
@@ -70,6 +76,7 @@ class ManagerCashflow(Resource):
 
             amortized_rental_year_revenue = 0
             amortized_extra_year_revenue = 0
+            amortized_latefee_year_revenue = 0
             amortized_utility_year_revenue = 0
             amortized_management_year_revenue = 0
             amortized_maintenance_year_revenue = 0
@@ -77,6 +84,7 @@ class ManagerCashflow(Resource):
 
             amortized_rental_year_expected_revenue = 0
             amortized_extra_year_expected_revenue = 0
+            amortized_latefee_year_expected_revenue = 0
             amortized_management_year_expected_revenue = 0
             amortized_utility_year_expected_revenue = 0
             amortized_maintenance_year_expected_revenue = 0
@@ -95,7 +103,7 @@ class ManagerCashflow(Resource):
             ON prm.linked_property_id = pr.property_uid
             WHERE prm.linked_business_id = \'""" + filterValue + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS" OR pu.purchase_type = 'LATE FEE')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -199,21 +207,30 @@ class ManagerCashflow(Resource):
                         elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Monthly':
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
-                            amortized_extra_revenue = amortized_extra_revenue + \
-                                int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])
+                            if response['result']['manager_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_revenue = amortized_extra_revenue + \
+                                    int(response['result']['manager_revenue']
+                                        [ore]['amount_paid'])
                         elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Annually':
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
-                            amortized_extra_revenue = amortized_extra_revenue + \
-                                int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month)
+                            if response['result']['manager_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_revenue = amortized_extra_revenue + \
+                                    int(response['result']['manager_revenue']
+                                        [ore]['amount_paid'])/(datetime.now().month)
                         else:
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
-                            amortized_extra_revenue = amortized_extra_revenue + \
-                                int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month)
+                            if response['result']['manager_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_revenue = amortized_extra_revenue + \
+                                    int(response['result']['manager_revenue']
+                                        [ore]['amount_paid'])/(datetime.now().month)
+                    if response['result']['manager_revenue'][ore]['purchase_type'] == 'LATE FEE':
+                        latefee_revenue = latefee_revenue + \
+                            response['result']['manager_revenue'][ore]['amount_paid']
+                        amortized_latefee_revenue = amortized_latefee_revenue + \
+                            int(response['result']['manager_revenue']
+                                [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -402,6 +419,12 @@ class ManagerCashflow(Resource):
             response['result']['amortized_extra_revenue'] = round(
                 amortized_extra_revenue, 2)
 
+            response['result']['latefee_revenue'] = round(
+                latefee_revenue, 2)
+
+            response['result']['amortized_latefee_revenue'] = round(
+                amortized_latefee_revenue, 2)
+
             response['result']['utility_revenue'] = round(
                 utility_revenue, 2)
 
@@ -438,7 +461,7 @@ class ManagerCashflow(Resource):
             ON prm.linked_property_id = pr.property_uid
             WHERE prm.linked_business_id = \'""" + filterValue + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS" OR pu.purchase_type='LATE FEE')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY') """)
 
@@ -541,24 +564,34 @@ class ManagerCashflow(Resource):
                         elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
-                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
-                                int(response['result']['manager_expected_revenue']
-                                    [ore]['amount_due'])
+                            if response['result']['manager_expected_revenue'][ore]['description'] != 'Deposit':
+
+                                amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                    int(response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
 
                         elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
 
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
-
-                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
-                                int(response['result']['manager_expected_revenue']
-                                    [ore]['amount_due'])/12
+                            if response['result']['manager_expected_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                    int(response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/12
                         else:
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
-                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
-                                int(response['result']['manager_expected_revenue']
-                                    [ore]['amount_due'])/12
+                            if response['result']['manager_expected_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                    int(response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/12
+
+                    if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'LATE FEE':
+                        latefee_expected_revenue = latefee_expected_revenue + \
+                            response['result']['manager_expected_revenue'][ore]['amount_due']
+                        amortized_latefee_expected_revenue = amortized_latefee_expected_revenue + \
+                            int(response['result']['manager_expected_revenue']
+                                [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -736,6 +769,10 @@ class ManagerCashflow(Resource):
                 extra_expected_revenue, 2)
             response['result']['amortized_extra_expected_revenue'] = round(
                 amortized_extra_expected_revenue, 2)
+            response['result']['latefee_expected_revenue'] = round(
+                latefee_expected_revenue, 2)
+            response['result']['amortized_latefee_expected_revenue'] = round(
+                amortized_latefee_expected_revenue, 2)
             response['result']['utility_expected_revenue'] = round(
                 utility_expected_revenue, 2)
             response['result']['amortized_utility_expected_revenue'] = round(
@@ -766,7 +803,7 @@ class ManagerCashflow(Resource):
             ON prm.linked_property_id = pr.property_uid
             WHERE prm.linked_business_id = \'""" + filterValue + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS')
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS' OR pu.purchase_type = 'LATE FEE')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -925,36 +962,52 @@ class ManagerCashflow(Resource):
                                 months_leased * \
                                 int(response['result']['manager_revenue_yearly']
                                     [ore]['amount_paid'])
-                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_due'])
-                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_paid'])
+                            if response['result']['manager_revenue_yearly'][ore]['description'] != 'Deposit':
+                                amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])
+                                amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])
                         elif response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
 
                             extra_year_expected_revenue = extra_year_expected_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_paid']
-                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_due'])/12
-                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_paid'])/12
+                            if response['result']['manager_revenue_yearly'][ore]['description'] != 'Deposit':
+                                amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])/12
+                                amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])/12
                         else:
                             extra_year_expected_revenue = extra_year_expected_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_paid']
-                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_due'])/12
-                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_paid'])/12
+                            if response['result']['manager_revenue_yearly'][ore]['description'] != 'Deposit':
+                                amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])/12
+                                amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])/12
 
+                    if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'LATE FEE':
+
+                        latefee_year_revenue = latefee_year_revenue + \
+                            int(response['result']['manager_revenue_yearly']
+                                [ore]['amount_paid'])
+                        latefee_year_expected_revenue = latefee_year_expected_revenue + \
+                            response['result']['manager_revenue_yearly'][ore]['amount_due']
+                        amortized_latefee_year_expected_revenue = amortized_latefee_year_expected_revenue + \
+                            int(response['result']['manager_revenue_yearly']
+                                [ore]['amount_due'])
+                        amortized_latefee_year_revenue = amortized_latefee_year_revenue + \
+                            int(response['result']['manager_revenue_yearly']
+                                [ore]['amount_paid'])
                      # if revenue type is UTILITY
                     if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Weekly':
@@ -1256,6 +1309,14 @@ class ManagerCashflow(Resource):
                 amortized_extra_year_revenue, 2)
             response['result']['amortized_extra_year_expected_revenue'] = round(
                 amortized_extra_year_expected_revenue, 2)
+            response['result']['latefee_year_revenue'] = round(
+                latefee_year_revenue, 2)
+            response['result']['latefee_year_expected_revenue'] = round(
+                latefee_year_expected_revenue, 2)
+            response['result']['amortized_latefee_year_revenue'] = round(
+                amortized_latefee_year_revenue, 2)
+            response['result']['amortized_latefee_year_expected_revenue'] = round(
+                amortized_latefee_year_expected_revenue, 2)
             response['result']['utility_year_revenue'] = round(
                 utility_year_revenue, 2)
             response['result']['utility_year_expected_revenue'] = round(
@@ -2300,12 +2361,14 @@ class ManagerCashflowProperty(Resource):
 
             rental_revenue = 0
             extra_revenue = 0
+            latefee_revenue = 0
             utility_revenue = 0
             management_revenue = 0
             maintenance_revenue = 0
             repairs_revenue = 0
 
             rental_expected_revenue = 0
+            latefee_expected_revenue = 0
             extra_expected_revenue = 0
             utility_expected_revenue = 0
             management_expected_revenue = 0
@@ -2314,6 +2377,7 @@ class ManagerCashflowProperty(Resource):
 
             rental_year_revenue = 0
             extra_year_revenue = 0
+            latefee_year_revenue = 0
             utility_year_revenue = 0
             management_year_revenue = 0
             maintenance_year_revenue = 0
@@ -2321,6 +2385,7 @@ class ManagerCashflowProperty(Resource):
 
             rental_year_expected_revenue = 0
             extra_year_expected_revenue = 0
+            latefee_year_expected_revenue = 0
             utility_year_expected_revenue = 0
             management_year_expected_revenue = 0
             maintenance_year_expected_revenue = 0
@@ -2328,6 +2393,7 @@ class ManagerCashflowProperty(Resource):
 
             amortized_rental_revenue = 0
             amortized_extra_revenue = 0
+            amortized_latefee_revenue = 0
             amortized_management_revenue = 0
             amortized_utility_revenue = 0
             amortized_maintenance_revenue = 0
@@ -2335,6 +2401,7 @@ class ManagerCashflowProperty(Resource):
 
             amortized_rental_expected_revenue = 0
             amortized_extra_expected_revenue = 0
+            amortized_latefee_expected_revenue = 0
             amortized_management_expected_revenue = 0
             amortized_utility_expected_revenue = 0
             amortized_maintenance_expected_revenue = 0
@@ -2342,6 +2409,7 @@ class ManagerCashflowProperty(Resource):
 
             amortized_rental_year_revenue = 0
             amortized_extra_year_revenue = 0
+            amortized_latefee_year_revenue = 0
             amortized_utility_year_revenue = 0
             amortized_management_year_revenue = 0
             amortized_maintenance_year_revenue = 0
@@ -2349,6 +2417,7 @@ class ManagerCashflowProperty(Resource):
 
             amortized_rental_year_expected_revenue = 0
             amortized_extra_year_expected_revenue = 0
+            amortized_latefee_year_expected_revenue = 0
             amortized_management_year_expected_revenue = 0
             amortized_utility_year_expected_revenue = 0
             amortized_maintenance_year_expected_revenue = 0
@@ -2368,7 +2437,7 @@ class ManagerCashflowProperty(Resource):
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND prm.linked_business_id = \'""" + filterValue2 + """\'
             AND (DATE_FORMAT(pu.next_payment,'%d') <= DATE_FORMAT(now(),'%d') AND {fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS" OR pu.purchase_type = 'LATE FEE')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -2474,21 +2543,31 @@ class ManagerCashflowProperty(Resource):
                         elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Monthly':
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
-                            amortized_extra_revenue = amortized_extra_revenue + \
-                                int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])
+                            if response['result']['manager_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_revenue = amortized_extra_revenue + \
+                                    int(response['result']['manager_revenue']
+                                        [ore]['amount_paid'])
                         elif response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Annually':
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
-                            amortized_extra_revenue = amortized_extra_revenue + \
-                                int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month)
+                            if response['result']['manager_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_revenue = amortized_extra_revenue + \
+                                    int(response['result']['manager_revenue']
+                                        [ore]['amount_paid'])/(datetime.now().month)
                         else:
                             extra_revenue = extra_revenue + \
                                 response['result']['manager_revenue'][ore]['amount_paid']
-                            amortized_extra_revenue = amortized_extra_revenue + \
-                                int(response['result']['manager_revenue']
-                                    [ore]['amount_paid'])/(datetime.now().month)
+                            if response['result']['manager_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_revenue = amortized_extra_revenue + \
+                                    int(response['result']['manager_revenue']
+                                        [ore]['amount_paid'])/(datetime.now().month)
+
+                    if response['result']['manager_revenue'][ore]['purchase_type'] == 'LATE FEE':
+                        latefee_revenue = latefee_revenue + \
+                            response['result']['manager_revenue'][ore]['amount_paid']
+                        amortized_latefee_revenue = amortized_latefee_revenue + \
+                            int(response['result']['manager_revenue']
+                                [ore]['amount_paid'])/(datetime.now().month)
 
                     if response['result']['manager_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -2677,6 +2756,12 @@ class ManagerCashflowProperty(Resource):
             response['result']['amortized_extra_revenue'] = round(
                 amortized_extra_revenue, 2)
 
+            response['result']['latefee_revenue'] = round(
+                latefee_revenue, 2)
+
+            response['result']['amortized_latefee_revenue'] = round(
+                amortized_latefee_revenue, 2)
+
             response['result']['utility_revenue'] = round(
                 utility_revenue, 2)
 
@@ -2714,7 +2799,7 @@ class ManagerCashflowProperty(Resource):
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND prm.linked_business_id = \'""" + filterValue2 + """\'
             AND ({fn MONTHNAME(pu.next_payment)} = {fn MONTHNAME(now())} AND YEAR(pu.next_payment) = YEAR(now()))
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES"  OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS")
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES"  OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS" OR pu.purchase_type='LATE FEE')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY') """)
 
@@ -2819,24 +2904,34 @@ class ManagerCashflowProperty(Resource):
                         elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Monthly':
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
-                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
-                                int(response['result']['manager_expected_revenue']
-                                    [ore]['amount_due'])
+                            if response['result']['manager_expected_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                    int(response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])
 
                         elif response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Annually':
 
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
 
-                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
-                                int(response['result']['manager_expected_revenue']
-                                    [ore]['amount_due'])/12
+                            if response['result']['manager_expected_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                    int(response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/12
                         else:
                             extra_expected_revenue = extra_expected_revenue + \
                                 response['result']['manager_expected_revenue'][ore]['amount_due']
-                            amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
-                                int(response['result']['manager_expected_revenue']
-                                    [ore]['amount_due'])/12
+                            if response['result']['manager_expected_revenue'][ore]['description'] != 'Deposit':
+                                amortized_extra_expected_revenue = amortized_extra_expected_revenue + \
+                                    int(response['result']['manager_expected_revenue']
+                                        [ore]['amount_due'])/12
+
+                    if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'LATE FEE':
+                        latefee_expected_revenue = latefee_expected_revenue + \
+                            response['result']['manager_expected_revenue'][ore]['amount_due']
+                        amortized_latefee_expected_revenue = amortized_latefee_expected_revenue + \
+                            int(response['result']['manager_expected_revenue']
+                                [ore]['amount_due'])/(datetime.now().month)
 
                     if response['result']['manager_expected_revenue'][ore]['purchase_type'] == 'UTILITY':
                         if response['result']['manager_expected_revenue'][ore]['purchase_frequency'] == 'Weekly':
@@ -3013,6 +3108,10 @@ class ManagerCashflowProperty(Resource):
                 extra_expected_revenue, 2)
             response['result']['amortized_extra_expected_revenue'] = round(
                 amortized_extra_expected_revenue, 2)
+            response['result']['latefee_expected_revenue'] = round(
+                latefee_expected_revenue, 2)
+            response['result']['amortized_latefee_expected_revenue'] = round(
+                amortized_latefee_expected_revenue, 2)
             response['result']['utility_expected_revenue'] = round(
                 utility_expected_revenue, 2)
             response['result']['amortized_utility_expected_revenue'] = round(
@@ -3043,7 +3142,7 @@ class ManagerCashflowProperty(Resource):
             WHERE pr.property_uid = \'""" + filterValue1 + """\'
             AND prm.linked_business_id = \'""" + filterValue2 + """\'
             AND YEAR(pu.next_payment) = YEAR(now())
-            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES"  OR pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS')
+            AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES"  OR pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS' OR pu.purchase_type = 'LATE FEE')
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
             AND (prm.management_status = 'ACCEPTED' OR prm.management_status='END EARLY' OR prm.management_status='PM END EARLY' OR prm.management_status='OWNER END EARLY')""")
 
@@ -3204,35 +3303,52 @@ class ManagerCashflowProperty(Resource):
                                 months_leased * \
                                 int(response['result']['manager_revenue_yearly']
                                     [ore]['amount_paid'])
-                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_due'])
-                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_paid'])
+                            if response['result']['manager_revenue_yearly'][ore]['description'] != 'Deposit':
+                                amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])
+                                amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])
                         elif response['result']['manager_revenue_yearly'][ore]['purchase_frequency'] == 'Annually':
 
                             extra_year_expected_revenue = extra_year_expected_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_paid']
-                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_due'])/12
-                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_paid'])/12
+                            if response['result']['manager_revenue_yearly'][ore]['description'] != 'Deposit':
+                                amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])/12
+                                amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])/12
                         else:
                             extra_year_expected_revenue = extra_year_expected_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_due']
                             extra_year_revenue = extra_year_revenue + \
                                 response['result']['manager_revenue_yearly'][ore]['amount_paid']
-                            amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_due'])/12
-                            amortized_extra_year_revenue = amortized_extra_year_revenue + \
-                                int(response['result']['manager_revenue_yearly']
-                                    [ore]['amount_paid'])/12
+                            if response['result']['manager_revenue_yearly'][ore]['description'] != 'Deposit':
+                                amortized_extra_year_expected_revenue = amortized_extra_year_expected_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_due'])/12
+                                amortized_extra_year_revenue = amortized_extra_year_revenue + \
+                                    int(response['result']['manager_revenue_yearly']
+                                        [ore]['amount_paid'])/12
+
+                    if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'LATE FEE':
+
+                        latefee_year_revenue = latefee_year_revenue + \
+                            int(response['result']['manager_revenue_yearly']
+                                [ore]['amount_paid'])
+                        latefee_year_expected_revenue = latefee_year_expected_revenue + \
+                            response['result']['manager_revenue_yearly'][ore]['amount_due']
+                        amortized_latefee_year_expected_revenue = amortized_latefee_year_expected_revenue + \
+                            int(response['result']['manager_revenue_yearly']
+                                [ore]['amount_due'])
+                        amortized_latefee_year_revenue = amortized_latefee_year_revenue + \
+                            int(response['result']['manager_revenue_yearly']
+                                [ore]['amount_paid'])
 
                      # if revenue type is UTILITY
                     if response['result']['manager_revenue_yearly'][ore]['purchase_type'] == 'UTILITY':
@@ -3534,6 +3650,15 @@ class ManagerCashflowProperty(Resource):
                 amortized_extra_year_revenue, 2)
             response['result']['amortized_extra_year_expected_revenue'] = round(
                 amortized_extra_year_expected_revenue, 2)
+            response['result']['latefee_year_revenue'] = round(
+                latefee_year_revenue, 2)
+            response['result']['latefee_year_expected_revenue'] = round(
+                latefee_year_expected_revenue, 2)
+            response['result']['amortized_latefee_year_revenue'] = round(
+                amortized_latefee_year_revenue, 2)
+            response['result']['amortized_latefee_year_expected_revenue'] = round(
+                amortized_latefee_year_expected_revenue, 2)
+
             response['result']['utility_year_revenue'] = round(
                 utility_year_revenue, 2)
             response['result']['utility_year_expected_revenue'] = round(
