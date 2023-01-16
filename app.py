@@ -693,6 +693,19 @@ class SendAnnouncement(Resource):
         return 'Email and Text Sent'
 
 
+class DeleteAnnouncement(Resource):
+    def put(self):
+        ann_response = {}
+        with connect() as db:
+            data = request.json
+            a_id = {
+                'announcement_uid': data['announcement_uid']
+            }
+            ann_response = db.delete(
+                """DELETE FROM pm.announcements WHERE announcement_uid = \'""" + data['announcement_uid'] + """\' """)
+        return ann_response
+
+
 class RequestMorePictures(Resource):
     def put(self):
         response = {}
@@ -2167,6 +2180,7 @@ api.add_resource(
 # app
 api.add_resource(Send_Twilio_SMS, '/Send_Twilio_SMS')
 api.add_resource(SendAnnouncement, '/SendAnnouncement')
+api.add_resource(DeleteAnnouncement, '/DeleteAnnouncement')
 api.add_resource(stripe_key, "/stripe_key/<string:desc>")
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
