@@ -160,13 +160,11 @@ class DatabaseConnection:
         response = {}
         try:
             with self.conn.cursor() as cur:
-                print('IN POST', sql)
                 cur.execute(sql)
 
                 self.conn.commit()
                 response['message'] = 'Successfully committed SQL query'
                 response['code'] = 200
-                print('RESPONSE POST')
                 # response = self.execute(sql, 'post')
         except Exception as e:
             print(e)

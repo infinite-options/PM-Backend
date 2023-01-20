@@ -9,7 +9,6 @@ from calendar import monthrange
 import json
 import ast
 from dateutil.relativedelta import relativedelta
-from purchases import newPurchase
 
 
 def updateImagesAppliances(imageFiles, property_uid, appliance):

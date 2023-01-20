@@ -1579,3 +1579,13 @@ class CreateExpenses(Resource):
             else:
                 print('do nothing')
         return response
+
+
+class DeletePurchase(Resource):
+    def put(self):
+        pur_response = {}
+        with connect() as db:
+            data = request.json
+            pur_response = db.delete(
+                """DELETE FROM pm.purchases WHERE purchase_uid = \'""" + data['purchase_uid'] + """\' """)
+        return pur_response

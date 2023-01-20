@@ -1,37 +1,38 @@
 
-from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
-from tenantProperties import TenantProperties
-from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenantDetail
-from socialLogin import UserSocialLogin, UserSocialSignup
-from security import createSalt, createHash
-from rentals import Rentals, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
-    PerDay_LateFee_CLASS, LateFeeExtraCharges_CLASS, PerDay_LateFeeExtraCharges_CLASS, PerDay_LateFee, LateFee,  ExtendLeaseCRON, LeasetoMonth
-from refresh import Refresh
-from purchases import Purchases, CreateExpenses
-from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
-from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
-from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from ownerProfileInfo import OwnerProfileInfo
-from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
-from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
-from managerCashflows import ManagerCashflow, ManagerCashflowProperty
-from maintenanceQuotes import MaintenanceQuotes
-from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
-from leaseTenants import LeaseTenants
-from employees import Employees
-from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
-from data import connect
-from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
-from contracts import Contracts
-from contact import Contact
-from cashflow import OwnerCashflow, OwnerCashflowProperty
-from businessProfileInfo import BusinessProfileInfo
-from businesses import Businesses
-from bills import Bills
-from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
-from appliances import Appliances, RemoveAppliance
 from applepay import ApplePay
+from appliances import Appliances, RemoveAppliance
+from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
+from bills import Bills
+from businesses import Businesses
+from businessProfileInfo import BusinessProfileInfo
+from cashflow import OwnerCashflow, OwnerCashflowProperty
+from contact import Contact
+from contracts import Contracts
+from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
+from data import connect
+from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
+from employees import Employees
+from leaseTenants import LeaseTenants
+from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
+from maintenanceQuotes import MaintenanceQuotes
+from managerCashflows import ManagerCashflow, ManagerCashflowProperty
+from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
+from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
+from ownerProfileInfo import OwnerProfileInfo
+from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
+from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
+from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
+from purchases import Purchases, CreateExpenses, DeletePurchase
+from refresh import Refresh
+from rentals import Rentals, UpdateActiveLease, EndLease, ExtendLease, ExtendLeaseCRON_CLASS, LeasetoMonth_CLASS, LateFee_CLASS, \
+    PerDay_LateFee_CLASS,  PerDay_LateFee, LateFee,  ExtendLeaseCRON, LeasetoMonth
+from security import createSalt, createHash
+from socialLogin import UserSocialLogin, UserSocialSignup
+from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenantDetail
+from tenantProperties import TenantProperties
+from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
+
 from twilio.rest import Client
 from flask import Flask
 from flask_restful import Api
@@ -2142,6 +2143,8 @@ api.add_resource(AvailableProperties,
 # purchases
 api.add_resource(Purchases, '/purchases')
 api.add_resource(CreateExpenses, '/createExpenses')
+api.add_resource(DeletePurchase, '/DeletePurchase')
+# refresh
 api.add_resource(Refresh, '/refresh')
 # rentals
 api.add_resource(Rentals, '/rentals')
@@ -2150,10 +2153,8 @@ api.add_resource(ExtendLease, '/extendLease')
 api.add_resource(ExtendLeaseCRON_CLASS, '/ExtendLeaseCRON_CLASS')
 api.add_resource(LeasetoMonth_CLASS, '/LeasetoMonth_CLASS')
 api.add_resource(LateFee_CLASS, '/LateFee_CLASS')
-api.add_resource(LateFeeExtraCharges_CLASS, '/LateFeeExtraCharges_CLASS')
 api.add_resource(PerDay_LateFee_CLASS, '/PerDay_LateFee_CLASS')
-api.add_resource(PerDay_LateFeeExtraCharges_CLASS,
-                 '/PerDay_LateFeeExtraCharges_CLASS')
+api.add_resource(UpdateActiveLease, '/UpdateActiveLease')
 # socialLogin
 api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')

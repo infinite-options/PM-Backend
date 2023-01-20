@@ -595,6 +595,9 @@ class TenantPayments_CLASS(Resource):
                                             # set charge date as first of every month
                                             # print('available to pay',
                                                 #   (payment['available_topay']))
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
+
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             # print('due_date',
@@ -771,7 +774,7 @@ class TenantPayments_CLASS(Resource):
                                             elif lease_end.month == charge_date.month and lease_end.year == charge_date.year:
                                                 print(
                                                     'monthly chargedate == today')
-                                                rent =  int(payment['charge'])
+                                                rent = int(payment['charge'])
                                                 purchaseResponse = newPurchase(
                                                     linked_bill_id=None,
                                                     pur_property_id=json.dumps(
@@ -782,7 +785,8 @@ class TenantPayments_CLASS(Resource):
                                                     description=payment['fee_name'],
                                                     # amount_due=prorated_charge_end,
 
-                                                    amount_due=int(payment['charge']),
+                                                    amount_due=int(
+                                                        payment['charge']),
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
                                                     purchase_frequency=payment['frequency'],
@@ -1185,6 +1189,8 @@ class TenantPayments_CLASS(Resource):
                                                     prevPurchaseDate = datetime.strptime(
                                                         prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             if len(payment['available_topay']) == 0:
@@ -1425,6 +1431,8 @@ class TenantPayments_CLASS(Resource):
                                                     prevPurchaseDate = datetime.strptime(
                                                         prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             if len(payment['available_topay']) == 0:
@@ -1759,6 +1767,8 @@ class TenantPayments_CLASS(Resource):
                                                     prevPurchaseDate = datetime.strptime(
                                                         prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             if len(payment['available_topay']) == 0:
@@ -2044,6 +2054,8 @@ def TenantPayments():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
@@ -2275,6 +2287,8 @@ def TenantPayments():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
@@ -2514,6 +2528,8 @@ def TenantPayments():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
@@ -2848,6 +2864,8 @@ def TenantPayments():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
@@ -3399,6 +3417,8 @@ class ManagerPayments_CLASS(Resource):
                                             # set charge date as first of every month
                                             # print('available to pay',
                                                 #   (payment['available_topay']))
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             # print('due_date',
@@ -3585,8 +3605,9 @@ class ManagerPayments_CLASS(Resource):
                                                     purchase_type='RENT',
                                                     description=payment['fee_name'],
                                                     # amount_due=prorated_charge_end,
-                                                    
-                                                    amount_due=int(payment['charge']),
+
+                                                    amount_due=int(
+                                                        payment['charge']),
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
                                                     purchase_frequency=payment['frequency'],
@@ -3989,6 +4010,8 @@ class ManagerPayments_CLASS(Resource):
                                                     prevPurchaseDate = datetime.strptime(
                                                         prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             if len(payment['available_topay']) == 0:
@@ -4229,6 +4252,8 @@ class ManagerPayments_CLASS(Resource):
                                                     prevPurchaseDate = datetime.strptime(
                                                         prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             if len(payment['available_topay']) == 0:
@@ -4563,6 +4588,8 @@ class ManagerPayments_CLASS(Resource):
                                                     prevPurchaseDate = datetime.strptime(
                                                         prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                             # set charge date as first of every month
+                                            # due_date = (datetime.now().replace(
+                                            #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                             due_date = prevPurchaseDate.replace(
                                                 day=int(payment['due_by'])) + relativedelta(months=1)
                                             if len(payment['available_topay']) == 0:
@@ -5121,6 +5148,8 @@ def ManagerPayments_CRON():
                                         # set charge date as first of every month
                                         # print('available to pay',
                                             #   (payment['available_topay']))
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         # print('due_date',
@@ -5307,7 +5336,8 @@ def ManagerPayments_CRON():
                                                 purchase_type='RENT',
                                                 description=payment['fee_name'],
                                                 # amount_due=prorated_charge_end,
-                                                amount_due=int(payment['charge']),
+                                                amount_due=int(
+                                                    payment['charge']),
                                                 purchase_notes=charge_month,
                                                 purchase_date=charge_date,
                                                 purchase_frequency=payment['frequency'],
@@ -5710,6 +5740,8 @@ def ManagerPayments_CRON():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
@@ -5950,6 +5982,8 @@ def ManagerPayments_CRON():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
@@ -6284,6 +6318,8 @@ def ManagerPayments_CRON():
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
+                                        # due_date = (datetime.now().replace(
+                                        #     day=int(payment['due_by'])) + relativedelta(months=1)).date()
                                         due_date = prevPurchaseDate.replace(
                                             day=int(payment['due_by'])) + relativedelta(months=1)
                                         if len(payment['available_topay']) == 0:
