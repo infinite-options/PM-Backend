@@ -29,7 +29,7 @@ from rentals import Rentals, UpdateActiveLease, EndLease, ExtendLease, ExtendLea
     PerDay_LateFee_CLASS,  PerDay_LateFee, LateFee,  ExtendLeaseCRON, LeasetoMonth
 from security import createSalt, createHash
 from socialLogin import UserSocialLogin, UserSocialSignup
-from tenantProfileInfo import TenantProfileInfo, TenantDetails, PropertiesTenantDetail
+from tenantProfileInfo import CheckTenantProfileComplete, TenantProfileInfo, TenantDetails, PropertiesTenantDetail
 from tenantProperties import TenantProperties
 from users import Users, Login, UpdateAccessToken, UserDetails, UserToken, AvailableAppointmentsTenant, AvailableAppointmentsMaintenance
 
@@ -2159,6 +2159,7 @@ api.add_resource(UpdateActiveLease, '/UpdateActiveLease')
 api.add_resource(UserSocialLogin, '/userSocialLogin/<string:email>')
 api.add_resource(UserSocialSignup, '/userSocialSignup')
 # tenantProfileInfo
+api.add_resource(CheckTenantProfileComplete, '/CheckTenantProfileComplete')
 api.add_resource(TenantProfileInfo, '/tenantProfileInfo')
 api.add_resource(TenantDetails, '/tenantDetails')
 api.add_resource(PropertiesTenantDetail, '/propertiesTenantDetail')

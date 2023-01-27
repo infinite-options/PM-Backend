@@ -33,6 +33,21 @@ def updateDocuments(documents, tenant_id):
     return docs
 
 
+class CheckTenantProfileComplete(Resource):
+    decorators = [jwt_required()]
+
+    def get(self):
+        response = {}
+        user = get_jwt_identity()
+        where = {'tenant_id': user['user_uid']}
+        print('where', where)
+        with connect() as db:
+            response = db.select('tenantProfileInfo', where)
+            if len(response['result']) == 0:
+                response['message'] = 'Incomplete Profile'
+        return response
+
+
 class TenantProfileInfo(Resource):
     decorators = [jwt_required()]
 
@@ -40,6 +55,7 @@ class TenantProfileInfo(Resource):
         response = {}
         user = get_jwt_identity()
         where = {'tenant_id': user['user_uid']}
+
         with connect() as db:
             response = db.select('tenantProfileInfo', where)
         return response

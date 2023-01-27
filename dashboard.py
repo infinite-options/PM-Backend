@@ -19,7 +19,8 @@ class TenantDashboard(Resource):
         where = {'tenant_id': user['user_uid']}
         with connect() as db:
             res = db.select('tenantProfileInfo', where)
-            print('user_id:', user['user_uid'])
+            # print('res:', res)
+            # print('user_id:', user['user_uid'])
             response = db.execute(""" 
             SELECT * FROM pm.properties
             LEFT JOIN pm.rentals
@@ -32,7 +33,7 @@ class TenantDashboard(Resource):
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
-                print(property_id)
+                # print(property_id)
                 property_res = db.execute("""
                 SELECT
                 p.address, p.unit, p.city, p.state,p.zip,
@@ -207,8 +208,9 @@ class TenantDashboard(Resource):
 
                 print('tenantExpenses',
                       response['result'][i]['tenantExpenses'])
-
-            res['result'][0]['properties'] = list(response['result'])
+            print(response['result'])
+            if len(res['result']) > 0:
+                res['result'][0]['properties'] = list(response['result'])
 
         return res
 

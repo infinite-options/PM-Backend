@@ -466,9 +466,8 @@ class TenantPayments_CLASS(Resource):
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
-                                                                amount_due=weeks_current_month/2 *
-                                                                ((rent *
-                                                                 (1-payment['charge']/100))),
+                                                                amount_due=((rent *
+                                                                             (1-payment['charge']/100))),
                                                                 purchase_notes=charge_month,
                                                                 purchase_date=charge_date,
                                                                 purchase_frequency=payment['frequency'],
@@ -486,8 +485,7 @@ class TenantPayments_CLASS(Resource):
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
-                                                                amount_due=weeks_current_month/2 *
-                                                                ((rent-payment['expense_amount'])*(
+                                                                amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
                                                                 purchase_notes=charge_month,
                                                                 purchase_date=charge_date,
@@ -507,7 +505,7 @@ class TenantPayments_CLASS(Resource):
                                                                 purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(rent *
-                                                                            (1-payment['charge']/100))*2,
+                                                                            (1-payment['charge']/100))/2,
                                                                 purchase_notes=charge_month,
                                                                 purchase_date=charge_date,
                                                                 purchase_frequency=payment['frequency'],
@@ -526,7 +524,7 @@ class TenantPayments_CLASS(Resource):
                                                                 purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
-                                                                    1-payment['charge']/100))*2,
+                                                                    1-payment['charge']/100))/2,
                                                                 purchase_notes=charge_month,
                                                                 purchase_date=charge_date,
                                                                 purchase_frequency=payment['frequency'],
@@ -546,7 +544,7 @@ class TenantPayments_CLASS(Resource):
                                                                 purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
-                                                                    rent*(1-int(payment['charge'])/100))/(weeks_current_month/2),
+                                                                    rent*(1-int(payment['charge'])/100))*2,
                                                                 purchase_notes=charge_month,
                                                                 purchase_date=charge_date,
                                                                 purchase_frequency=payment['frequency'],
@@ -567,7 +565,7 @@ class TenantPayments_CLASS(Resource):
                                                                 purchase_type='OWNER PAYMENT',
                                                                 description='Rent',
                                                                 amount_due=(
-                                                                    (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))/(weeks_current_month/2),
+                                                                    (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))*2,
                                                                 purchase_notes=charge_month,
                                                                 purchase_date=charge_date,
                                                                 purchase_frequency=payment['frequency'],
