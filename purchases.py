@@ -1586,6 +1586,11 @@ class DeletePurchase(Resource):
         pur_response = {}
         with connect() as db:
             data = request.json
-            pur_response = db.delete(
-                """DELETE FROM pm.purchases WHERE purchase_uid = \'""" + data['purchase_uid'] + """\' """)
+            delPurchase = {
+                "purchase_status": 'DELETED'
+            }
+            pk = {
+                'purchase_uid': data['purchase_uid']
+            }
+            pur_response = db.update("purchases", pk, delPurchase)
         return pur_response

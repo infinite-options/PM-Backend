@@ -312,18 +312,39 @@ class UpdateActiveLease(Resource):
                                 print('available date in past, due date in past')
                     else:
                         print('effective date < today')
+
+                        unpaidPurchases = db.execute("""
+                            SELECT * FROM pm.purchases
+                            WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
+                            AND DATE(purchase_date) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
+                            AND (purchase_type ='RENT' OR purchase_type='EXTRA CHARGES')
+                            AND purchase_status ="UNPAID" """)
+                        unpaidEntries = []
+                        if len(unpaidPurchases['result']) > 0:
+
+                            for unpaid in unpaidPurchases['result']:
+                                if(any(unpaid['description'] == payment['fee_name'] for payment in rentPayments)):
+                                    print('do nothing')
+                                else:
+                                    print(unpaid['description'])
+                                    unpaidEntries.append(unpaid)
+
+                        # delete older purchases no longer added
+                        for unpaid in unpaidEntries:
+                            delUnpaid = db.execute(
+                                """DELETE FROM pm.purchases WHERE purchase_uid = \'""" + unpaid['purchase_uid'] + """\'""")
                         for payment in rentPayments:
                             newEntries = []
                             paidEntries = []
                             filteredEntries = []
                             print('payment fee name:', payment['fee_name'])
+                            # delete older unpaid purchase records
+
                             due_date = (start_date.replace(
                                 day=int(payment['due_by'])) + relativedelta(months=1))
 
                             if len(payment['available_topay']) == 0:
                                 available_date = due_date
-                                # print('available_date',
-                                #   available_date)
                             else:
                                 available_date = due_date - \
                                     timedelta(
@@ -350,7 +371,7 @@ class UpdateActiveLease(Resource):
                             if payment['frequency'] == 'Weekly':
                                 print('weekly')
                                 due_date = next_weekday(
-                                    charge_date,  int(payment['due_by']))
+                                    effective_date_str,  int(payment['due_by']))
                                 if len(payment['available_topay']) == 0:
                                     available_date = due_date
                                 else:
@@ -358,7 +379,8 @@ class UpdateActiveLease(Resource):
                                         timedelta(
                                             days=int(payment['available_topay']))
                                 while due_date < today:
-                                    if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
+                                    # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
+                                    if(due_date >= effective_date):
                                         newPurchase = {
                                             "linked_bill_id": None,
                                             "pur_property_id": json.dumps(
@@ -534,7 +556,7 @@ class UpdateActiveLease(Resource):
                             elif payment['frequency'] == 'Biweekly':
                                 print('biweekly')
                                 due_date = next_weekday_biweekly(
-                                    charge_date,  int(payment['due_by']))
+                                    effective_date_str,  int(payment['due_by']))
                                 if len(payment['available_topay']) == 0:
                                     available_date = due_date
                                 else:
@@ -543,7 +565,8 @@ class UpdateActiveLease(Resource):
                                             days=int(payment['available_topay']))
 
                                 while due_date < today:
-                                    if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
+                                    # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
+                                    if(due_date >= effective_date):
                                         newPurchase = {
                                             "linked_bill_id": None,
                                             "pur_property_id": json.dumps(
@@ -720,7 +743,8 @@ class UpdateActiveLease(Resource):
                             elif payment['frequency'] == 'Monthly':
                                 print('monthly')
                                 while due_date < today:
-                                    if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
+                                    # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
+                                    if(due_date >= effective_date):
 
                                         newPurchase = {
                                             "linked_bill_id": None,
@@ -956,23 +980,9 @@ class UpdateActiveLease(Resource):
                                     newPurchase)
 
                             else:
-                                print('one-time')
-                                if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
-                                    # purchaseResponse = newPurchase(
-                                    #     linked_bill_id=None,
-                                    #     pur_property_id=json.dumps(
-                                    #         [getRentInfo['result'][0]['rental_property_id']]),
-                                    #     payer=json.dumps(tenants),
-                                    #     receiver=getRentInfo['result'][0]['linked_business_id'],
-                                    #     purchase_type='EXTRA CHARGES',
-                                    #     description=payment['fee_name'],
-                                    #     amount_due=payment['charge'],
-                                    #     purchase_notes=due_date.strftime(
-                                    #         '%B'),
-                                    #     purchase_date=effective_date.isoformat(),
-                                    #     purchase_frequency=payment['frequency'],
-                                    #     next_payment=due_date
-                                    # )
+                                print('one-time', due_date)
+                                # if(available_date > effective_date or (available_date < effective_date and due_date >= effective_date)):
+                                if(due_date >= effective_date):
                                     newPurchase = {
                                         "linked_bill_id": None,
                                         "pur_property_id": json.dumps(
@@ -994,11 +1004,25 @@ class UpdateActiveLease(Resource):
                                         newPurchase)
                             print('newEntries',
                                   payment['fee_name'], len(newEntries), newEntries)
+                            # delete older unpaid purchase records
+                            delPurchases = db.delete("""
+                                DELETE FROM pm.purchases
+                                WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
+                                AND DATE(purchase_date) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
+                                AND purchase_status ="UNPAID"
+                                AND description = \'""" + payment['fee_name'] + """\'  """)
+                            # delete older unpaid owner payment purchase records
+                            delOwnerPurchases = db.delete("""
+                                DELETE FROM pm.purchases
+                                WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
+                                AND DATE(purchase_date) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
+                                AND purchase_status ="UNPAID"
+                                AND purchase_type = 'OWNER PAYMENT' AND description = 'Rent'  """)
                             # find paid purchases after the effective date
                             paidPurchases = db.execute("""
                                 SELECT * FROM pm.purchases
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
-                                AND DATE(purchase_date) > DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
+                                -- AND DATE(purchase_date) > DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
                                 AND purchase_status ="PAID"
                                 AND description = \'""" + payment['fee_name'] + """\'  """)
                             # if paid purchases, store in paidEntries
@@ -1013,6 +1037,11 @@ class UpdateActiveLease(Resource):
                                         # if same purchase found, remove from newEntries list
                                         if(paid['pur_property_id'] == new['pur_property_id'] and paid['payer'] == new['payer'] and paid['description'] == new['description'] and paid['purchase_notes'] == new['purchase_notes']):
                                             newEntries.remove(new)
+                                        elif(paid['pur_property_id'] == new['pur_property_id'] and paid['payer'] == new['payer'] and paid['description'] == new['description'] and paid['purchase_frequency'] == 'One-time' and new['purchase_frequency'] == 'One-time'):
+                                            newEntries.remove(new)
+                                        else:
+                                            print('do nothing')
+
                             # set the updated newEntries list as filteredList and enter the info into the database
                             filteredEntries = newEntries
                             for filtered in filteredEntries:
@@ -1023,26 +1052,10 @@ class UpdateActiveLease(Resource):
 
                             print('filteredEntries',
                                   payment['fee_name'], len(filteredEntries), filteredEntries)
-                            # delete older unpaid purchase records
-                            delPurchases = db.delete("""
-                                DELETE FROM pm.purchases
-                                WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
-                                AND DATE(purchase_date) != DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
-                                AND DATE(next_payment) > DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
-                                AND purchase_status ="UNPAID"
-                                AND description = \'""" + payment['fee_name'] + """\'  """)
-
-                            # delete older unpaid owner payment purchase records
-                            delOwnerPurchases = db.delete("""
-                                DELETE FROM pm.purchases
-                                WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
-                                AND DATE(purchase_date) != DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
-                                AND purchase_status ="UNPAID"
-                                AND purchase_type = 'OWNER PAYMENT' AND description = 'Rent'  """)
 
             response = db.update("rentals", rental_pk, updatedRental)
 
-        return getRentInfo
+        return response
 
 
 class EndLease(Resource):
