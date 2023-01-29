@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta
 
 
 def updateDocuments(documents, tenant_id):
+    print(documents)
     for i, doc in enumerate(documents):
         if 'link' in doc:
             bucket = 'io-pm'
@@ -22,6 +23,7 @@ def updateDocuments(documents, tenant_id):
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'tenants/{tenant_id}/').delete()
+    print(documents)
     docs = []
     for i, doc in enumerate(documents):
         filename = f'doc_{i}'
@@ -49,25 +51,31 @@ class CheckTenantProfileComplete(Resource):
 
 
 class TenantProfileInfo(Resource):
-    decorators = [jwt_required()]
-
+    # decorators = [jwt_required()]
     def get(self):
-        response = {}
-        user = get_jwt_identity()
-        where = {'tenant_id': user['user_uid']}
 
+        response = {}
+        # user = get_jwt_identity()
+        filters = ['tenant_id']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[filter] = filterValue
         with connect() as db:
             response = db.select('tenantProfileInfo', where)
         return response
 
     def post(self):
         response = {}
-        user = get_jwt_identity()
+        # user = get_jwt_identity()
         with connect() as db:
+
             data = request.form
+            tenant_id = data.get('tenant_id')
             fields = ['tenant_first_name', 'tenant_last_name', 'tenant_phone_number', 'tenant_email', 'tenant_ssn', 'tenant_current_salary', 'tenant_salary_frequency', 'tenant_current_job_title',
-                      'tenant_current_job_company', 'tenant_drivers_license_number', 'tenant_drivers_license_state', 'tenant_current_address', 'tenant_previous_address', 'tenant_adult_occupants', 'tenant_children_occupants', 'tenant_pet_occupants', 'tenant_vehicle_info', 'tenant_references']
-            newProfileInfo = {'tenant_id': user['user_uid']}
+                      'tenant_current_job_company', 'tenant_drivers_license_number', 'tenant_drivers_license_state', 'tenant_current_address', 'tenant_previous_address', 'tenant_adult_occupants', 'tenant_children_occupants', 'tenant_pet_occupants', 'tenant_vehicle_info', 'tenant_references', ]
+            newProfileInfo = {'tenant_id': tenant_id}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
@@ -77,7 +85,7 @@ class TenantProfileInfo(Resource):
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
                 if file:
-                    tenant_id = user['user_uid']
+                    tenant_id = tenant_id
                     key = f'tenants/{tenant_id}/{filename}'
                     doc = uploadImage(file, key)
                     documents[i]['link'] = doc
@@ -89,11 +97,12 @@ class TenantProfileInfo(Resource):
 
     def put(self):
         response = {}
-        user = get_jwt_identity()
+        # user = get_jwt_identity()
         with connect() as db:
             data = request.form
+            tenant_id = data.get('tenant_id')
             fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
-                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address', 'adult_occupants', 'children_occupants', 'pet_occupants', 'vehicle_info', 'references']
+                      'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address', 'adult_occupants', 'children_occupants', 'pet_occupants', 'vehicle_info', 'references', ]
             newProfileInfo = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -110,9 +119,9 @@ class TenantProfileInfo(Resource):
                     doc['link'] = s3Link
                 else:
                     break
-            documents = updateDocuments(documents,  user['user_uid'])
+            documents = updateDocuments(documents, tenant_id)
             newProfileInfo['documents'] = json.dumps(documents)
-            primaryKey = {'tenant_id': user['user_uid']}
+            primaryKey = {'tenant_id': tenant_id}
             response = db.update('tenantProfileInfo',
                                  primaryKey, newProfileInfo)
         return response

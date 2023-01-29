@@ -309,8 +309,10 @@ class Properties(Resource):
                                         print('payment frequency monthly $')
 
                                         # set charge date as first of every month
-                                        charge_date = contract['start_date'].replace(
-                                            day=1) + relativedelta(months=1)
+                                        print(type(contract['start_date']))
+                                        charge_date = datetime.strptime(
+                                            contract['start_date'], '%Y-%m-%d') .replace(
+                                            day=int(1)) + relativedelta(months=1)
                                         charge_month = charge_date.strftime(
                                             '%B')
                                         purchaseResponse = newPurchase(
@@ -516,7 +518,7 @@ class CancelAgreement(Resource):
                             'contract_uid': contractRes['result'][0]['contract_uid']
                         }
                         contractUpdate = {
-                            # 'contract_status': 'INACTIVE',
+                            'contract_status': 'INACTIVE',
                             'end_date': contractRes['result'][0]['early_end_date']
                         }
                         response = db.update(
@@ -562,7 +564,7 @@ class CancelAgreement(Resource):
                             'contract_uid': contractRes['result'][0]['contract_uid']
                         }
                         contractUpdate = {
-                            # 'contract_status': 'INACTIVE',
+                            'contract_status': 'INACTIVE',
                             'end_date': contractRes['result'][0]['early_end_date']
                         }
                         response = db.update(

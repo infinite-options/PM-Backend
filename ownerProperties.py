@@ -50,16 +50,17 @@ class PropertiesOwner(Resource):
                         response['result'][i]['per_sqft'] = round(response['result'][i]['listed_rent'] /
                                                                   response['result'][i]['area'], 2)
                         # property manager info for property
-                        property_res = db.execute("""SELECT 
-                                                        pm.*, 
-                                                        b.business_uid AS manager_id, 
-                                                        b.business_name AS manager_business_name, 
-                                                        b.business_email AS manager_email, 
-                                                        b.business_phone_number AS manager_phone_number 
-                                                        FROM pm.propertyManager pm 
-                                                        LEFT JOIN businesses b 
-                                                        ON b.business_uid = pm.linked_business_id 
-                                                        WHERE pm.linked_property_id = \'""" + property_id + """\'""")
+                        property_res = db.execute("""
+                        SELECT 
+                        pm.*, 
+                        b.business_uid AS manager_id, 
+                        b.business_name AS manager_business_name, 
+                        b.business_email AS manager_email, 
+                        b.business_phone_number AS manager_phone_number, b.*
+                        FROM pm.propertyManager pm 
+                        LEFT JOIN businesses b 
+                        ON b.business_uid = pm.linked_business_id 
+                        WHERE pm.linked_property_id = \'""" + property_id + """\'""")
 
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
@@ -246,16 +247,17 @@ class PropertiesOwnerDetail(Resource):
                         # property manager info for property
                         response['result'][i]['per_sqft'] = round(response['result'][i]['listed_rent'] /
                                                                   response['result'][i]['area'], 2)
-                        property_res = db.execute("""SELECT 
-                                                        pm.*, 
-                                                        b.business_uid AS manager_id, 
-                                                        b.business_name AS manager_business_name, 
-                                                        b.business_email AS manager_email, 
-                                                        b.business_phone_number AS manager_phone_number 
-                                                        FROM pm.propertyManager pm 
-                                                        LEFT JOIN businesses b 
-                                                        ON b.business_uid = pm.linked_business_id 
-                                                        WHERE pm.linked_property_id = \'""" + property_id + """\'""")
+                        property_res = db.execute("""
+                        SELECT 
+                        pm.*, 
+                        b.business_uid AS manager_id, 
+                        b.business_name AS manager_business_name, 
+                        b.business_email AS manager_email, 
+                        b.business_phone_number AS manager_phone_number , b.*
+                        FROM pm.propertyManager pm 
+                        LEFT JOIN businesses b 
+                        ON b.business_uid = pm.linked_business_id 
+                        WHERE pm.linked_property_id = \'""" + property_id + """\'""")
 
                         response['result'][i]['property_manager'] = list(
                             property_res['result'])
@@ -466,5 +468,3 @@ class OwnerPropertyBills(Resource):
                     response['result'] = purchase_res
                     print(purchase_res)
         return response
-
-
