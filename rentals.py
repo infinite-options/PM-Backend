@@ -27,8 +27,11 @@ def next_weekday_biweekly(d, weekday):
 
 
 def updateDocuments(documents, rental_uid):
+    content = []
     for i, doc in enumerate(documents):
+        # print('i, doc', i, doc)
         if 'link' in doc:
+            # print('in if link in doc')
             bucket = 'io-pm'
             key = doc['link'].split('/io-pm/')[1]
             data = s3.get_object(
@@ -36,14 +39,21 @@ def updateDocuments(documents, rental_uid):
                 Key=key
             )
             doc['file'] = data['Body']
+            content.append(data['ContentType'])
+        else:
+            content.append('')
+
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'rentals/{rental_uid}/').delete()
     docs = []
     for i, doc in enumerate(documents):
+
         filename = f'doc_{i}'
         key = f'rentals/{rental_uid}/{filename}'
-        link = uploadImage(doc['file'], key)
+        # print(type(doc['file']))
+        link = uploadImage(doc['file'], key, content[i])
+        # print('link', link)
         doc['link'] = link
         del doc['file']
         docs.append(doc)
@@ -125,7 +135,9 @@ class Rentals(Resource):
                       'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children', "effective_date"]
             newRental = {}
             for field in fields:
-                newRental[field] = data.get(field)
+                fieldValue = data.get(field)
+                if fieldValue:
+                    newRental[field] = fieldValue
             documents = json.loads(data.get('documents'))
             for i, doc in enumerate(documents):
                 filename = f'doc_{i}'

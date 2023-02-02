@@ -10,9 +10,14 @@ import boto3
 
 # If it is an s3 link, we save the file data into the attribute
 # If it is a file, no need to worry about it, the data is already there.
+
 def updateImages(imageFiles, maintenance_request_uid):
+    content = []
+
     for filename in imageFiles:
+
         if type(imageFiles[filename]) == str:
+
             bucket = 'io-pm'
             key = imageFiles[filename].split('/io-pm/')[1]
             data = s3.get_object(
@@ -20,17 +25,24 @@ def updateImages(imageFiles, maintenance_request_uid):
                 Key=key
             )
             imageFiles[filename] = data['Body']
+            content.append(data['ContentType'])
+        else:
+            content.append('')
+
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(
         Prefix=f'maintenanceRequests/{maintenance_request_uid}/').delete()
     images = []
     for i in range(len(imageFiles.keys())):
+
         filename = f'img_{i-1}'
         if i == 0:
             filename = 'img_cover'
         key = f'maintenanceRequests/{maintenance_request_uid}/{filename}'
-        image = uploadImage(imageFiles[filename], key)
+        image = uploadImage(
+            imageFiles[filename], key, content[i])
+
         images.append(image)
     return images
 
@@ -140,7 +152,6 @@ class MaintenanceRequests(Resource):
                 else:
                     break
                 i += 1
-            print('"yay, linear imageFilesBuild --> imageFile: ', imageFiles)
             images = updateImages(imageFiles, maintenance_request_uid)
             print(images)
 

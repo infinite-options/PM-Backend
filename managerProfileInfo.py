@@ -80,7 +80,7 @@ class ManagerClients(Resource):
                     LEFT JOIN ownerProfileInfo opi
                     ON opi.owner_id = p.owner_id
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
-                    AND pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY' OR pm.management_status='SENT'
+                    AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY' OR pm.management_status='SENT')
                 """)
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):

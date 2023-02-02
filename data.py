@@ -7,14 +7,36 @@ from botocore.response import StreamingBody
 s3 = boto3.client('s3')
 
 
-def uploadImage(file, key):
+def uploadImage(file, key, content):
     bucket = 'io-pm'
-    contentType = 'image/jpeg'
-    if type(file) != StreamingBody and '.svg' in file.filename:
-        contentType = 'image/svg+xml'
-    elif type(file) != StreamingBody and '.pdf' in file.filename:
-        contentType = 'application/pdf'
+    contentType = ''
+    # # contentType = 'image/jpeg'
+    # print('file in uploadimage', file, key)
+    # print('img in key', 'img' in key)
+    # print('doc in key', 'doc' in key)
+    # print('typefile streamingbody', type(file) == StreamingBody)
+    # trying to upload a new image file
+    # if type(file) != StreamingBody and '.svg' in file.filename:
+    #     contentType = 'image/svg+xml'
+    #     print('file in svg', contentType)
+    # # trying to upload a new pdf file
+    # elif type(file) != StreamingBody and '.pdf' in file.filename:
+    #     contentType = 'application/pdf'
+    #     print('file in pdf', contentType)
+    if type(file) == StreamingBody:
+        contentType = content
+        # print('file in streamingbody', contentType)
+    # # # trying to upload a new image file
+    # elif type(file) == StreamingBody and 'img' in key:
+    #     contentType = 'image/svg+xml'
+    #     print('file in streamingbody and img', contentType)
+    # # trying to reload an exisiting pdf
+    # elif type(file) == StreamingBody and 'doc' in key:
+    #     contentType = 'application/pdf'
+    #     print('file in streamingbody and doc', contentType)
+    # print('contentType', contentType)
     if file:
+        # print('if file', file, bucket, key)
         filename = f'https://s3-us-west-1.amazonaws.com/{bucket}/{key}'
         upload_file = s3.put_object(
             Bucket=bucket,
@@ -23,6 +45,7 @@ def uploadImage(file, key):
             ACL='public-read',
             ContentType=contentType
         )
+
         return filename
     return None
 

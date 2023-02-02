@@ -12,9 +12,9 @@ from dateutil.relativedelta import relativedelta
 
 
 def updateImagesAppliances(imageFiles, property_uid, appliance):
+    content = []
     for filename in imageFiles:
         if type(imageFiles[filename]) == str:
-            print('here')
             bucket = 'io-pm'
             key = imageFiles[filename].split('/io-pm/')[1]
             data = s3.get_object(
@@ -22,6 +22,10 @@ def updateImagesAppliances(imageFiles, property_uid, appliance):
                 Key=key
             )
             imageFiles[filename] = data['Body']
+            content.append(data['ContentType'])
+        else:
+            content.append('')
+
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     # bucket.objects.filter(Prefix=f'appliances/{property_uid}/').delete()
@@ -31,9 +35,9 @@ def updateImagesAppliances(imageFiles, property_uid, appliance):
         if i == 0:
             filename = f'img_{appliance}_cover'
         key = f'appliances/{property_uid}/{filename}'
-        image = uploadImage(imageFiles[filename], key)
+        image = uploadImage(
+            imageFiles[filename], key, content[i])
         images.append(image)
-        print(images)
     return images
 
 

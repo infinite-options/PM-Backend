@@ -12,10 +12,12 @@ import calendar
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 
-
 def updateDocuments(documents, application_uid):
+    content = []
     for i, doc in enumerate(documents):
+        # print('i, doc', i, doc)
         if 'link' in doc:
+            # print('in if link in doc')
             bucket = 'io-pm'
             key = doc['link'].split('/io-pm/')[1]
             data = s3.get_object(
@@ -23,17 +25,25 @@ def updateDocuments(documents, application_uid):
                 Key=key
             )
             doc['file'] = data['Body']
+            content.append(data['ContentType'])
+        else:
+            content.append('')
+
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'applications/{application_uid}/').delete()
+    docs = []
     for i, doc in enumerate(documents):
+
         filename = f'doc_{i}'
         key = f'applications/{application_uid}/{filename}'
-        link = uploadImage(doc['file'], key)
+        # print(type(doc['file']))
+        link = uploadImage(doc['file'], key, content[i])
+        # print('link', link)
         doc['link'] = link
         del doc['file']
-    return documents
-
+        docs.append(doc)
+    return docs
 
 def days_in_month(dt): return monthrange(
     dt.year, dt.month)[1]

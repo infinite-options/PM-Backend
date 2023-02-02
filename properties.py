@@ -13,8 +13,12 @@ from purchases import newPurchase
 
 
 def updateImages(imageFiles, property_uid):
+    content = []
+
     for filename in imageFiles:
+
         if type(imageFiles[filename]) == str:
+
             bucket = 'io-pm'
             key = imageFiles[filename].split('/io-pm/')[1]
             data = s3.get_object(
@@ -22,16 +26,23 @@ def updateImages(imageFiles, property_uid):
                 Key=key
             )
             imageFiles[filename] = data['Body']
+            content.append(data['ContentType'])
+        else:
+            content.append('')
+
     s3Resource = boto3.resource('s3')
     bucket = s3Resource.Bucket('io-pm')
     bucket.objects.filter(Prefix=f'properties/{property_uid}/').delete()
     images = []
     for i in range(len(imageFiles.keys())):
+
         filename = f'img_{i-1}'
         if i == 0:
             filename = 'img_cover'
         key = f'properties/{property_uid}/{filename}'
-        image = uploadImage(imageFiles[filename], key)
+        image = uploadImage(
+            imageFiles[filename], key, content[i])
+
         images.append(image)
     return images
 

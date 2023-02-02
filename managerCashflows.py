@@ -1879,20 +1879,20 @@ class ManagerCashflow(Resource):
             AND (prm.management_status <> 'REJECTED'  OR prm.management_status <> 'TERMINATED' OR prm.management_status <> 'EXPIRED')
             AND (pu.purchase_type = "MAINTENANCE" OR pu.purchase_type = 'REPAIRS' OR pu.purchase_type = "UTILITY" OR pu.purchase_type = "OWNER PAYMENT" )
             AND (payer LIKE '%""" + filterValue + """%')""")
-            print(manager_expense_yearly)
+
             response['result']['manager_expense_yearly'] = (list(
                 manager_expense_yearly['result']))
             if len(manager_expense_yearly['result']) > 0:
                 # number of weeks in the current month
 
                 for mex in range(len(manager_expense_yearly['result'])):
+
                     # number of months a property has been active
                     delta_active = relativedelta((datetime.strptime(
                         response['result']['manager_expense_yearly'][mex]['start_date'], '%Y-%m-%d')), datetime.now())
                     months_active = abs(delta_active.months +
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
-                    print(response['result']['manager_expense_yearly'][mex])
                     delta_leased = relativedelta((datetime.strptime(
                         response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
 
