@@ -95,7 +95,7 @@ class TenantProfileInfo(Resource):
                 if file:
                     tenant_id = tenant_id
                     key = f'tenants/{tenant_id}/{filename}'
-                    doc = uploadImage(file, key)
+                    doc = uploadImage(file, key, '')
                     documents[i]['link'] = doc
                 else:
                     break

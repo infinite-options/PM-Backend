@@ -94,7 +94,7 @@ class Rentals(Resource):
                 file = request.files.get(filename)
                 if file:
                     key = f'rentals/{newRentalID}/{filename}'
-                    doc = uploadImage(file, key)
+                    doc = uploadImage(file, key,'')
                     documents[i]['link'] = doc
                 else:
                     break
@@ -1131,7 +1131,7 @@ class ExtendLease(Resource):
                 file = request.files.get(filename)
                 if file:
                     key = f'rentals/{newRentalID}/{filename}'
-                    doc = uploadImage(file, key)
+                    doc = uploadImage(file, key,'')
                     documents[i]['link'] = doc
                 else:
                     break

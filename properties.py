@@ -121,7 +121,7 @@ class Properties(Resource):
                 file = request.files.get(filename)
                 if file:
                     key = f'properties/{newPropertyID}/{filename}'
-                    image = uploadImage(file, key)
+                    image = uploadImage(file, key,'')
                     images.append(image)
                 else:
                     break

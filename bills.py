@@ -82,7 +82,7 @@ class Bills(Resource):
                 print(file)
                 if file:
                     key = f'bills/{newBillID}/{filename}'
-                    doc = uploadImage(file, key)
+                    doc = uploadImage(file, key, '')
                     documents[i]['link'] = doc
                     print(doc, documents)
                 else:

@@ -92,7 +92,8 @@ class ManagerClients(Resource):
                     ON c.property_uid = p.property_uid
                     WHERE owner_id = \'""" + response['result'][i]['owner_id'] + """\'
                     AND pm.linked_business_id = \'""" + filterValue + """\'
-                    AND pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm. management_status='OWNER END EARLY'
+                    AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm. management_status='OWNER END EARLY')
+                    AND c.contract_status='ACTIVE'
                     AND c.business_uid= pm.linked_business_id """)
                     response['result'][i]['properties'] = list(
                         owner_properties['result'])

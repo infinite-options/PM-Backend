@@ -54,16 +54,17 @@ class MaintenanceQuotes(Resource):
             for i in range(len(response['result'])):
                 # from properties table, maintenanceRequests table
                 pid = response['result'][i]['property_uid']
-                property_res = db.execute("""SELECT 
-                                                    pm.*, 
-                                                    b.business_uid AS manager_id, 
-                                                    b.business_name AS manager_business_name, 
-                                                    b.business_email AS manager_email, 
-                                                    b.business_phone_number AS manager_phone_number 
-                                                    FROM pm.propertyManager pm 
-                                                    LEFT JOIN businesses b 
-                                                    ON b.business_uid = pm.linked_business_id 
-                                                    WHERE pm.linked_property_id = \'""" + pid + """\'""")
+                property_res = db.execute("""
+                SELECT 
+                pm.*, 
+                b.business_uid AS manager_id, 
+                b.business_name AS manager_business_name, 
+                b.business_email AS manager_email, 
+                b.business_phone_number AS manager_phone_number 
+                FROM pm.propertyManager pm 
+                LEFT JOIN businesses b 
+                ON b.business_uid = pm.linked_business_id 
+                WHERE pm.linked_property_id = \'""" + pid + """\'""")
                 # print('property_res', property_res)
                 response['result'][i]['property_manager'] = list(
                     property_res['result'])

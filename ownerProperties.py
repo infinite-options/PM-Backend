@@ -346,6 +346,20 @@ class PropertiesOwnerDetail(Resource):
                         # print(maintenance_res['result'])
                         for y in range(len(maintenance_res['result'])):
                             req_id = maintenance_res['result'][y]['maintenance_request_uid']
+                            property_res = db.execute("""
+                            SELECT 
+                            pm.*, 
+                            b.business_uid AS manager_id, 
+                            b.business_name AS manager_business_name, 
+                            b.business_email AS manager_email, 
+                            b.business_phone_number AS manager_phone_number 
+                            FROM pm.propertyManager pm 
+                            LEFT JOIN businesses b 
+                            ON b.business_uid = pm.linked_business_id 
+                            WHERE pm.linked_property_id = \'""" + property_id + """\' AND pm.management_status='ACCEPTED'""")
+                            # print('property_res', property_res)
+                            maintenance_res['result'][y]['property_manager'] = list(
+                                property_res['result'])
                             rid = {'linked_request_uid': req_id}  # rid
                             # print(rid)
                             quotes_res = db.select(

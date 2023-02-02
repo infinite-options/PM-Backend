@@ -118,6 +118,7 @@ class ManagerDocuments(Resource):
                     ON prop.owner_id = u.user_uid
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
                     AND (pm.management_status= 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY')
+                    AND c.contract_status = 'ACTIVE'
                     AND c.business_uid = pm.linked_business_id""")
 
                     active_manager_docs = []
@@ -153,6 +154,7 @@ class ManagerDocuments(Resource):
                     ON prop.owner_id = u.user_uid
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
                     AND pm.management_status <> 'ACCEPTED'
+                    AND c.contract_status = 'INACTIVE'
                     AND c.business_uid = pm.linked_business_id""")
                     expired_manager_docs = []
                     if len(past_manager_docs['result']) > 0:
@@ -291,6 +293,7 @@ class OwnerDocuments(Resource):
                     ON prop.owner_id = u.user_uid
                     WHERE prop.owner_id = \'""" + filterValue + """\'
                     AND (propM.management_status= 'ACCEPTED' OR propM.management_status='END EARLY' OR propM.management_status='PM END EARLY' OR propM.management_status='OWNER END EARLY')
+                    AND c.contract_status = 'ACTIVE'
                     AND c.business_uid = propM.linked_business_id""")
 
                     active_manager_docs = []
@@ -325,6 +328,7 @@ class OwnerDocuments(Resource):
                     ON prop.owner_id = u.user_uid
                     WHERE prop.owner_id = \'""" + filterValue + """\'
                     AND propM.management_status <> 'ACCEPTED'
+                    AND c.contract_status = 'INACTIVE'
                     AND c.business_uid = propM.linked_business_id""")
 
                     expired_manager_docs = []
