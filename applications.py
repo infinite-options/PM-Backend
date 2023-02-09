@@ -12,6 +12,7 @@ import calendar
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 
+
 def updateDocuments(documents, application_uid):
     content = []
     for i, doc in enumerate(documents):
@@ -44,6 +45,7 @@ def updateDocuments(documents, application_uid):
         del doc['file']
         docs.append(doc)
     return docs
+
 
 def days_in_month(dt): return monthrange(
     dt.year, dt.month)[1]
@@ -194,7 +196,7 @@ class Applications(Resource):
             if not user:
                 return 401, response
             fields = ['property_uid', 'message',
-                      'adults', 'children', 'pets', 'vehicles', 'referred', 'documents']
+                      'adults', 'children', 'pets', 'vehicles', 'referred']
             newApplication = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -204,6 +206,7 @@ class Applications(Resource):
                 'result'][0]['new_id']
 
             newApplication['application_uid'] = newApplicationID
+            print(newApplication)
             adults = (data.get('adults'))
             if len(adults) > 0:
                 newApplication['adults'] = json.dumps(adults)
@@ -220,7 +223,24 @@ class Applications(Resource):
             if len(referred) > 0:
                 newApplication['referred'] = json.dumps(referred)
             documents = (data.get('documents'))
+            print(documents)
+            for i, doc in enumerate(documents):
+                filename = f'doc_{i}'
+                file = request.files.get(filename)
+                print(i, file)
+                s3Link = doc.get('link')
+                print(i, s3Link)
+                if file:
+                    doc['file'] = file
+                elif s3Link:
+                    doc['link'] = s3Link
+                else:
+                    break
+            documents = updateDocuments(
+                documents, newApplication['application_uid'])
             newApplication['documents'] = json.dumps(documents)
+            # documents = (data.get('documents'))
+            # newApplication['documents'] = json.dumps(documents)
 
             print('newApplication 1', newApplication)
             newApplication['tenant_id'] = user['user_uid']
@@ -258,7 +278,22 @@ class Applications(Resource):
             if referred is not None and len(referred) > 0:
                 newApplication['referred'] = json.dumps(referred)
             documents = (data.get('documents'))
+            print(documents)
             if documents is not None and len(documents) > 0:
+                for i, doc in enumerate(documents):
+                    filename = f'doc_{i}'
+                    file = request.files.get(filename)
+                    print(i, file)
+                    s3Link = doc.get('link')
+                    print(i, s3Link)
+                    if file:
+                        doc['file'] = file
+                    elif s3Link:
+                        doc['link'] = s3Link
+                    else:
+                        break
+                documents = updateDocuments(
+                    documents, application_uid)
                 newApplication['documents'] = json.dumps(documents)
             # tenant approves lease aggreement
             if newApplication['application_status'] == 'RENTED':

@@ -1425,22 +1425,22 @@ class ManagerCashflow(Resource):
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
                     print(response['result']['manager_expense'][mex])
-                    delta_leased = relativedelta((datetime.strptime(
-                        response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
+                    # delta_leased = relativedelta((datetime.strptime(
+                    #     response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
 
-                    months_leased = abs(delta_leased.months +
-                                        (delta_leased.years * 12))
-                    if months_leased == 0:
-                        months_leased = 1
-                    # number of weeks in the current month
-                    weeks_current_month = len(
-                        calendar.monthcalendar(today.year, int(today.strftime("%m"))))
-                    # number of weeks a property has been active
-                    weeks_active = round((abs(today - datetime.strptime(
-                        response['result']['manager_expense'][mex]['start_date'], '%Y-%m-%d').date()).days)/7, 1)
-                    # number of weeks a property has been under an active lease
-                    weeks_leased = round((abs(today - datetime.strptime(
-                        response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                    # months_leased = abs(delta_leased.months +
+                    #                     (delta_leased.years * 12))
+                    # if months_leased == 0:
+                    #     months_leased = 1
+                    # # number of weeks in the current month
+                    # weeks_current_month = len(
+                    #     calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                    # # number of weeks a property has been active
+                    # weeks_active = round((abs(today - datetime.strptime(
+                    #     response['result']['manager_expense'][mex]['start_date'], '%Y-%m-%d').date()).days)/7, 1)
+                    # # number of weeks a property has been under an active lease
+                    # weeks_leased = round((abs(today - datetime.strptime(
+                    #     response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
                     # print('mex', manager_expense['result'][mex])
                     # if maintenance
                     if manager_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
@@ -1893,13 +1893,13 @@ class ManagerCashflow(Resource):
                     months_active = abs(delta_active.months +
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
-                    delta_leased = relativedelta((datetime.strptime(
-                        response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
+                    # delta_leased = relativedelta((datetime.strptime(
+                    #     response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
 
-                    months_leased = abs(delta_leased.months +
-                                        (delta_leased.years * 12))
-                    if months_leased == 0:
-                        months_leased = 1
+                    # months_leased = abs(delta_leased.months +
+                    #                     (delta_leased.years * 12))
+                    # if months_leased == 0:
+                    #     months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
@@ -1907,8 +1907,8 @@ class ManagerCashflow(Resource):
                     weeks_active = round((abs(today - datetime.strptime(
                         response['result']['manager_expense_yearly'][mex]['start_date'], '%Y-%m-%d').date()).days)/7, 1)
                     # number of weeks a property has been under an active lease
-                    weeks_leased = round((abs(today - datetime.strptime(
-                        response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                    # weeks_leased = round((abs(today - datetime.strptime(
+                    #     response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
                     # print('mex', manager_expense_yearly['result'][mex])
                     # if maintenance
                     if manager_expense_yearly['result'][mex]['purchase_type'] == 'MAINTENANCE':
@@ -3766,22 +3766,22 @@ class ManagerCashflowProperty(Resource):
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
                     print(response['result']['manager_expense'][mex])
-                    delta_leased = relativedelta((datetime.strptime(
-                        response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
+                    # delta_leased = relativedelta((datetime.strptime(
+                    #     response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
 
-                    months_leased = abs(delta_leased.months +
-                                        (delta_leased.years * 12))
-                    if months_leased == 0:
-                        months_leased = 1
+                    # months_leased = abs(delta_leased.months +
+                    #                     (delta_leased.years * 12))
+                    # if months_leased == 0:
+                    #     months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
                     # number of weeks a property has been active
                     weeks_active = round((abs(today - datetime.strptime(
                         response['result']['manager_expense'][mex]['start_date'], '%Y-%m-%d').date()).days)/7, 1)
-                    # number of weeks a property has been under an active lease
-                    weeks_leased = round((abs(today - datetime.strptime(
-                        response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                    # # number of weeks a property has been under an active lease
+                    # weeks_leased = round((abs(today - datetime.strptime(
+                    #     response['result']['manager_expense'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
                     # print('mex', manager_expense['result'][mex])
                     # if maintenance
                     if manager_expense['result'][mex]['purchase_type'] == 'MAINTENANCE':
@@ -4234,22 +4234,22 @@ class ManagerCashflowProperty(Resource):
                                         (delta_active.years * 12))
                     # number of months a property has been under an active lease
                     print(response['result']['manager_expense_yearly'][mex])
-                    delta_leased = relativedelta((datetime.strptime(
-                        response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
+                    # delta_leased = relativedelta((datetime.strptime(
+                    #     response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d')), datetime.now())
 
-                    months_leased = abs(delta_leased.months +
-                                        (delta_leased.years * 12))
-                    if months_leased == 0:
-                        months_leased = 1
+                    # months_leased = abs(delta_leased.months +
+                    #                     (delta_leased.years * 12))
+                    # if months_leased == 0:
+                    #     months_leased = 1
                     # number of weeks in the current month
                     weeks_current_month = len(
                         calendar.monthcalendar(today.year, int(today.strftime("%m"))))
                     # number of weeks a property has been active
                     weeks_active = round((abs(today - datetime.strptime(
                         response['result']['manager_expense_yearly'][mex]['start_date'], '%Y-%m-%d').date()).days)/7, 1)
-                    # number of weeks a property has been under an active lease
-                    weeks_leased = round((abs(today - datetime.strptime(
-                        response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
+                    # # number of weeks a property has been under an active lease
+                    # weeks_leased = round((abs(today - datetime.strptime(
+                    #     response['result']['manager_expense_yearly'][mex]['lease_start'], '%Y-%m-%d').date()).days)/7, 1)
                     # print('mex', manager_expense_yearly['result'][mex])
                     # if maintenance
                     if manager_expense_yearly['result'][mex]['purchase_type'] == 'MAINTENANCE':
