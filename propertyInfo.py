@@ -172,17 +172,20 @@ class PropertiesManagerDetail(Resource):
                         pid = {'linked_property_id': property_id}
                         owner_id = response['result'][i]['owner_id']
                         # owner info for the property
-                        owner_res = db.execute("""
-                        SELECT
-                        o.owner_id AS owner_id,
-                        o.owner_first_name AS owner_first_name,
-                        o.owner_last_name AS owner_last_name,
-                        o.owner_email AS owner_email ,
-                        o.owner_phone_number AS owner_phone_number
-                        FROM pm.ownerProfileInfo o
-                        WHERE o.owner_id = \'""" + owner_id + """\'""")
-                        response['result'][i]['owner'] = list(
-                            owner_res['result'])
+                        if owner_id is not None:
+                            owner_res = db.execute("""
+                            SELECT
+                            o.owner_id AS owner_id,
+                            o.owner_first_name AS owner_first_name,
+                            o.owner_last_name AS owner_last_name,
+                            o.owner_email AS owner_email ,
+                            o.owner_phone_number AS owner_phone_number
+                            FROM pm.ownerProfileInfo o
+                            WHERE o.owner_id = \'""" + owner_id + """\'""")
+                            response['result'][i]['owner'] = list(
+                                owner_res['result'])
+                        else:
+                            response['result'][i]['owner'] = []
                         application_res = db.execute("""SELECT
                                                         *
                                                         FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")

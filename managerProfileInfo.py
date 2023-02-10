@@ -73,30 +73,63 @@ class ManagerClients(Resource):
                 filterValue = request.args.get(filter)
                 if filterValue is not None:
                     where[filter] = filterValue
+                # response = db.execute("""
+                #     SELECT DISTINCT opi.* FROM properties p
+                #     LEFT JOIN propertyManager pm
+                #     ON pm.linked_property_id = p.property_uid
+                #     LEFT JOIN ownerProfileInfo opi
+                #     ON opi.owner_id = p.owner_id
+                #     WHERE pm.linked_business_id = \'""" + filterValue + """\'
+                #     AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY' OR pm.management_status='SENT')
+                # """)
                 response = db.execute("""
-                    SELECT DISTINCT opi.* FROM properties p
+                    SELECT * FROM properties p
                     LEFT JOIN propertyManager pm
                     ON pm.linked_property_id = p.property_uid
-                    LEFT JOIN ownerProfileInfo opi
-                    ON opi.owner_id = p.owner_id
                     WHERE pm.linked_business_id = \'""" + filterValue + """\'
                     AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY' OR pm.management_status='SENT')
                 """)
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
-                    owner_properties = db.execute(""" 
-                    SELECT * FROM properties p
-                    LEFT JOIN propertyManager pm
-                    ON pm.linked_property_id = p.property_uid
-                    LEFT JOIN pm.contracts c
-                    ON c.property_uid = p.property_uid
-                    WHERE owner_id = \'""" + response['result'][i]['owner_id'] + """\'
-                    AND pm.linked_business_id = \'""" + filterValue + """\'
-                    AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm. management_status='OWNER END EARLY')
-                    AND c.contract_status='ACTIVE'
-                    AND c.business_uid= pm.linked_business_id """)
-                    response['result'][i]['properties'] = list(
-                        owner_properties['result'])
+                    if response['result'][i]['owner_id'] is None or response['result'][i]['owner_id'] == '':
+                        response['result'][i]['owner_info'] = []
+                    #     owner_properties = db.execute("""
+                    #     SELECT * FROM properties p
+                    #     LEFT JOIN propertyManager pm
+                    #     ON pm.linked_property_id = p.property_uid
+                    #     LEFT JOIN pm.contracts c
+                    #     ON c.property_uid = p.property_uid
+                    #     WHERE p.property_uid = \'""" + response['result'][i]['property_uid'] + """\'
+                    #     AND pm.linked_business_id = \'""" + filterValue + """\'
+                    #     AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm. management_status='OWNER END EARLY')
+                    #     AND c.contract_status='ACTIVE'
+                    #     AND c.business_uid= pm.linked_business_id """)
+                    #     response['result'][i]['owner_info'][0]['properties'] = list(
+                    #         owner_properties['result'])
+                    else:
+                        print(response['result'][i]['owner_id'])
+                        ownerRes = db.execute(""" SELECT * FROM ownerProfileInfo
+                        WHERE owner_id= \'""" + response['result'][i]['owner_id'] + """\' """)
+                        response['result'][i]['owner_info'] = (list(
+                            ownerRes['result']))
+
+                        response['result'][i]['owner_info'][0]['properties'] = []
+                        owner_properties = db.execute(""" 
+                        SELECT * FROM properties p
+                        LEFT JOIN propertyManager pm
+                        ON pm.linked_property_id = p.property_uid
+                        LEFT JOIN pm.contracts c
+                        ON c.property_uid = p.property_uid
+                        WHERE owner_id = \'""" + response['result'][i]['owner_id'] + """\'
+                        AND pm.linked_business_id = \'""" + filterValue + """\'
+                        AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm. management_status='OWNER END EARLY')
+                        AND c.contract_status='ACTIVE'
+                        AND c.business_uid= pm.linked_business_id """)
+                        print(response['result'][i]
+                              ['owner_info'][0]['properties'])
+                        print(owner_properties['result'])
+                        response['result'][i]['owner_info'][0]['properties'] = response['result'][i]['owner_info'][0]['properties'] + (list(
+                            owner_properties['result']))
 
         return response
 

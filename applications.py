@@ -699,6 +699,7 @@ class Applications(Resource):
 
                                         charge_month = due_date.strftime('%B')
                                         print(due_date, charge_month)
+                                        charge_date = due_date
                                         rent = int(payment['charge'])
                                         purchaseResponse = newPurchase(
                                             linked_bill_id=None,
@@ -1930,7 +1931,7 @@ class EndEarly(Resource):
                         }
                         updateRefRes = {
                             'application_status': 'RENTED',
-                            'message': ''
+                            'message': 'Lease details forwarded for review'
                         }
                         response = db.update('applications', pk, updateRefRes)
                 rentalPM = db.execute("""

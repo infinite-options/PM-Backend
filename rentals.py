@@ -94,7 +94,7 @@ class Rentals(Resource):
                 file = request.files.get(filename)
                 if file:
                     key = f'rentals/{newRentalID}/{filename}'
-                    doc = uploadImage(file, key,'')
+                    doc = uploadImage(file, key, '')
                     documents[i]['link'] = doc
                 else:
                     break
@@ -226,14 +226,15 @@ class UpdateActiveLease(Resource):
                 ON p.linked_property_id= r.rental_property_id
                 LEFT JOIN pm.contracts c
                 ON c.property_uid = prop.property_uid
-                WHERE r.rental_status='PROCESSING'
+                WHERE r.rental_status='ACTIVE'
                 AND c.contract_status = 'ACTIVE'
                 AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
                 AND r.rental_uid = \'""" + data['rental_uid'] + """\' 
                 AND r.linked_application_id LIKE '%""" + updatedRental['linked_application_id'] + """%'
                 GROUP BY lt.linked_rental_uid;""")
-
+                print(getRentInfo)
                 if len(getRentInfo['result']) > 0:
+
                     for i in range(len(getRentInfo['result'])):
                         getRentInfo['result'][i]['expense_amount'] = 0
                         purRes = db.execute("""
@@ -1116,7 +1117,7 @@ class ExtendLease(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
+            fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
                       'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children', 'effective_date']
             newRental = {}
             for field in fields:
@@ -1131,7 +1132,7 @@ class ExtendLease(Resource):
                 file = request.files.get(filename)
                 if file:
                     key = f'rentals/{newRentalID}/{filename}'
-                    doc = uploadImage(file, key,'')
+                    doc = uploadImage(file, key, '')
                     documents[i]['link'] = doc
                 else:
                     break
@@ -1158,30 +1159,30 @@ class ExtendLease(Resource):
                 }
                 db.insert('leaseTenants', leaseTenant)
 
-            response = db.execute("""SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION' AND property_uid = \'"""
-                                  + newRental['rental_property_id']
-                                  + """\' """)
-            newApplication = {'application_status': 'RENTED'}
-            for response in response['result']:
-                pk = {
-                    'application_uid': response['application_uid']
-                }
-                response = db.update(
-                    'applications', pk, newApplication)
+            # response = db.execute("""SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION' AND property_uid = \'"""
+            #                       + newRental['rental_property_id']
+            #                       + """\' """)
+            # newApplication = {'application_status': 'RENTED'}
+            # for response in response['result']:
+            #     pk = {
+            #         'application_uid': response['application_uid']
+            #     }
+            #     response = db.update(
+            #         'applications', pk, newApplication)
 
-            primaryKeyA = {
-                'application_uid': data.get('application_uid')
-            }
-            # print('newAppl', newApplication)
-            response = db.update(
-                'applications', primaryKeyA, newApplication)
+            # primaryKeyA = {
+            #     'application_uid': data.get('application_uid')
+            # }
+            # # print('newAppl', newApplication)
+            # response = db.update(
+            #     'applications', primaryKeyA, newApplication)
         return response
 
     def put(self):
         response = {}
         with connect() as db:
             data = request.json
-            fields = ['rental_uid', 'rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
+            fields = ['rental_uid', 'linked_application_id', 'rental_property_id', 'tenant_id', 'actual_rent', 'lease_start', 'lease_end',
                       'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
                       'message', 'application_status']
             newRental = {}
@@ -1189,14 +1190,15 @@ class ExtendLease(Resource):
                 fieldValue = data.get(field)
                 if fieldValue:
                     newRental[field] = fieldValue
-                    print('fieldvalue', fieldValue)
-                print(field, fieldValue)
-
+                    # print('fieldvalue', fieldValue)
+                # print(field, fieldValue)
+                # print(newRental)
                 if field == 'application_status' and fieldValue != None:
+                    # print('if field application status')
                     # set application_status to LEASE EXTENSION
-                    if newRental['application_status'] == 'LEASE EXTENSION':
-                        print('tenant requesting to extend Lease')
-                        print(newRental)
+                    if newRental['application_status'] == 'LEASE EXTENSION' or newRental['application_status'] == 'TENANT LEASE EXTENSION':
+                        # print('tenant requesting to extend Lease')
+                        # print(newRental)
                         response = db.execute(
                             """SELECT * FROM pm.applications WHERE application_status='RENTED' AND property_uid = \'"""
                             + newRental['property_uid']
@@ -1209,7 +1211,7 @@ class ExtendLease(Resource):
                                 """SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION REQUESTED' AND property_uid = \'"""
                                 + newRental['property_uid']
                                 + """\' """)
-                            print('response', response['result'])
+                            # print('response', response['result'])
 
                             if len(response['result']) > 0:
                                 newRental['application_status'] = 'LEASE EXTENSION'
@@ -1221,7 +1223,7 @@ class ExtendLease(Resource):
                                         'applications', pk, newRental)
                     # set application_status back to RENTED
                     elif newRental['application_status'] == 'REFUSED':
-                        print('pm rejected to extend lease')
+                        # print('pm rejected to extend lease')
                         response = db.execute(
                             """SELECT * FROM pm.applications WHERE (application_status='LEASE EXTENSION REQUESTED' OR application_status='LEASE EXTENSION')  AND property_uid = \'"""
                             + newRental['property_uid']
@@ -1234,18 +1236,26 @@ class ExtendLease(Resource):
                             response = db.update(
                                 'applications', pk, newRental)
 
-                    primaryKeyA = {
-                        'application_uid': data.get('application_uid')
-                    }
-                    # print('newAppl', newApplication)
-                    response = db.update(
-                        'applications', primaryKeyA, newRental)
-            print(hasattr(newRental, 'rental_uid'))
-            print('rental_uid' in newRental)
+                    else:
+                        primaryKeyA = {
+                            'application_uid': data.get('application_uid')
+                        }
+                        updateApp = {
+                            'application_status': newRental['application_status'],
+                            'message': newRental['message']
+                        }
+                        # print('newAppl', newApplication)
+                        response = db.update(
+                            'applications', primaryKeyA, updateApp)
+            # print(hasattr(newRental, 'rental_uid'))
+            # print('rental_uid' in newRental)
             if 'rental_uid' in newRental:
-                print('here', newRental)
+                # print('here', newRental)
                 primaryKey = {'rental_uid': newRental['rental_uid']}
-                print('newRental', newRental)
+                newRental = {
+                    'rental_status': 'TENANT APPROVED'}
+                # print('newRental', newRental)
+
                 response = db.update('rentals', primaryKey, newRental)
 
         return response
@@ -1256,18 +1266,19 @@ class ExtendLeaseCRON_CLASS(Resource):
         with connect() as db:
             response = {'message': 'Successfully committed SQL query',
                         'code': 200}
-            leaseResponse = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
-                                    FROM pm.rentals r
-                                    LEFT JOIN leaseTenants lt
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    WHERE r.rental_property_id IN (SELECT *
-                                                            FROM (SELECT r.rental_property_id
-                                                                FROM pm.rentals
-                                                                GROUP BY r.rental_property_id
-                                                                HAVING COUNT(r.rental_property_id) > 1)
-                                                            AS a)
-                                    AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-                                    GROUP BY lt.linked_rental_uid; """)
+            leaseResponse = db.execute("""
+            SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+            FROM pm.rentals r
+            LEFT JOIN leaseTenants lt
+            ON lt.linked_rental_uid = r.rental_uid
+            WHERE r.rental_property_id IN (SELECT *
+            FROM (SELECT r.rental_property_id
+                FROM pm.rentals
+                GROUP BY r.rental_property_id
+                HAVING COUNT(r.rental_property_id) > 1)
+            AS a)
+            AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+            GROUP BY lt.linked_rental_uid; """)
             today_datetime = datetime.now()
             today = datetime.strftime(today_datetime, '%Y-%m-%d')
             oldLease = ''
@@ -1283,10 +1294,11 @@ class ExtendLeaseCRON_CLASS(Resource):
             if newLease['lease_start'] == today:
                 print('here')
                 if datetime.strptime(oldLease['lease_end'], '%Y-%m-%d') > datetime.strptime(today, '%Y-%m-%d'):
-                    pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
-                                            AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                                            AND purchase_status ="UNPAID"
-                                            AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+                    pur_response = db.delete("""
+                    DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
+                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                    AND purchase_status ="UNPAID"
+                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
                 pk = {
                     'rental_uid': oldLease['rental_uid']
                 }
@@ -1310,19 +1322,17 @@ class ExtendLeaseCRON_CLASS(Resource):
                 print(tenants)
                 # creating purchases
                 rentPayments = json.loads(newLease['rent_payments'])
-                res = db.execute("""SELECT
-                                            r.*,
-                                            p.*,
-                                            GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
-                                            FROM pm.rentals r
-                                            LEFT JOIN pm.leaseTenants lt
-                                            ON lt.linked_rental_uid = r.rental_uid
-                                            LEFT JOIN pm.propertyManager p
-                                            ON p.linked_property_id= r.rental_property_id
-                                            WHERE r.rental_status='TENANT APPROVED'
-                                            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')   
-                                            AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
-                                            GROUP BY lt.linked_rental_uid; """)
+                res = db.execute("""
+                SELECT r.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                FROM pm.rentals r
+                LEFT JOIN pm.leaseTenants lt
+                ON lt.linked_rental_uid = r.rental_uid
+                LEFT JOIN pm.propertyManager p
+                ON p.linked_property_id= r.rental_property_id
+                WHERE r.rental_status='TENANT APPROVED'
+                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')   
+                AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
+                GROUP BY lt.linked_rental_uid; """)
                 for payment in rentPayments:
                     if payment['frequency'] == 'Monthly':
 
@@ -1438,17 +1448,17 @@ def ExtendLeaseCRON():
         response = {'message': 'Successfully committed SQL query',
                     'code': 200}
         leaseResponse = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
-                                FROM pm.rentals r
-                                LEFT JOIN leaseTenants lt
-                                ON lt.linked_rental_uid = r.rental_uid
-                                WHERE r.rental_property_id IN (SELECT *
-                                                        FROM (SELECT r.rental_property_id
-                                                            FROM pm.rentals
-                                                            GROUP BY r.rental_property_id
-                                                            HAVING COUNT(r.rental_property_id) > 1)
-                                                        AS a)
-                                AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-                                GROUP BY lt.linked_rental_uid; """)
+        FROM pm.rentals r
+        LEFT JOIN leaseTenants lt
+        ON lt.linked_rental_uid = r.rental_uid
+        WHERE r.rental_property_id IN (SELECT *
+        FROM (SELECT r.rental_property_id
+            FROM pm.rentals
+            GROUP BY r.rental_property_id
+            HAVING COUNT(r.rental_property_id) > 1)
+        AS a)
+        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+        GROUP BY lt.linked_rental_uid; """)
         today_datetime = datetime.now()
         today = datetime.strftime(today_datetime, '%Y-%m-%d')
         oldLease = ''
@@ -1464,10 +1474,11 @@ def ExtendLeaseCRON():
         if newLease['lease_start'] == today:
             print('here')
             if datetime.strptime(oldLease['lease_end'], '%Y-%m-%d') > datetime.strptime(today, '%Y-%m-%d'):
-                pur_response = db.delete("""DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
-                                        AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                                        AND purchase_status ="UNPAID"
-                                        AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+                pur_response = db.delete("""
+                DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
+                AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
+                AND purchase_status ="UNPAID"
+                AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
             pk = {
                 'rental_uid': oldLease['rental_uid']
             }
@@ -1491,19 +1502,16 @@ def ExtendLeaseCRON():
             print(tenants)
             # creating purchases
             rentPayments = json.loads(newLease['rent_payments'])
-            res = db.execute("""SELECT
-                                        r.*,
-                                        p.*,
-                                        GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
-                                        FROM pm.rentals r
-                                        LEFT JOIN pm.leaseTenants lt
-                                        ON lt.linked_rental_uid = r.rental_uid
-                                        LEFT JOIN pm.propertyManager p
-                                        ON p.linked_property_id= r.rental_property_id
-                                        WHERE r.rental_status='TENANT APPROVED'
-                                        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  
-                                        AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
-                                        GROUP BY lt.linked_rental_uid; """)
+            res = db.execute("""SELECT r.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+            FROM pm.rentals r
+            LEFT JOIN pm.leaseTenants lt
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN pm.propertyManager p
+            ON p.linked_property_id= r.rental_property_id
+            WHERE r.rental_status='TENANT APPROVED'
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  
+            AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
+            GROUP BY lt.linked_rental_uid; """)
             for payment in rentPayments:
                 if payment['frequency'] == 'Monthly':
 
