@@ -54,6 +54,7 @@ class TenantDashboard(Resource):
                 announcements_res = db.execute("""
                 SELECT * FROM announcements
                 WHERE receiver LIKE '%""" + user['user_uid'] + """%'
+                AND (announcement_mode = 'Tenants' OR announcement_mode = 'Properties')
                 AND receiver_properties LIKE  '%""" + property_id + """%' """)
                 response['result'][i]['announcements'] = list(
                     announcements_res['result'])
