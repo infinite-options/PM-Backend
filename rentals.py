@@ -208,12 +208,12 @@ class UpdateActiveLease(Resource):
                 updatedRental['documents'] = json.dumps(documents)
             # print(updatedRental)
             if updatedRental['rental_status'] == 'ACTIVE':
-                newApplication['application_status'] = 'RENTED'
-                pk = {
-                    'application_uid': data['linked_application_id']
-                }
-                response = db.update(
-                    'applications', pk, newApplication)
+                # newApplication['application_status'] = 'RENTED'
+                # pk = {
+                #     'application_uid': data['linked_application_id']
+                # }
+                # response = db.update(
+                #     'applications', pk, newApplication)
                 getRentInfo = db.execute("""
                 SELECT  r.*, p.*,
                 GROUP_CONCAT(lt.linked_tenant_id) as `tenants`,c.* ,prop.*
@@ -417,7 +417,7 @@ class UpdateActiveLease(Resource):
                                             rent = int(payment['charge'])
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
-                                                    calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                                                    calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
                                                 if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
                                                     if mpayment['of'] == 'Gross Rent':
                                                         newPurchase = {
@@ -604,7 +604,7 @@ class UpdateActiveLease(Resource):
                                             rent = int(payment['charge'])
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
-                                                    calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                                                    calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
                                                 if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
                                                     if mpayment['of'] == 'Gross Rent':
                                                         newPurchase = {
@@ -784,7 +784,7 @@ class UpdateActiveLease(Resource):
                                             for mpayment in managementPayments:
 
                                                 weeks_current_month = len(
-                                                    calendar.monthcalendar(today.year, int(today.strftime("%m"))))
+                                                    calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
                                                 if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
                                                     if mpayment['of'] == 'Gross Rent':
                                                         newPurchase = {
