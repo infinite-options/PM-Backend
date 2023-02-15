@@ -328,7 +328,53 @@ class OwnerDashboard(Resource):
                 else:
                     response['result'][i]['rental_status'] = ""
                     response['result'][i]['rent_paid'] = ""
+                rent_status_result = db.execute("""
+                SELECT *
+                FROM pm.purchases p
+                LEFT JOIN
+                pm.payments pa
+                ON pa.pay_purchase_id = p.purchase_uid
+                LEFT JOIN rentals r
+                ON r.rental_property_id LIKE '%""" + property_id + """%'
+                WHERE p.pur_property_id LIKE '%""" + property_id + """%'
+                AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                AND p.purchase_type= "RENT"
+                AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')""")
+                print('rent_status_result', rent_status_result['result'])
+                if len(rent_status_result['result']) > 0:
+                    response['result'][i]['rent_status'] = rent_status_result['result'][0]['purchase_status']
+                    rent_payments = json.loads(
+                        rent_status_result['result'][0]['rent_payments'])
+                    for r in range(len(rent_payments)):
 
+                        print(rent_payments[r])
+                        if rent_payments[r]['fee_name'] == 'Rent':
+                            charge_date = date.today()
+                            due_date = charge_date.replace(
+                                day=int(rent_payments[r]['due_by']))
+                            print(due_date)
+                            late_date = due_date + \
+                                relativedelta(
+                                    days=int(rent_payments[r]['late_by']))
+                            time_between_insertion = (
+                                date.today() - late_date)
+                            if ',' in str(time_between_insertion):
+
+                                print('time', due_date, time_between_insertion,
+                                      'late_date', late_date)
+                                response['result'][i]['late_date'] = int((str(
+                                    time_between_insertion).split(',')[0]).split(' ')[0])
+                                print(int((str(
+                                    time_between_insertion).split(',')[0]).split(' ')[0]))
+                            else:
+                                time_between_insertion = 0
+                                print('time', due_date, time_between_insertion,
+                                      'late_date', late_date)
+                                response['result'][i]['late_date'] = 0
+
+                else:
+                    response['result'][i]['rent_status'] = 'No Rent Info'
+                    response['result'][i]['late_date'] = 'Not Applicable'
                 maintenance_res = db.execute("""
                 SELECT mr.*, p.address, p.unit, p.city, p.state, p.zip
                 FROM pm.maintenanceRequests mr

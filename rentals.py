@@ -1194,7 +1194,7 @@ class ExtendLease(Resource):
                 # print(field, fieldValue)
                 # print(newRental)
                 if field == 'application_status' and fieldValue != None:
-                    # print('if field application status')
+                    print('if field application status')
                     # set application_status to LEASE EXTENSION
                     if newRental['application_status'] == 'LEASE EXTENSION' or newRental['application_status'] == 'TENANT LEASE EXTENSION':
                         # print('tenant requesting to extend Lease')
@@ -1203,24 +1203,30 @@ class ExtendLease(Resource):
                             """SELECT * FROM pm.applications WHERE application_status='RENTED' AND property_uid = \'"""
                             + newRental['property_uid']
                             + """\' """)
-                        # print('response', response, len(response['result']))
+                        print('response', response, len(response['result']))
                         if len(response['result']) > 1:
                             newRental['application_status'] = 'LEASE EXTENSION REQUESTED'
                         else:
-                            response = db.execute(
-                                """SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION REQUESTED' AND property_uid = \'"""
-                                + newRental['property_uid']
-                                + """\' """)
-                            # print('response', response['result'])
+                            newRental['application_status'] = 'LEASE EXTENSION'
+                            pk = {
+                                'application_uid': response['result'][0]['application_uid']
+                            }
+                            response = db.update(
+                                'applications', pk, newRental)
+                            # response = db.execute(
+                            #     """SELECT * FROM pm.applications WHERE application_status='LEASE EXTENSION REQUESTED' AND property_uid = \'"""
+                            #     + newRental['property_uid']
+                            #     + """\' """)
+                            # # print('response', response['result'])
 
-                            if len(response['result']) > 0:
-                                newRental['application_status'] = 'LEASE EXTENSION'
-                                for response in response['result']:
-                                    pk = {
-                                        'application_uid': response['application_uid']
-                                    }
-                                    response = db.update(
-                                        'applications', pk, newRental)
+                            # if len(response['result']) > 0:
+                            #     newRental['application_status'] = 'LEASE EXTENSION'
+                            #     for response in response['result']:
+                            #         pk = {
+                            #             'application_uid': response['application_uid']
+                            #         }
+                            #         response = db.update(
+                            #             'applications', pk, newRental)
                     # set application_status back to RENTED
                     elif newRental['application_status'] == 'REFUSED':
                         # print('pm rejected to extend lease')
