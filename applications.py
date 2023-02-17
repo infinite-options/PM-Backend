@@ -262,7 +262,7 @@ class Applications(Resource):
             # newApplication['documents'] = json.dumps(documents)
 
             print('newApplication 1', newApplication)
-            newApplication['tenant_id'] = user['user_uid']
+            newApplication['tenant_id'] = user['tenant_id'][0]['tenant_id']
             newApplication['application_status'] = 'NEW'
             print('newApplication 2', newApplication)
             response = db.insert('applications', newApplication)

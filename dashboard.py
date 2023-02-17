@@ -16,11 +16,10 @@ class TenantDashboard(Resource):
     def get(self):
         res = {}
         user = get_jwt_identity()
-        where = {'tenant_id': user['user_uid']}
+        where = {'tenant_id': user['tenant_id'][0]['tenant_id']}
         with connect() as db:
             res = db.select('tenantProfileInfo', where)
             # print('res:', res)
-            # print('user_id:', user['user_uid'])
             response = db.execute(""" 
             SELECT * FROM pm.properties
             LEFT JOIN pm.rentals
@@ -29,7 +28,7 @@ class TenantDashboard(Resource):
             ON linked_rental_uid = rental_uid
             LEFT JOIN pm.propertyManager p
             ON linked_property_id = property_uid
-            WHERE linked_tenant_id = \'""" + user['user_uid'] + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+            WHERE linked_tenant_id = \'""" + user['tenant_id'][0]['tenant_id'] + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
@@ -53,7 +52,7 @@ class TenantDashboard(Resource):
                     property_res['result'])
                 announcements_res = db.execute("""
                 SELECT * FROM announcements
-                WHERE receiver LIKE '%""" + user['user_uid'] + """%'
+                WHERE receiver LIKE '%""" + user['tenant_id'][0]['tenant_id'] + """%'
                 AND (announcement_mode = 'Tenants' OR announcement_mode = 'Properties')
                 AND receiver_properties LIKE  '%""" + property_id + """%' """)
                 response['result'][i]['announcements'] = list(
@@ -117,7 +116,7 @@ class TenantDashboard(Resource):
                                             FROM pm.tenantProfileInfo tpi
                                             LEFT JOIN pm.users u
                                             ON u.user_uid = tpi.tenant_id
-                                            WHERE tenant_id = \'""" + user['user_uid'] + """\' """)
+                                            WHERE tenant_id = \'""" + user['tenant_id'][0]['tenant_id'] + """\' """)
                 response['result'][i]['tenantInfo'] = list(
                     rental_res['result'])
 
@@ -130,7 +129,7 @@ class TenantDashboard(Resource):
                 LEFT JOIN pm.properties p
                 ON pu.pur_property_id LIKE CONCAT('%', p.property_uid, '%')
                 WHERE pu.pur_property_id LIKE '%""" + property_id + """%'
-                AND pu.payer LIKE '%""" + user['user_uid'] + """%'
+                AND pu.payer LIKE '%""" + user['tenant_id'][0]['tenant_id'] + """%'
                 AND (pu.purchase_type= "RENT" OR pu.purchase_type= "EXTRA CHARGES" OR pu.purchase_type= "UTILITY" OR pu.purchase_type= "MAINTENANCE" OR pu.purchase_type= "REPAIRS" OR pu.purchase_type="LATE FEE")""")
                 response['result'][i]['tenantExpenses'] = []
                 if len(tenant_expenses['result']) > 0:

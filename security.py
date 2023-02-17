@@ -3,6 +3,7 @@ from datetime import datetime
 from hashlib import sha256
 from flask_jwt_extended import create_access_token, create_refresh_token
 from businesses import getEmployeeBusinesses
+from tenantProfileInfo import getTenantProfileInfo
 
 
 def getHash(value):
@@ -22,6 +23,7 @@ def createTokens(user):
     print('IN CREATETOKENS')
     print('IN CREATETOKENS', user)
     businesses = getEmployeeBusinesses(user)['result']
+    tenant_user_id = getTenantProfileInfo(user)['result']
     print('IN CREATETOKENS', businesses)
     userInfo = {
         'user_uid': user['user_uid'],
@@ -31,7 +33,8 @@ def createTokens(user):
         'email': user['email'],
         'role': user['role'],
         'google_auth_token': user['google_auth_token'],
-        'businesses': businesses
+        'businesses': businesses,
+        'tenant_id': tenant_user_id
     }
     print('IN CREATETOKENS', userInfo)
     return {

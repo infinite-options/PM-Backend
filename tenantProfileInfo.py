@@ -43,13 +43,28 @@ def updateDocuments(documents, tenant_id):
     return docs
 
 
+def getTenantProfileInfo(user):
+    response = {}
+    with connect() as db:
+        sql = '''
+            SELECT tenant_id FROM tenantProfileInfo
+            WHERE tenant_user_id = %(user_uid)s
+        '''
+        args = {
+            'user_uid': user['user_uid']
+        }
+        response = db.execute(sql, args)
+    return response
+
+
 class CheckTenantProfileComplete(Resource):
     decorators = [jwt_required()]
 
     def get(self):
         response = {}
         user = get_jwt_identity()
-        where = {'tenant_id': user['user_uid']}
+        where = {'tenant_id': user['tenant_id'][0]['tenant_id']}
+
         print('where', where)
         with connect() as db:
             response = db.select('tenantProfileInfo', where)
@@ -80,10 +95,12 @@ class TenantProfileInfo(Resource):
         with connect() as db:
 
             data = request.form
-            tenant_id = data.get('tenant_id')
-            fields = ['tenant_first_name', 'tenant_last_name', 'tenant_phone_number', 'tenant_email', 'tenant_ssn', 'tenant_current_salary', 'tenant_salary_frequency', 'tenant_current_job_title',
+            # tenant_id = data.get('tenant_id')
+            fields = ['tenant_user_id', 'tenant_first_name',  'tenant_last_name', 'tenant_phone_number', 'tenant_email', 'tenant_ssn', 'tenant_current_salary', 'tenant_salary_frequency', 'tenant_current_job_title',
                       'tenant_current_job_company', 'tenant_drivers_license_number', 'tenant_drivers_license_state', 'tenant_current_address', 'tenant_previous_address', 'tenant_adult_occupants', 'tenant_children_occupants', 'tenant_pet_occupants', 'tenant_vehicle_info', 'tenant_references', ]
-            newProfileInfo = {'tenant_id': tenant_id}
+            newProfileInfo = {}
+            newTenantID = db.call('new_tenant_id')['result'][0]['new_id']
+            newProfileInfo['tenant_id'] = newTenantID
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
@@ -93,13 +110,14 @@ class TenantProfileInfo(Resource):
                 filename = f'doc_{i}'
                 file = request.files.get(filename)
                 if file:
-                    tenant_id = tenant_id
+                    tenant_id = newTenantID
                     key = f'tenants/{tenant_id}/{filename}'
                     doc = uploadImage(file, key, '')
                     documents[i]['link'] = doc
                 else:
                     break
             newProfileInfo['documents'] = json.dumps(documents)
+
             response = db.insert('tenantProfileInfo', newProfileInfo)
         return response
 
@@ -109,7 +127,7 @@ class TenantProfileInfo(Resource):
         with connect() as db:
             data = request.form
             tenant_id = data.get('tenant_id')
-            fields = ['first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
+            fields = ['user_id', 'first_name', 'last_name', 'phone_number', 'email', 'ssn', 'current_salary', 'salary_frequency', 'current_job_title',
                       'current_job_company', 'drivers_license_number', 'drivers_license_state', 'current_address', 'previous_address', 'adult_occupants', 'children_occupants', 'pet_occupants', 'vehicle_info', 'references', ]
             newProfileInfo = {}
             for field in fields:

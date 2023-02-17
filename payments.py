@@ -90,7 +90,7 @@ class UserPayments(Resource):
         response = {}
         user = get_jwt_identity()
         with connect() as db:
-            user_id = user['user_uid']
+            user_id = user['tenant_id'][0]['tenant_id']
             response = db.execute("""
                 SELECT * FROM payments p1 LEFT JOIN purchases p2 ON pay_purchase_id = purchase_uid
                 WHERE p2.payer LIKE '%""" + user_id + """%'

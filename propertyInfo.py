@@ -310,7 +310,7 @@ class PropertiesManagerDetail(Resource):
                         LEFT JOIN pm.tenantProfileInfo tpi
                         ON tpi.tenant_id = lt.linked_tenant_id
                         WHERE r.rental_property_id = \'""" + property_id + """\'
-                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED' OR r.rental_status = 'PENDING')
                         GROUP BY lt.linked_rental_uid""")
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])

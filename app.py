@@ -6,6 +6,8 @@ from bills import Bills
 from businesses import Businesses
 from businessProfileInfo import BusinessProfileInfo
 from cashflow import OwnerCashflow, OwnerCashflowProperty
+from cashflowManager import CashflowManager
+from cashflowOwner import CashflowOwner
 from contact import Contact
 from contracts import Contracts
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
@@ -2164,6 +2166,10 @@ api.add_resource(BusinessProfileInfo, '/businessProfileInfo')
 # cashflow
 api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
+# CashflowManager
+api.add_resource(CashflowManager, "/CashflowManager")
+# CashflowOwner
+api.add_resource(CashflowOwner, "/CashflowOwner")
 # contact
 api.add_resource(Contact, "/contact")
 # contracts
