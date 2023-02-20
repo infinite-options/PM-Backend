@@ -427,7 +427,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": (rent *
                                                                            (1-int(mpayment['charge'])/100)),
@@ -451,7 +451,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
@@ -475,7 +475,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent *
                                                                             (1-int(mpayment['charge'])/100)))/weeks_current_month/2,
@@ -499,7 +499,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100))/weeks_current_month/2,
@@ -523,7 +523,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent *
                                                                             (1-int(mpayment['charge'])/100)))/weeks_current_month,
@@ -547,7 +547,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100))/weeks_current_month,
@@ -614,7 +614,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": 2*(rent *
                                                                              (1-int(mpayment['charge'])/100)),
@@ -638,7 +638,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": 2*((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
@@ -662,7 +662,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": weeks_current_month/2*(rent *
                                                                                                  (1-int(mpayment['charge'])/100)),
@@ -686,7 +686,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": weeks_current_month/2*((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
@@ -710,7 +710,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": (rent *
                                                                            (1-int(mpayment['charge'])/100))/(weeks_current_month/2),
@@ -734,7 +734,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100))/(weeks_current_month/2),
@@ -794,7 +794,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": weeks_current_month * (rent *
                                                                                                  (1-int(mpayment['charge'])/100)),
@@ -818,7 +818,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": weeks_current_month * ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
@@ -842,7 +842,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": weeks_current_month/2 * (rent *
                                                                                                    (1-int(mpayment['charge'])/100)),
@@ -866,7 +866,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": weeks_current_month/2 * ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
@@ -891,7 +891,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": (rent *
                                                                            (1-int(mpayment['charge'])/100)),
@@ -915,7 +915,7 @@ class UpdateActiveLease(Resource):
                                                             "payer": json.dumps(
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
-                                                            "purchase_type": 'OWNER PAYMENT',
+                                                            "purchase_type": 'OWNER PAYMENT RENT',
                                                             "description": 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
@@ -1030,7 +1030,7 @@ class UpdateActiveLease(Resource):
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
                                 AND DATE(purchase_date) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
                                 AND purchase_status ="UNPAID"
-                                AND purchase_type = 'OWNER PAYMENT' AND description = 'Rent'  """)
+                                AND purchase_type = 'OWNER PAYMENT RENT' AND description = 'Rent'  """)
                             # find paid purchases after the effective date
                             paidPurchases = db.execute("""
                                 SELECT * FROM pm.purchases
@@ -1908,7 +1908,7 @@ class LateFee_CLASS(Resource):
                                                         payer=json.dumps(
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT LATE FEE',
                                                         description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month*(lease['late_fee'] *
@@ -1929,7 +1929,7 @@ class LateFee_CLASS(Resource):
                                                         payer=json.dumps(
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT LATE FEE',
                                                         description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month*((lease['late_fee']-payment['expense_amount'])*(
@@ -1952,7 +1952,7 @@ class LateFee_CLASS(Resource):
                                                         payer=json.dumps(
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT LATE FEE',
                                                         description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month/2*((lease['late_fee'] *
@@ -1973,7 +1973,7 @@ class LateFee_CLASS(Resource):
                                                         payer=json.dumps(
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT LATE FEE',
                                                         description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month/2*((lease['late_fee']-payment['expense_amount'])*(
@@ -1995,7 +1995,7 @@ class LateFee_CLASS(Resource):
                                                         payer=json.dumps(
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT LATE FEE',
                                                         description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=(
@@ -2018,7 +2018,7 @@ class LateFee_CLASS(Resource):
                                                         payer=json.dumps(
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT LATE FEE',
                                                         description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=(
@@ -2145,7 +2145,7 @@ def LateFee():
                                                     payer=json.dumps(
                                                         [lease['business_uid']]),
                                                     receiver=lease['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT LATE FEE',
                                                     description=unpaid['description'] +
                                                     ' Late fee',
                                                     amount_due=weeks_current_month*(lease['late_fee'] *
@@ -2166,7 +2166,7 @@ def LateFee():
                                                     payer=json.dumps(
                                                         [lease['business_uid']]),
                                                     receiver=lease['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT LATE FEE',
                                                     description=unpaid['description'] +
                                                     ' Late fee',
                                                     amount_due=weeks_current_month*((lease['late_fee']-payment['expense_amount'])*(
@@ -2189,7 +2189,7 @@ def LateFee():
                                                     payer=json.dumps(
                                                         [lease['business_uid']]),
                                                     receiver=lease['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT LATE FEE',
                                                     description=unpaid['description'] +
                                                     ' Late fee',
                                                     amount_due=weeks_current_month/2*((lease['late_fee'] *
@@ -2210,7 +2210,7 @@ def LateFee():
                                                     payer=json.dumps(
                                                         [lease['business_uid']]),
                                                     receiver=lease['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT LATE FEE',
                                                     description=unpaid['description'] +
                                                     ' Late fee',
                                                     amount_due=weeks_current_month/2*((lease['late_fee']-payment['expense_amount'])*(
@@ -2232,7 +2232,7 @@ def LateFee():
                                                     payer=json.dumps(
                                                         [lease['business_uid']]),
                                                     receiver=lease['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT LATE FEE',
                                                     description=unpaid['description'] +
                                                     ' Late fee',
                                                     amount_due=(
@@ -2255,7 +2255,7 @@ def LateFee():
                                                     payer=json.dumps(
                                                         [lease['business_uid']]),
                                                     receiver=lease['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT LATE FEE',
                                                     description=unpaid['description'] +
                                                     ' Late fee',
                                                     amount_due=(
@@ -2369,7 +2369,7 @@ class PerDay_LateFee_CLASS(Resource):
                                         FROM pm.purchases p
                                         WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
                                         AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
-                                        AND p.purchase_type= 'OWNER PAYMENT'
+                                        AND p.purchase_type= 'OWNER PAYMENT LATE FEE'
                                         AND p.description = \'""" + unpaid['description'] + ' Late fee' + """\' 
                                         AND p.purchase_status='UNPAID'; """)
 
@@ -2580,7 +2580,7 @@ def PerDay_LateFee():
                                     FROM pm.purchases p
                                     WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
                                     AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
-                                    AND p.purchase_type= 'OWNER PAYMENT'
+                                    AND p.purchase_type= 'OWNER PAYMENT LATE FEE'
                                     AND p.description = \'""" + unpaid['description'] + ' Late fee' + """\' 
                                     AND p.purchase_status='UNPAID'; """)
 

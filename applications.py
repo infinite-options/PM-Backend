@@ -451,7 +451,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -471,7 +471,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -493,7 +493,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -514,7 +514,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -537,7 +537,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -559,7 +559,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -634,7 +634,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -654,7 +654,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -676,7 +676,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -697,7 +697,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -720,7 +720,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -742,7 +742,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -826,7 +826,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -846,7 +846,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -868,7 +868,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -889,7 +889,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -912,7 +912,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -934,7 +934,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -999,7 +999,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=weeks_current_month*(charge *
@@ -1019,7 +1019,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -1041,7 +1041,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(weeks_current_month/2) *
@@ -1062,7 +1062,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(weeks_current_month/2) *
@@ -1085,7 +1085,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(
@@ -1107,7 +1107,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(
@@ -1166,7 +1166,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=weeks_current_month*(charge *
                                                                                         (1-mpayment['charge']/100)),
@@ -1185,7 +1185,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
                                                             1-mpayment['charge']/100)),
@@ -1206,7 +1206,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(weeks_current_month/2) *
                                                         ((charge *
@@ -1226,7 +1226,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(weeks_current_month/2) *
                                                         ((charge-mpayment['expense_amount'])*(
@@ -1248,7 +1248,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
                                                             charge*(1-int(mpayment['charge'])/100)),
@@ -1269,7 +1269,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT RENT',
                                                         description=payment['fee_name'],
                                                         amount_due=(
                                                             (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
@@ -1336,7 +1336,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=weeks_current_month*(charge *
                                                                                     (1-mpayment['charge']/100)),
@@ -1355,7 +1355,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
                                                         1-mpayment['charge']/100)),
@@ -1376,7 +1376,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(weeks_current_month/2) *
                                                     ((charge *
@@ -1396,7 +1396,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(weeks_current_month/2) *
                                                     ((charge-mpayment['expense_amount'])*(
@@ -1418,7 +1418,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         charge*(1-int(mpayment['charge'])/100)),
@@ -1439,7 +1439,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
@@ -1461,7 +1461,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         charge*(1-int(mpayment['charge'])/100)),
@@ -1482,7 +1482,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
@@ -1503,7 +1503,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=int(
                                                         mpayment['charge']),
@@ -1588,7 +1588,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -1608,7 +1608,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -1630,7 +1630,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -1651,7 +1651,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -1674,7 +1674,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -1696,7 +1696,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -1769,7 +1769,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -1789,7 +1789,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -1811,7 +1811,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -1832,7 +1832,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -1855,7 +1855,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -1877,7 +1877,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -1963,7 +1963,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -1983,7 +1983,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -2005,7 +2005,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -2026,7 +2026,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -2049,7 +2049,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -2071,7 +2071,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -2137,7 +2137,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=weeks_current_month*(charge *
@@ -2157,7 +2157,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -2179,7 +2179,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(weeks_current_month/2) *
@@ -2200,7 +2200,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(weeks_current_month/2) *
@@ -2223,7 +2223,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(
@@ -2245,7 +2245,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(
@@ -2306,7 +2306,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
                                                                                             (1-mpayment['charge']/100)),
@@ -2325,7 +2325,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
                                                                 1-mpayment['charge']/100)),
@@ -2346,7 +2346,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
                                                             ((charge *
@@ -2366,7 +2366,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
                                                             ((charge-mpayment['expense_amount'])*(
@@ -2388,7 +2388,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=payment['fee_name'],
                                                             amount_due=(
                                                                 charge*(1-int(mpayment['charge'])/100)),
@@ -2409,7 +2409,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=payment['fee_name'],
                                                             amount_due=(
                                                                 (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
@@ -2474,7 +2474,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=weeks_current_month*(charge *
                                                                                     (1-mpayment['charge']/100)),
@@ -2493,7 +2493,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
                                                         1-mpayment['charge']/100)),
@@ -2514,7 +2514,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(weeks_current_month/2) *
                                                     ((charge *
@@ -2534,7 +2534,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(weeks_current_month/2) *
                                                     ((charge-mpayment['expense_amount'])*(
@@ -2556,7 +2556,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         charge*(1-int(mpayment['charge'])/100)),
@@ -2577,7 +2577,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
@@ -2599,7 +2599,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         charge*(1-int(mpayment['charge'])/100)),
@@ -2620,7 +2620,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=(
                                                         (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
@@ -2641,7 +2641,7 @@ class Applications(Resource):
                                                     payer=json.dumps(
                                                         [res['result'][0]['business_uid']]),
                                                     receiver=res['result'][0]['owner_id'],
-                                                    purchase_type='OWNER PAYMENT',
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                     description=payment['fee_name'],
                                                     amount_due=int(
                                                         mpayment['charge']),
@@ -2725,7 +2725,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -2745,7 +2745,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -2767,7 +2767,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -2788,7 +2788,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -2811,7 +2811,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -2833,7 +2833,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -2906,7 +2906,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -2926,7 +2926,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -2948,7 +2948,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -2969,7 +2969,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -2992,7 +2992,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -3014,7 +3014,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -3098,7 +3098,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*(charge *
@@ -3118,7 +3118,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -3140,7 +3140,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -3161,7 +3161,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(weeks_current_month/2) *
@@ -3184,7 +3184,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -3206,7 +3206,7 @@ class Applications(Resource):
                                                             payer=json.dumps(
                                                                 [res['result'][0]['business_uid']]),
                                                             receiver=res['result'][0]['owner_id'],
-                                                            purchase_type='OWNER PAYMENT',
+                                                            purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
                                                             amount_due=(
@@ -3271,7 +3271,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=weeks_current_month*(charge *
@@ -3291,7 +3291,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
@@ -3313,7 +3313,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(weeks_current_month/2) *
@@ -3334,7 +3334,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(weeks_current_month/2) *
@@ -3357,7 +3357,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(
@@ -3379,7 +3379,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'] + ' ' + charge_date.strftime(
                                                             '%Y'),
                                                         amount_due=(
@@ -3439,7 +3439,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=weeks_current_month*(charge *
                                                                                         (1-mpayment['charge']/100)),
@@ -3458,7 +3458,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
                                                             1-mpayment['charge']/100)),
@@ -3479,7 +3479,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(weeks_current_month/2) *
                                                         ((charge *
@@ -3499,7 +3499,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(weeks_current_month/2) *
                                                         ((charge-mpayment['expense_amount'])*(
@@ -3521,7 +3521,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
                                                             charge*(1-int(mpayment['charge'])/100)),
@@ -3542,7 +3542,7 @@ class Applications(Resource):
                                                         payer=json.dumps(
                                                             [res['result'][0]['business_uid']]),
                                                         receiver=res['result'][0]['owner_id'],
-                                                        purchase_type='OWNER PAYMENT',
+                                                        purchase_type='OWNER PAYMENT EXTRA CHARGES',
                                                         description=payment['fee_name'],
                                                         amount_due=(
                                                             (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
