@@ -198,7 +198,7 @@ class TenantPayments_CLASS(Resource):
                     purRes = db.execute("""
                     SELECT * FROM purchases pur
                     WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                    AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                    AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' OR pur.purchase_type= 'DEPOSIT') """)
                     # print('purRes', purRes['result'])
                     response['result'][i]['prevPurchases'] = list(
                         purRes['result'])
@@ -1056,6 +1056,7 @@ class TenantPayments_CLASS(Resource):
                                                 timedelta(
                                                     days=int(payment['available_topay']))
                                         if charge_date == today:
+                                            
                                             print(
                                                 'enter the fee to purchases')
                                             purchaseResponse = newPurchase(
@@ -1926,7 +1927,7 @@ def TenantPayments():
                 purRes = db.execute("""
                 SELECT * FROM purchases pur
                 WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' OR pur.purchase_type= 'DEPOSIT') """)
                 print('purRes', purRes['result'])
                 response['result'][i]['prevPurchases'] = list(
                     purRes['result'])
@@ -3018,7 +3019,7 @@ class ManagerPayments_CLASS(Resource):
                     purRes = db.execute("""
                     SELECT * FROM purchases pur
                     WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                    AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                    AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' OR pur.purchase_type= 'DEPOSIT') """)
                     # print('purRes', purRes['result'])
                     response['result'][i]['prevPurchases'] = list(
                         purRes['result'])
@@ -4749,7 +4750,7 @@ def ManagerPayments_CRON():
                 purRes = db.execute("""
                 SELECT * FROM purchases pur
                 WHERE pur.pur_property_id LIKE '%""" + response['result'][i]['property_uid'] + """%'
-                AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES') """)
+                AND (pur.purchase_type = 'RENT' OR pur.purchase_type= 'EXTRA CHARGES' OR pur.purchase_type= 'DEPOSIT') """)
                 # print('purRes', purRes['result'])
                 response['result'][i]['prevPurchases'] = list(
                     purRes['result'])

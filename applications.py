@@ -2276,22 +2276,22 @@ class Applications(Resource):
                                                     days=int(payment['available_topay']))
                                         charge = int(payment['charge'])
 
-                                        purchaseResponse = newPurchase(
-                                            linked_bill_id=None,
-                                            pur_property_id=json.dumps(
-                                                [res['result'][0]['rental_property_id']]),
-                                            payer=json.dumps(tenants),
-                                            receiver=res['result'][0]['linked_business_id'],
-                                            purchase_type='EXTRA CHARGES',
-                                            description=payment['fee_name'],
-                                            amount_due=charge,
-                                            purchase_notes=charge_month,
-                                            purchase_date=available_date,
-                                            purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
-                                        )
                                         # manager payments weekly $ rent
                                         if payment['fee_name'] != 'Deposit':
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['rental_property_id']]),
+                                                payer=json.dumps(tenants),
+                                                receiver=res['result'][0]['linked_business_id'],
+                                                purchase_type='EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=charge,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
                                                     calendar.monthcalendar(charge_date.year, int(charge_date.strftime("%m"))))
@@ -2424,7 +2424,21 @@ class Applications(Resource):
                                                 else:
                                                     print(
                                                         'payment frequency one-time %')
-
+                                        else:
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['rental_property_id']]),
+                                                payer=json.dumps(tenants),
+                                                receiver=res['result'][0]['linked_business_id'],
+                                                purchase_type='DEPOSIT',
+                                                description=payment['fee_name'],
+                                                amount_due=charge,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=payment['frequency'],
+                                                next_payment=charge_date
+                                            )
                             # payment fee type %
                             else:
                                 # payment fee frequency is move out %

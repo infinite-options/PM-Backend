@@ -12,6 +12,18 @@ from dateutil.relativedelta import relativedelta
 from text_to_num import alpha2digit
 
 
+def days_in_month(dt): return monthrange(
+    dt.year, dt.month)[1]
+
+
+def date_for_weekday(day: int, start_date):
+    #  today = date.today()
+    # weekday returns the offsets 0-6
+    # If you need 1-7, use isoweekday
+    weekday = start_date.weekday()
+    return start_date + timedelta(days=day - weekday)
+
+
 def next_weekday(d, weekday):
     days_ahead = weekday - d.weekday()
     if days_ahead <= 0:  # Target day already happened this week
@@ -298,7 +310,7 @@ class UpdateActiveLease(Resource):
                                 pur_response = db.execute("""
                                 SELECT * FROM pm.purchases
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
-                                AND (purchase_type = "EXTRA CHARGES" OR purchase_type = "RENT")
+                                AND (purchase_type = "EXTRA CHARGES" OR purchase_type = "RENT" OR purchase_type= 'DEPOSIT')
                                 AND description = \'""" + payment['fee_name'] + """\'  """)
                                 if len(pur_response['result']) > 0:
                                     for purchase in pur_response['result']:
@@ -311,7 +323,8 @@ class UpdateActiveLease(Resource):
                                                 payer=purchase['payer'],
                                                 receiver=purchase['receiver'],
                                                 purchase_type=purchase['purchase_type'],
-                                                description=purchase['description'],
+                                                description=purchase['purchase_notes'] +
+                                                ' ' + purchase['description'],
                                                 amount_due=payment['charge'],
                                                 purchase_notes=purchase['purchase_notes'],
                                                 purchase_date=effective_date.isoformat(),
@@ -330,7 +343,7 @@ class UpdateActiveLease(Resource):
                             SELECT * FROM pm.purchases
                             WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
                             AND DATE(purchase_date) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
-                            AND (purchase_type ='RENT' OR purchase_type='EXTRA CHARGES')
+                            AND (purchase_type ='RENT' OR purchase_type='EXTRA CHARGES' OR purchase_type= 'DEPOSIT')
                             AND purchase_status ="UNPAID" """)
                         unpaidEntries = []
                         if len(unpaidPurchases['result']) > 0:
@@ -400,8 +413,9 @@ class UpdateActiveLease(Resource):
                                                 [getRentInfo['result'][0]['rental_property_id']]),
                                             "payer": json.dumps(tenants),
                                             "receiver": getRentInfo['result'][0]['linked_business_id'],
-                                            "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'EXTRA CHARGES',
-                                            "description": payment['fee_name'],
+                                            "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'DEPOSIT' if payment['fee_name'] == 'Deposit' else 'EXTRA CHARGES',
+                                            "description": due_date.strftime(
+                                                '%B') + ' ' + payment['fee_name'],
                                             "amount_due": payment['charge'],
                                             "amount_paid": 0,
                                             "purchase_notes": due_date.strftime(
@@ -428,7 +442,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": (rent *
                                                                            (1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -452,7 +467,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -476,7 +492,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": ((rent *
                                                                             (1-int(mpayment['charge'])/100)))/weeks_current_month/2,
                                                             "amount_paid": 0,
@@ -500,7 +517,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100))/weeks_current_month/2,
                                                             "amount_paid": 0,
@@ -524,7 +542,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": ((rent *
                                                                             (1-int(mpayment['charge'])/100)))/weeks_current_month,
                                                             "amount_paid": 0,
@@ -548,7 +567,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100))/weeks_current_month,
                                                             "amount_paid": 0,
@@ -586,8 +606,9 @@ class UpdateActiveLease(Resource):
                                                 [getRentInfo['result'][0]['rental_property_id']]),
                                             "payer": json.dumps(tenants),
                                             "receiver": getRentInfo['result'][0]['linked_business_id'],
-                                            "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'EXTRA CHARGES',
-                                            "description": payment['fee_name'],
+                                            "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'DEPOSIT' if payment['fee_name'] == 'Deposit' else 'EXTRA CHARGES',
+                                            "description": due_date.strftime(
+                                                '%B') + ' ' + payment['fee_name'],
                                             "amount_due": payment['charge'],
                                             "amount_paid": 0,
                                             "purchase_notes": due_date.strftime(
@@ -615,7 +636,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description":  due_date.strftime(
+                                                                '%B') + ' '+'Rent',
                                                             "amount_due": 2*(rent *
                                                                              (1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -639,7 +661,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description":  due_date.strftime(
+                                                                '%B') + ' '+'Rent',
                                                             "amount_due": 2*((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -663,7 +686,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description":  due_date.strftime(
+                                                                '%B') + ' '+'Rent',
                                                             "amount_due": weeks_current_month/2*(rent *
                                                                                                  (1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -687,7 +711,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description":  due_date.strftime(
+                                                                '%B') + ' '+'Rent',
                                                             "amount_due": weeks_current_month/2*((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -711,7 +736,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description":  due_date.strftime(
+                                                                '%B') + ' '+'Rent',
                                                             "amount_due": (rent *
                                                                            (1-int(mpayment['charge'])/100))/(weeks_current_month/2),
                                                             "amount_paid": 0,
@@ -735,7 +761,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description":  due_date.strftime(
+                                                                '%B') + ' '+'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100))/(weeks_current_month/2),
                                                             "amount_paid": 0,
@@ -765,8 +792,9 @@ class UpdateActiveLease(Resource):
                                                 [getRentInfo['result'][0]['rental_property_id']]),
                                             "payer": json.dumps(tenants),
                                             "receiver": getRentInfo['result'][0]['linked_business_id'],
-                                            "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'EXTRA CHARGES',
-                                            "description": payment['fee_name'],
+                                            "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'DEPOSIT' if payment['fee_name'] == 'Deposit' else 'EXTRA CHARGES',
+                                            "description": due_date.strftime(
+                                                '%B') + ' ' + payment['fee_name'],
                                             "amount_due": payment['charge'],
                                             "amount_paid": 0,
                                             "purchase_notes": due_date.strftime(
@@ -795,7 +823,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": weeks_current_month * (rent *
                                                                                                  (1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -819,7 +848,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": weeks_current_month * ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -843,7 +873,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": weeks_current_month/2 * (rent *
                                                                                                    (1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -867,7 +898,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": weeks_current_month/2 * ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -892,7 +924,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": (rent *
                                                                            (1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -916,7 +949,8 @@ class UpdateActiveLease(Resource):
                                                                 [getRentInfo['result'][0]['business_uid']]),
                                                             "receiver": getRentInfo['result'][0]['owner_id'],
                                                             "purchase_type": 'OWNER PAYMENT RENT',
-                                                            "description": 'Rent',
+                                                            "description": due_date.strftime(
+                                                                '%B') + ' ' + 'Rent',
                                                             "amount_due": ((rent-mpayment['expense_amount'])*(
                                                                 1-int(mpayment['charge'])/100)),
                                                             "amount_paid": 0,
@@ -945,8 +979,9 @@ class UpdateActiveLease(Resource):
                                         [getRentInfo['result'][0]['rental_property_id']]),
                                     "payer": json.dumps(tenants),
                                     "receiver": getRentInfo['result'][0]['linked_business_id'],
-                                    "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'EXTRA CHARGES',
-                                    "description": payment['fee_name'],
+                                    "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'DEPOSIT' if payment['fee_name'] == 'Deposit' else 'EXTRA CHARGES',
+                                    "description": payment['fee_name'] + ' ' + due_date.strftime(
+                                        '%Y'),
                                     "amount_due": payment['charge'],
                                     "amount_paid": 0,
                                     "purchase_notes": due_date.strftime(
@@ -978,8 +1013,9 @@ class UpdateActiveLease(Resource):
                                         [getRentInfo['result'][0]['rental_property_id']]),
                                     "payer": json.dumps(tenants),
                                     "receiver": getRentInfo['result'][0]['linked_business_id'],
-                                    "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'EXTRA CHARGES',
-                                    "description": payment['fee_name'],
+                                    "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'DEPOSIT' if payment['fee_name'] == 'Deposit' else 'EXTRA CHARGES',
+                                    "description": due_date.strftime(
+                                        '%B') + ' ' + payment['fee_name'],
                                     "amount_due": payment['charge'],
                                     "amount_paid": 0,
                                     "purchase_notes": due_date.strftime(
@@ -1002,8 +1038,8 @@ class UpdateActiveLease(Resource):
                                             [getRentInfo['result'][0]['rental_property_id']]),
                                         "payer": json.dumps(tenants),
                                         "receiver": getRentInfo['result'][0]['linked_business_id'],
-                                        "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'EXTRA CHARGES',
-                                        "description": payment['fee_name'],
+                                        "purchase_type": 'RENT' if payment['fee_name'] == 'Rent' else 'DEPOSIT' if payment['fee_name'] == 'Deposit' else 'EXTRA CHARGES',
+                                        "description": payment['fee_name'] if payment['fee_name'] == 'Deposit' else due_date.strftime('%B') + ' ' + payment['fee_name'],
                                         "amount_due": payment['charge'],
                                         "amount_paid": 0,
                                         "purchase_notes": due_date.strftime(
@@ -1306,47 +1342,574 @@ class ExtendLeaseCRON_CLASS(Resource):
             leaseResponse = db.execute("""
             SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
             FROM pm.rentals r
-            LEFT JOIN leaseTenants lt
+            LEFT JOIN pm.leaseTenants lt
             ON lt.linked_rental_uid = r.rental_uid
             WHERE r.rental_property_id IN (SELECT *
             FROM (SELECT r.rental_property_id
-                FROM pm.rentals
+                FROM pm.rentals r
                 GROUP BY r.rental_property_id
                 HAVING COUNT(r.rental_property_id) > 1)
             AS a)
             AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-            GROUP BY lt.linked_rental_uid; """)
+            GROUP BY lt.linked_rental_uid;""")
             today_datetime = datetime.now()
             today = datetime.strftime(today_datetime, '%Y-%m-%d')
             oldLease = ''
             newLease = ''
+            oldLeases = []
+            newLeases = []
             if len(leaseResponse['result']) > 0:
                 for res in leaseResponse['result']:
                     if res['rental_status'] == 'ACTIVE':
-                        oldLease = res
+                        oldLeases.append(res)
                     else:
-                        newLease = res
-            print('oldLease', oldLease)
-            print('newLease', newLease)
-            if newLease['lease_start'] == today:
+                        newLeases.append(res)
+            print('oldLeases', oldLeases)
+            print('newLeases', newLeases)
+            for ol in oldLeases:
+                if ol['lease_end'] == today:
+                    print('old lease expiring today')
+                    print('here')
+
+                    pk = {
+                        'rental_uid': ol['rental_uid']
+                    }
+                    oldLeaseUpdate = {
+                        'rental_status': 'EXPIRED'
+                    }
+                    oldLeaseUpdateRes = db.update(
+                        'rentals', pk, oldLeaseUpdate)
+            for nl in newLeases:
+                if nl['lease_start'] == today:
+                    print('new lease starting today')
+                    # adding leaseTenants
+                    tenants = nl['tenants']
+                    print('tenants1', tenants)
+                    if '[' in tenants:
+                        print('tenants2', tenants)
+                        tenants = json.loads(tenants)
+                        print('tenants3', tenants)
+                    print('tenants4', tenants)
+                    if type(tenants) == str:
+                        tenants = [tenants]
+                        print('tenants5', tenants)
+                    print(tenants)
+                    # creating purchases
+                    rentPayments = json.loads(nl['rent_payments'])
+
+                    res = db.execute("""
+                    SELECT r.*, p.*,c.*, prop.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                    FROM pm.rentals r
+                    LEFT JOIN pm.leaseTenants lt
+                    ON lt.linked_rental_uid = r.rental_uid
+                    LEFT JOIN pm.propertyManager p
+                    ON p.linked_property_id= r.rental_property_id
+                    LEFT JOIN pm.properties prop
+                    ON prop.property_uid = r.rental_property_id
+                    LEFT JOIN pm.contracts c
+                    ON c.property_uid = r.rental_property_id
+                    WHERE r.rental_status='TENANT APPROVED'
+                    AND c.contract_status = 'ACTIVE'
+                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')   
+                    AND r.rental_property_id = \'""" + nl['rental_property_id'] + """\'
+                    GROUP BY lt.linked_rental_uid; """)
+
+                    if len(res['result']) > 0:
+
+                        managementPayments = json.loads(
+                            res['result'][0]['contract_fees'])
+                    for payment in rentPayments:
+                        if payment['frequency'] == 'Monthly':
+
+                            charge_date = date.fromisoformat(
+                                nl['lease_start'])
+                            due_date = charge_date.replace(
+                                day=int(payment['due_by']))
+                            lease_end = date.fromisoformat(
+                                nl['lease_end'])
+
+                            # available date-> when the payment is available to pay
+                            if len(payment['available_topay']) == 0:
+                                available_date = due_date
+                            else:
+                                available_date = due_date - \
+                                    timedelta(
+                                        days=int(payment['available_topay']))
+
+                            while datetime.strftime(available_date, '%Y-%m-%d') < today and datetime.strftime(due_date, '%Y-%m-%d') < nl['lease_end']:
+                                charge_month = due_date.strftime(
+                                    '%B')
+                                if(payment['fee_name'] == 'Rent'):
+                                    if charge_month == charge_date.strftime(
+                                            '%B') and charge_date.strftime('%d') != '01':
+                                        # prorate first month
+                                        print('days_in_month(charge_date)', days_in_month(
+                                            charge_date))
+                                        daily_charge_begin = int(
+                                            int(payment['charge']) / days_in_month(charge_date))
+                                        num_days_active_begin = days_in_month(
+                                            charge_date) - charge_date.day + 1
+                                        charge = round(
+                                            num_days_active_begin * daily_charge_begin, 2)
+
+                                    else:
+                                        charge = int(payment['charge'])
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=json.dumps(
+                                            [nl['rental_property_id']]),
+                                        payer=json.dumps(tenants),
+                                        receiver=res['result'][0]['linked_business_id'],
+                                        purchase_type='RENT',
+                                        description=charge_month +
+                                        ' ' + payment['fee_name'],
+                                        amount_due=charge,
+                                        purchase_notes=charge_month,
+                                        purchase_date=available_date.isoformat(),
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=due_date
+                                    )
+                                    for mpayment in managementPayments:
+                                        weeks_current_month = len(
+                                            calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
+                                        print('mpayment fee type %')
+                                        if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                            if mpayment['of'] == 'Gross Rent':
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT RENT',
+                                                    description=charge_month + ' ' +
+                                                    payment['fee_name'],
+                                                    amount_due=weeks_current_month*(charge *
+                                                                                    (1-mpayment['charge']/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT RENT',
+                                                    description=charge_month + ' ' +
+                                                    payment['fee_name'],
+                                                    amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
+                                                        1-mpayment['charge']/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                        elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
+
+                                            # if gross rent (listed rent)
+                                            if mpayment['of'] == 'Gross Rent':
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT RENT',
+                                                    description=charge_month + ' ' +
+                                                    payment['fee_name'],
+                                                    amount_due=(weeks_current_month/2) *
+                                                    ((charge *
+                                                        (1-mpayment['charge']/100)))/weeks_current_month/2,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT RENT',
+                                                    description=charge_month + ' ' +
+                                                    payment['fee_name'],
+                                                    amount_due=(weeks_current_month/2) *
+                                                    ((charge-mpayment['expense_amount'])*(
+                                                        1-mpayment['charge']/100))/weeks_current_month/2,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+
+                                        elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
+
+                                            # if gross rent (listed rent)
+                                            if mpayment['of'] == 'Gross Rent':
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT RENT',
+                                                    description=charge_month + ' ' +
+                                                    payment['fee_name'],
+                                                    amount_due=(
+                                                        charge*(1-int(mpayment['charge'])/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                                print(
+                                                    purchaseResponse)
+
+                                            # if net rent (listed rent-expenses)
+                                            else:
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT RENT',
+                                                    description=charge_month + ' ' +
+                                                    payment['fee_name'],
+                                                    amount_due=(
+                                                        (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                                print(
+                                                    purchaseResponse)
+
+                                        else:
+                                            print(
+                                                'payment frequency one-time %')
+
+                                elif(payment['fee_name'] == 'Deposit'):
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=json.dumps(
+                                            [nl['rental_property_id']]),
+                                        payer=json.dumps(tenants),
+                                        receiver=res['result'][0]['linked_business_id'],
+                                        purchase_type='DEPOSIT',
+                                        description=payment['fee_name'],
+                                        amount_due=payment['charge'],
+                                        purchase_notes=charge_month,
+                                        purchase_date=available_date.isoformat(),
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=due_date
+                                    )
+                                else:
+                                    purchaseResponse = newPurchase(
+                                        linked_bill_id=None,
+                                        pur_property_id=json.dumps(
+                                            [nl['rental_property_id']]),
+                                        payer=json.dumps(tenants),
+                                        receiver=res['result'][0]['linked_business_id'],
+                                        purchase_type='EXTRA CHARGES',
+                                        description=charge_month +
+                                        ' ' + payment['fee_name'],
+                                        amount_due=payment['charge'],
+                                        purchase_notes=charge_month,
+                                        purchase_date=available_date.isoformat(),
+                                        purchase_frequency=payment['frequency'],
+                                        next_payment=due_date
+                                    )
+                                    # manager payments weekly $ rent
+                                    for mpayment in managementPayments:
+                                        weeks_current_month = len(
+                                            calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
+                                        print('mpayment fee type %')
+                                        if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                            if mpayment['of'] == 'Gross Rent':
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                    description=payment['fee_name'],
+                                                    amount_due=weeks_current_month*(charge *
+                                                                                    (1-mpayment['charge']/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                    description=payment['fee_name'],
+                                                    amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
+                                                        1-mpayment['charge']/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                        elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
+
+                                            # if gross rent (listed rent)
+                                            if mpayment['of'] == 'Gross Rent':
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(weeks_current_month/2) *
+                                                    ((charge *
+                                                        (1-mpayment['charge']/100)))/weeks_current_month/2,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                            # if net rent (listed rent-expenses)
+                                            else:
+
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(weeks_current_month/2) *
+                                                    ((charge-mpayment['expense_amount'])*(
+                                                        1-mpayment['charge']/100))/weeks_current_month/2,
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+
+                                        elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
+
+                                            # if gross rent (listed rent)
+                                            if mpayment['of'] == 'Gross Rent':
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        charge*(1-int(mpayment['charge'])/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                                print(
+                                                    purchaseResponse)
+
+                                            # if net rent (listed rent-expenses)
+                                            else:
+                                                purchaseResponse = newPurchase(
+                                                    linked_bill_id=None,
+                                                    pur_property_id=json.dumps(
+                                                        [res['result'][0]['property_uid']]),
+                                                    payer=json.dumps(
+                                                        [res['result'][0]['business_uid']]),
+                                                    receiver=res['result'][0]['owner_id'],
+                                                    purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                    description=payment['fee_name'],
+                                                    amount_due=(
+                                                        (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
+                                                    purchase_notes=charge_month,
+                                                    purchase_date=available_date,
+                                                    purchase_frequency=mpayment['frequency'],
+                                                    next_payment=due_date
+                                                )
+                                                print(
+                                                    purchaseResponse)
+
+                                        else:
+                                            print(
+                                                'payment frequency one-time %')
+
+                                # charge_date += relativedelta(months=1)
+                                due_date += relativedelta(months=1)
+                                available_date += relativedelta(
+                                    months=1)
+                        else:
+                            # print('lease_start', type(
+                            #     res['result'][0]['lease_start']))
+
+                            charge_date = date.fromisoformat(
+                                nl['lease_start'])
+                            due_date = date.fromisoformat(
+                                nl['lease_start']).replace(
+                                day=int(payment['due_by']))
+                            lease_end = date.fromisoformat(
+                                nl['lease_end'])
+                            # available date-> when the payment is available to pay
+                            if len(payment['available_topay']) == 0:
+                                available_date = due_date
+                            else:
+                                available_date = due_date - \
+                                    timedelta(
+                                        days=int(payment['available_topay']))
+
+                            charge_month = due_date.strftime(
+                                '%B')
+                            if(payment['fee_name'] == 'Rent'):
+                                purchaseResponse = newPurchase(
+                                    linked_bill_id=None,
+                                    pur_property_id=json.dumps(
+                                        [nl['rental_property_id']]),
+                                    payer=json.dumps(tenants),
+                                    receiver=res['result'][0]['linked_business_id'],
+                                    purchase_type='RENT',
+                                    description=payment['fee_name'],
+                                    amount_due=payment['charge'],
+                                    purchase_notes=charge_month,
+                                    purchase_date=available_date.isoformat(),
+                                    purchase_frequency=payment['frequency'],
+                                    next_payment=due_date
+                                )
+                            elif(payment['fee_name'] == 'Deposit'):
+                                purchaseResponse = newPurchase(
+                                    linked_bill_id=None,
+                                    pur_property_id=json.dumps(
+                                        [nl['rental_property_id']]),
+                                    payer=json.dumps(tenants),
+                                    receiver=res['result'][0]['linked_business_id'],
+                                    purchase_type='DEPOSIT',
+                                    description=payment['fee_name'],
+                                    amount_due=payment['charge'],
+                                    purchase_notes=charge_month,
+                                    purchase_date=available_date.isoformat(),
+                                    purchase_frequency=payment['frequency'],
+                                    next_payment=due_date
+                                )
+
+                            else:
+
+                                purchaseResponse = newPurchase(
+                                    linked_bill_id=None,
+                                    pur_property_id=json.dumps(
+                                        [nl['rental_property_id']]),
+                                    payer=json.dumps(tenants),
+                                    receiver=res['result'][0]['linked_business_id'],
+                                    purchase_type='EXTRA CHARGES',
+                                    description=payment['fee_name'],
+                                    amount_due=payment['charge'],
+                                    purchase_notes=charge_month,
+                                    purchase_date=available_date.isoformat(),
+                                    purchase_frequency=payment['frequency'],
+                                    next_payment=due_date
+                                )
+                    pkNL = {
+                        'rental_uid': nl['rental_uid']
+                    }
+                    newLeaseUpdate = {
+                        'rental_status': 'ACTIVE'
+                    }
+                    print(pkNL, newLeaseUpdate)
+                    response = db.update(
+                        'rentals', pkNL, newLeaseUpdate)
+        return response
+
+
+def ExtendLeaseCRON():
+    print("In ExtendLeaseCRON")
+    from purchases import newPurchase
+    from datetime import date, datetime
+
+    with connect() as db:
+        response = {'message': 'Successfully committed SQL query',
+                    'code': 200}
+        leaseResponse = db.execute("""
+        SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+        FROM pm.rentals r
+        LEFT JOIN pm.leaseTenants lt
+        ON lt.linked_rental_uid = r.rental_uid
+        WHERE r.rental_property_id IN (SELECT *
+        FROM (SELECT r.rental_property_id
+            FROM pm.rentals r
+            GROUP BY r.rental_property_id
+            HAVING COUNT(r.rental_property_id) > 1)
+        AS a)
+        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+        GROUP BY lt.linked_rental_uid;""")
+        today_datetime = datetime.now()
+        today = datetime.strftime(today_datetime, '%Y-%m-%d')
+        oldLease = ''
+        newLease = ''
+        oldLeases = []
+        newLeases = []
+        if len(leaseResponse['result']) > 0:
+            for res in leaseResponse['result']:
+                if res['rental_status'] == 'ACTIVE':
+                    oldLeases.append(res)
+                else:
+                    newLeases.append(res)
+        print('oldLeases', oldLeases)
+        print('newLeases', newLeases)
+        for ol in oldLeases:
+            if ol['lease_end'] == today:
+                print('old lease expiring today')
                 print('here')
-                if datetime.strptime(oldLease['lease_end'], '%Y-%m-%d') > datetime.strptime(today, '%Y-%m-%d'):
-                    pur_response = db.delete("""
-                    DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
-                    AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                    AND purchase_status ="UNPAID"
-                    AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
+
                 pk = {
-                    'rental_uid': oldLease['rental_uid']
+                    'rental_uid': ol['rental_uid']
                 }
                 oldLeaseUpdate = {
                     'rental_status': 'EXPIRED'
                 }
                 oldLeaseUpdateRes = db.update(
                     'rentals', pk, oldLeaseUpdate)
-
+        for nl in newLeases:
+            if nl['lease_start'] == today:
+                print('new lease starting today')
                 # adding leaseTenants
-                tenants = newLease['tenants']
+                tenants = nl['tenants']
                 print('tenants1', tenants)
                 if '[' in tenants:
                     print('tenants2', tenants)
@@ -1358,44 +1921,231 @@ class ExtendLeaseCRON_CLASS(Resource):
                     print('tenants5', tenants)
                 print(tenants)
                 # creating purchases
-                rentPayments = json.loads(newLease['rent_payments'])
+                rentPayments = json.loads(nl['rent_payments'])
+
                 res = db.execute("""
-                SELECT r.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+                SELECT r.*, p.*,c.*, prop.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
                 FROM pm.rentals r
                 LEFT JOIN pm.leaseTenants lt
                 ON lt.linked_rental_uid = r.rental_uid
                 LEFT JOIN pm.propertyManager p
                 ON p.linked_property_id= r.rental_property_id
+                LEFT JOIN pm.properties prop
+                ON prop.property_uid = r.rental_property_id
+                LEFT JOIN pm.contracts c
+                ON c.property_uid = r.rental_property_id
                 WHERE r.rental_status='TENANT APPROVED'
-                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')   
-                AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
+                AND c.contract_status = 'ACTIVE'
+                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')
+                AND r.rental_property_id = \'""" + nl['rental_property_id'] + """\'
                 GROUP BY lt.linked_rental_uid; """)
+
+                if len(res['result']) > 0:
+
+                    managementPayments = json.loads(
+                        res['result'][0]['contract_fees'])
                 for payment in rentPayments:
                     if payment['frequency'] == 'Monthly':
 
                         charge_date = date.fromisoformat(
-                            newLease['lease_start'])
+                            nl['lease_start'])
                         due_date = charge_date.replace(
-                            day=int(newLease['due_by']))
+                            day=int(payment['due_by']))
                         lease_end = date.fromisoformat(
-                            newLease['lease_end'])
-                        # print('charge_date', type(charge_date),
-                        #       charge_date.isoformat())
-                        while charge_date < lease_end:
-                            charge_month = charge_date.strftime(
+                            nl['lease_end'])
+
+                        # available date-> when the payment is available to pay
+                        if len(payment['available_topay']) == 0:
+                            available_date = due_date
+                        else:
+                            available_date = due_date - \
+                                timedelta(
+                                    days=int(payment['available_topay']))
+
+                        while datetime.strftime(available_date, '%Y-%m-%d') < today and datetime.strftime(due_date, '%Y-%m-%d') < nl['lease_end']:
+                            charge_month = due_date.strftime(
                                 '%B')
                             if(payment['fee_name'] == 'Rent'):
+                                if charge_month == charge_date.strftime(
+                                        '%B') and charge_date.strftime('%d') != '01':
+                                    # prorate first month
+                                    print('days_in_month(charge_date)', days_in_month(
+                                        charge_date))
+                                    daily_charge_begin = int(
+                                        int(payment['charge']) / days_in_month(charge_date))
+                                    num_days_active_begin = days_in_month(
+                                        charge_date) - charge_date.day + 1
+                                    charge = round(
+                                        num_days_active_begin * daily_charge_begin, 2)
+
+                                else:
+                                    charge = int(payment['charge'])
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(
-                                        [newLease['rental_property_id']]),
+                                        [nl['rental_property_id']]),
                                     payer=json.dumps(tenants),
                                     receiver=res['result'][0]['linked_business_id'],
                                     purchase_type='RENT',
+                                    description=charge_month +
+                                    ' ' + payment['fee_name'],
+                                    amount_due=charge,
+                                    purchase_notes=charge_month,
+                                    purchase_date=available_date.isoformat(),
+                                    purchase_frequency=payment['frequency'],
+                                    next_payment=due_date
+                                )
+                                for mpayment in managementPayments:
+                                    weeks_current_month = len(
+                                        calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
+                                    print('mpayment fee type %')
+                                    if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                        if mpayment['of'] == 'Gross Rent':
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=weeks_current_month*(charge *
+                                                                                (1-mpayment['charge']/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
+                                                    1-mpayment['charge']/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                    elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
+
+                                        # if gross rent (listed rent)
+                                        if mpayment['of'] == 'Gross Rent':
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(weeks_current_month/2) *
+                                                ((charge *
+                                                    (1-mpayment['charge']/100)))/weeks_current_month/2,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(weeks_current_month/2) *
+                                                ((charge-mpayment['expense_amount'])*(
+                                                    1-mpayment['charge']/100))/weeks_current_month/2,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+
+                                    elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
+
+                                        # if gross rent (listed rent)
+                                        if mpayment['of'] == 'Gross Rent':
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(
+                                                    charge*(1-int(mpayment['charge'])/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                            print(
+                                                purchaseResponse)
+
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(
+                                                    (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                            print(
+                                                purchaseResponse)
+
+                                    else:
+                                        print(
+                                            'payment frequency one-time %')
+
+                            elif(payment['fee_name'] == 'Deposit'):
+                                purchaseResponse = newPurchase(
+                                    linked_bill_id=None,
+                                    pur_property_id=json.dumps(
+                                        [nl['rental_property_id']]),
+                                    payer=json.dumps(tenants),
+                                    receiver=res['result'][0]['linked_business_id'],
+                                    purchase_type='DEPOSIT',
                                     description=payment['fee_name'],
                                     amount_due=payment['charge'],
                                     purchase_notes=charge_month,
-                                    purchase_date=charge_date.isoformat(),
+                                    purchase_date=available_date.isoformat(),
                                     purchase_frequency=payment['frequency'],
                                     next_payment=due_date
                                 )
@@ -1403,47 +2153,204 @@ class ExtendLeaseCRON_CLASS(Resource):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(
-                                        [newLease['rental_property_id']]),
+                                        [nl['rental_property_id']]),
                                     payer=json.dumps(tenants),
                                     receiver=res['result'][0]['linked_business_id'],
                                     purchase_type='EXTRA CHARGES',
-                                    description=payment['fee_name'],
+                                    description=charge_month +
+                                    ' ' + payment['fee_name'],
                                     amount_due=payment['charge'],
                                     purchase_notes=charge_month,
-                                    purchase_date=charge_date.isoformat(),
+                                    purchase_date=available_date.isoformat(),
                                     purchase_frequency=payment['frequency'],
                                     next_payment=due_date
                                 )
-                            charge_date += relativedelta(months=1)
+                                # manager payments weekly $ rent
+                                for mpayment in managementPayments:
+                                    weeks_current_month = len(
+                                        calendar.monthcalendar(due_date.year, int(due_date.strftime("%m"))))
+                                    print('mpayment fee type %')
+                                    if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                        if mpayment['of'] == 'Gross Rent':
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=weeks_current_month*(charge *
+                                                                                (1-mpayment['charge']/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
+                                                    1-mpayment['charge']/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                    elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
+
+                                        # if gross rent (listed rent)
+                                        if mpayment['of'] == 'Gross Rent':
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=(weeks_current_month/2) *
+                                                ((charge *
+                                                    (1-mpayment['charge']/100)))/weeks_current_month/2,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=(weeks_current_month/2) *
+                                                ((charge-mpayment['expense_amount'])*(
+                                                    1-mpayment['charge']/100))/weeks_current_month/2,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+
+                                    elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
+
+                                        # if gross rent (listed rent)
+                                        if mpayment['of'] == 'Gross Rent':
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    charge*(1-int(mpayment['charge'])/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                            print(
+                                                purchaseResponse)
+
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [res['result'][0]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [res['result'][0]['business_uid']]),
+                                                receiver=res['result'][0]['owner_id'],
+                                                purchase_type='OWNER PAYMENT EXTRA CHARGES',
+                                                description=payment['fee_name'],
+                                                amount_due=(
+                                                    (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=due_date
+                                            )
+                                            print(
+                                                purchaseResponse)
+
+                                    else:
+                                        print(
+                                            'payment frequency one-time %')
+
+                            # charge_date += relativedelta(months=1)
                             due_date += relativedelta(months=1)
+                            available_date += relativedelta(
+                                months=1)
                     else:
                         # print('lease_start', type(
                         #     res['result'][0]['lease_start']))
 
                         charge_date = date.fromisoformat(
-                            newLease['lease_start'])
+                            nl['lease_start'])
                         due_date = date.fromisoformat(
-                            newLease['lease_start']).replace(
-                            day=int(newLease['due_by']))
+                            nl['lease_start']).replace(
+                            day=int(payment['due_by']))
                         lease_end = date.fromisoformat(
-                            newLease['lease_end'])
-                        # print('charge_date', type(charge_date),
-                        #       charge_date.isoformat())
+                            nl['lease_end'])
+                        # available date-> when the payment is available to pay
+                        if len(payment['available_topay']) == 0:
+                            available_date = due_date
+                        else:
+                            available_date = due_date - \
+                                timedelta(
+                                    days=int(payment['available_topay']))
 
-                        charge_month = charge_date.strftime(
+                        charge_month = due_date.strftime(
                             '%B')
                         if(payment['fee_name'] == 'Rent'):
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
                                 pur_property_id=json.dumps(
-                                    [newLease['rental_property_id']]),
+                                    [nl['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=res['result'][0]['linked_business_id'],
                                 purchase_type='RENT',
                                 description=payment['fee_name'],
                                 amount_due=payment['charge'],
                                 purchase_notes=charge_month,
-                                purchase_date=newLease['lease_start'],
+                                purchase_date=available_date.isoformat(),
+                                purchase_frequency=payment['frequency'],
+                                next_payment=due_date
+                            )
+                        elif(payment['fee_name'] == 'Deposit'):
+                            purchaseResponse = newPurchase(
+                                linked_bill_id=None,
+                                pur_property_id=json.dumps(
+                                    [nl['rental_property_id']]),
+                                payer=json.dumps(tenants),
+                                receiver=res['result'][0]['linked_business_id'],
+                                purchase_type='DEPOSIT',
+                                description=payment['fee_name'],
+                                amount_due=payment['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=available_date.isoformat(),
                                 purchase_frequency=payment['frequency'],
                                 next_payment=due_date
                             )
@@ -1453,223 +2360,50 @@ class ExtendLeaseCRON_CLASS(Resource):
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
                                 pur_property_id=json.dumps(
-                                    [newLease['rental_property_id']]),
+                                    [nl['rental_property_id']]),
                                 payer=json.dumps(tenants),
                                 receiver=res['result'][0]['linked_business_id'],
                                 purchase_type='EXTRA CHARGES',
                                 description=payment['fee_name'],
                                 amount_due=payment['charge'],
                                 purchase_notes=charge_month,
-                                purchase_date=newLease['lease_start'],
+                                purchase_date=available_date.isoformat(),
                                 purchase_frequency=payment['frequency'],
                                 next_payment=due_date
                             )
                 pkNL = {
-                    'rental_uid': newLease['rental_uid']
+                    'rental_uid': nl['rental_uid']
                 }
                 newLeaseUpdate = {
                     'rental_status': 'ACTIVE'
                 }
+                print(pkNL, newLeaseUpdate)
                 response = db.update(
                     'rentals', pkNL, newLeaseUpdate)
         return response
 
 
-def ExtendLeaseCRON():
-    print("In ExtendLeaseCRON")
-    from purchases import newPurchase
-    from datetime import date, datetime
-
-    with connect() as db:
-        print("In Extend Lease CRON Function")
-        response = {'message': 'Successfully committed SQL query',
-                    'code': 200}
-        leaseResponse = db.execute("""SELECT r.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
-        FROM pm.rentals r
-        LEFT JOIN leaseTenants lt
-        ON lt.linked_rental_uid = r.rental_uid
-        WHERE r.rental_property_id IN (SELECT *
-        FROM (SELECT r.rental_property_id
-            FROM pm.rentals
-            GROUP BY r.rental_property_id
-            HAVING COUNT(r.rental_property_id) > 1)
-        AS a)
-        AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
-        GROUP BY lt.linked_rental_uid; """)
-        today_datetime = datetime.now()
-        today = datetime.strftime(today_datetime, '%Y-%m-%d')
-        oldLease = ''
-        newLease = ''
-        if len(leaseResponse['result']) > 0:
-            for res in leaseResponse['result']:
-                if res['rental_status'] == 'ACTIVE':
-                    oldLease = res
-                else:
-                    newLease = res
-        print('oldLease', oldLease)
-        print('newLease', newLease)
-        if newLease['lease_start'] == today:
-            print('here')
-            if datetime.strptime(oldLease['lease_end'], '%Y-%m-%d') > datetime.strptime(today, '%Y-%m-%d'):
-                pur_response = db.delete("""
-                DELETE FROM pm.purchases WHERE pur_property_id LIKE '%""" + oldLease['rental_property_id'] + """%'
-                AND (MONTH(purchase_date) > MONTH(now()) AND YEAR(purchase_date) = YEAR(now()) OR YEAR(purchase_date) > YEAR(now()))
-                AND purchase_status ="UNPAID"
-                AND (purchase_type= "RENT" OR purchase_type= "EXTRA CHARGES")""")
-            pk = {
-                'rental_uid': oldLease['rental_uid']
-            }
-            oldLeaseUpdate = {
-                'rental_status': 'EXPIRED'
-            }
-            oldLeaseUpdateRes = db.update(
-                'rentals', pk, oldLeaseUpdate)
-
-            # adding leaseTenants
-            tenants = newLease['tenants']
-            print('tenants1', tenants)
-            if '[' in tenants:
-                print('tenants2', tenants)
-                tenants = json.loads(tenants)
-                print('tenants3', tenants)
-            print('tenants4', tenants)
-            if type(tenants) == str:
-                tenants = [tenants]
-                print('tenants5', tenants)
-            print(tenants)
-            # creating purchases
-            rentPayments = json.loads(newLease['rent_payments'])
-            res = db.execute("""SELECT r.*, p.*, GROUP_CONCAT(lt.linked_tenant_id) as `tenants`
+class LeasetoMonth_CLASS(Resource):
+    def get(self):
+        with connect() as db:
+            response = {'message': 'Successfully committed SQL query',
+                        'code': 200}
+            response = db.execute("""
+            SELECT *
             FROM pm.rentals r
             LEFT JOIN pm.leaseTenants lt
             ON lt.linked_rental_uid = r.rental_uid
-            LEFT JOIN pm.propertyManager p
-            ON p.linked_property_id= r.rental_property_id
-            WHERE r.rental_status='TENANT APPROVED'
-            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  
-            AND r.rental_property_id = \'""" + newLease['rental_property_id'] + """\'
-            GROUP BY lt.linked_rental_uid; """)
-            for payment in rentPayments:
-                if payment['frequency'] == 'Monthly':
-
-                    charge_date = date.fromisoformat(
-                        newLease['lease_start'])
-                    due_date = charge_date.replace(
-                        day=int(newLease['due_by']))
-                    lease_end = date.fromisoformat(
-                        newLease['lease_end'])
-                    # print('charge_date', type(charge_date),
-                    #       charge_date.isoformat())
-                    while charge_date < lease_end:
-                        charge_month = charge_date.strftime(
-                            '%B')
-                        if(payment['fee_name'] == 'Rent'):
-                            purchaseResponse = newPurchase(
-                                linked_bill_id=None,
-                                pur_property_id=json.dumps(
-                                    [newLease['rental_property_id']]),
-                                payer=json.dumps(tenants),
-                                receiver=res['result'][0]['linked_business_id'],
-                                purchase_type='RENT',
-                                description=payment['fee_name'],
-                                amount_due=payment['charge'],
-                                purchase_notes=charge_month,
-                                purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment['frequency'],
-                                next_payment=due_date
-                            )
-                        else:
-                            purchaseResponse = newPurchase(
-                                linked_bill_id=None,
-                                pur_property_id=json.dumps(
-                                    [newLease['rental_property_id']]),
-                                payer=json.dumps(tenants),
-                                receiver=res['result'][0]['linked_business_id'],
-                                purchase_type='EXTRA CHARGES',
-                                description=payment['fee_name'],
-                                amount_due=payment['charge'],
-                                purchase_notes=charge_month,
-                                purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment['frequency'],
-                                next_payment=due_date
-                            )
-                        charge_date += relativedelta(months=1)
-                        due_date += relativedelta(months=1)
-                else:
-                    # print('lease_start', type(
-                    #     res['result'][0]['lease_start']))
-
-                    charge_date = date.fromisoformat(
-                        newLease['lease_start'])
-                    due_date = date.fromisoformat(
-                        newLease['lease_start']).replace(
-                        day=int(newLease['due_by']))
-                    lease_end = date.fromisoformat(
-                        newLease['lease_end'])
-                    # print('charge_date', type(charge_date),
-                    #       charge_date.isoformat())
-
-                    charge_month = charge_date.strftime(
-                        '%B')
-                    if(payment['fee_name'] == 'Rent'):
-                        purchaseResponse = newPurchase(
-                            linked_bill_id=None,
-                            pur_property_id=json.dumps(
-                                [newLease['rental_property_id']]),
-                            payer=json.dumps(tenants),
-                            receiver=res['result'][0]['linked_business_id'],
-                            purchase_type='RENT',
-                            description=payment['fee_name'],
-                            amount_due=payment['charge'],
-                            purchase_notes=charge_month,
-                            purchase_date=newLease['lease_start'],
-                            purchase_frequency=payment['frequency'],
-                            next_payment=due_date
-                        )
-
-                    else:
-
-                        purchaseResponse = newPurchase(
-                            linked_bill_id=None,
-                            pur_property_id=json.dumps(
-                                [newLease['rental_property_id']]),
-                            payer=json.dumps(tenants),
-                            receiver=res['result'][0]['linked_business_id'],
-                            purchase_type='EXTRA CHARGES',
-                            description=payment['fee_name'],
-                            amount_due=payment['charge'],
-                            purchase_notes=charge_month,
-                            purchase_date=newLease['lease_start'],
-                            purchase_frequency=payment['frequency'],
-                            next_payment=due_date
-                        )
-            pkNL = {
-                'rental_uid': newLease['rental_uid']
-            }
-            newLeaseUpdate = {
-                'rental_status': 'ACTIVE'
-            }
-            response = db.update(
-                'rentals', pkNL, newLeaseUpdate)
-    return response
-
-
-class LeasetoMonth_CLASS(Resource):
-    def get(self):
-
-        with connect() as db:
-            response = db.execute("""SELECT *
-                                    FROM pm.rentals r
-                                    LEFT JOIN
-                                    pm.leaseTenants lt
-                                    ON lt.linked_rental_uid = r.rental_uid
-                                    LEFT JOIN
-                                    pm.propertyManager p 
-                                    ON p.linked_property_id = r.rental_property_id
-                                    WHERE r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                    AND r.rental_status='ACTIVE'
-                                    AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+            LEFT JOIN pm.propertyManager p 
+            ON p.linked_property_id = r.rental_property_id
+            LEFT JOIN pm.properties prop
+            ON prop.property_uid = r.rental_property_id
+            LEFT JOIN pm.contracts c
+            ON c.property_uid = prop.property_uid
+            WHERE (r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
+            OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d"))
+            AND r.rental_status='ACTIVE'
+            AND c.contract_status = 'ACTIVE'
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
@@ -1683,8 +2417,6 @@ class LeasetoMonth_CLASS(Resource):
                     print(pk, updateLeaseEnd)
                     res = db.update('rentals', pk, updateLeaseEnd)
                     print(res)
-                    # res = db.execute("""UPDATE pm.rentals SET lease_end = DATE_ADD(lease_end, INTERVAL 1 MONTH) WHERE rental_uid = \'""" +
-                    #                  response['result'][i]['rental_uid'] + """\';""")
 
                     tenants = response['result'][0]['linked_tenant_id']
                     # print('tenants1', tenants)
@@ -1700,33 +2432,182 @@ class LeasetoMonth_CLASS(Resource):
                     payment = json.loads(
                         response['result'][i]['rent_payments'])
                     print(payment, len(payment))
-
+                    managementPayments = json.loads(
+                        response['result'][i]['contract_fees'])
                     for r in range(len(payment)):
                         if payment[r]['fee_name'] == 'Rent':
                             print('RENT', payment[r]['fee_name'])
 
                             charge_date = date.today()
                             due_date = charge_date.replace(
-                                day=int(response['result'][i]['due_by']))
+                                day=int(payment[r]['due_by']))
                             charge_month = charge_date.strftime(
                                 '%B')
-                            print(charge_date, charge_month)
-                            purchaseResponse = newPurchase(
-                                linked_bill_id=None,
-                                pur_property_id=json.dumps(
-                                    [response['result'][i]['rental_property_id']]),
-                                payer=json.dumps(tenants),
-                                receiver=response['result'][i]['linked_business_id'],
-                                purchase_type='RENT',
-                                description=payment[r]['fee_name'],
-                                amount_due=payment[r]['charge'],
-                                purchase_notes=charge_month,
-                                purchase_date=charge_date.isoformat(),
-                                purchase_frequency=payment[r]['frequency'],
-                                next_payment=due_date
-                            )
+                            if len(payment[r]['available_topay']) == 0:
+                                available_date = due_date
+                            else:
+                                available_date = due_date - \
+                                    timedelta(
+                                        days=int(payment[r]['available_topay']))
+                            print(available_date, charge_date, charge_month)
 
-        return purchaseResponse
+                            if available_date == charge_date:
+                                charge = payment[r]['charge']
+                                purchaseResponse = newPurchase(
+                                    linked_bill_id=None,
+                                    pur_property_id=json.dumps(
+                                        [response['result'][i]['rental_property_id']]),
+                                    payer=json.dumps(tenants),
+                                    receiver=response['result'][i]['linked_business_id'],
+                                    purchase_type='RENT',
+                                    description=charge_month +
+                                    ' ' + payment[r]['fee_name'],
+                                    amount_due=payment[r]['charge'],
+                                    purchase_notes=charge_month,
+                                    purchase_date=charge_date.isoformat(),
+                                    purchase_frequency=payment[r]['frequency'],
+                                    next_payment=due_date
+                                )
+                                for mpayment in managementPayments:
+                                    weeks_current_month = len(
+                                        calendar.monthcalendar(charge_date.year, int(charge_date.strftime("%m"))))
+                                    print('mpayment fee type %')
+                                    if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                        if mpayment['of'] == 'Gross Rent':
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [response['result'][i]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [response['result'][i]['business_uid']]),
+                                                receiver=response['result'][i]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=weeks_current_month*(charge *
+                                                                                (1-mpayment['charge']/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [response['result'][i]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [response['result'][i]['business_uid']]),
+                                                receiver=response['result'][i]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
+                                                    1-mpayment['charge']/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                    elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
+
+                                        # if gross rent (listed rent)
+                                        if mpayment['of'] == 'Gross Rent':
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [response['result'][i]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [response['result'][i]['business_uid']]),
+                                                receiver=response['result'][i]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(weeks_current_month/2) *
+                                                ((charge *
+                                                    (1-mpayment['charge']/100)))/weeks_current_month/2,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                        # if net rent (listed rent-expenses)
+                                        else:
+
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [response['result'][i]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [response['result'][i]['business_uid']]),
+                                                receiver=response['result'][i]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(weeks_current_month/2) *
+                                                ((charge-mpayment['expense_amount'])*(
+                                                    1-mpayment['charge']/100))/weeks_current_month/2,
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=charge_date
+                                            )
+
+                                    elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
+
+                                        # if gross rent (listed rent)
+                                        if mpayment['of'] == 'Gross Rent':
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [response['result'][i]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [response['result'][i]['business_uid']]),
+                                                receiver=response['result'][i]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(
+                                                    charge*(1-int(mpayment['charge'])/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                            print(
+                                                purchaseResponse)
+
+                                        # if net rent (listed rent-expenses)
+                                        else:
+                                            purchaseResponse = newPurchase(
+                                                linked_bill_id=None,
+                                                pur_property_id=json.dumps(
+                                                    [response['result'][i]['property_uid']]),
+                                                payer=json.dumps(
+                                                    [response['result'][i]['business_uid']]),
+                                                receiver=response['result'][i]['owner_id'],
+                                                purchase_type='OWNER PAYMENT RENT',
+                                                description=charge_month + ' ' +
+                                                payment['fee_name'],
+                                                amount_due=(
+                                                    (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
+                                                purchase_notes=charge_month,
+                                                purchase_date=available_date,
+                                                purchase_frequency=mpayment['frequency'],
+                                                next_payment=charge_date
+                                            )
+                                            print(
+                                                purchaseResponse)
+
+                                    else:
+                                        print(
+                                            'payment frequency one-time %')
+
+        return response
 
 
 def LeasetoMonth():
@@ -1736,23 +2617,29 @@ def LeasetoMonth():
     from dateutil.relativedelta import relativedelta
 
     with connect() as db:
-        print("In Lease CRON Function")
-        response = db.execute("""SELECT *
-                                FROM pm.rentals r
-                                LEFT JOIN
-                                pm.leaseTenants lt
-                                ON lt.linked_rental_uid = r.rental_uid
-                                LEFT JOIN
-                                pm.propertyManager p 
-                                ON p.linked_property_id = r.rental_property_id
-                                WHERE r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d")
-                                AND r.rental_status='ACTIVE' 
-                                AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+        response = {'message': 'Successfully committed SQL query',
+                    'code': 200}
+        response = db.execute("""
+        SELECT *
+        FROM pm.rentals r
+        LEFT JOIN pm.leaseTenants lt
+        ON lt.linked_rental_uid = r.rental_uid
+        LEFT JOIN pm.propertyManager p 
+        ON p.linked_property_id = r.rental_property_id
+        LEFT JOIN pm.properties prop
+        ON prop.property_uid = r.rental_property_id
+        LEFT JOIN pm.contracts c
+        ON c.property_uid = prop.property_uid
+        WHERE (r.lease_end < DATE_FORMAT(NOW(), "%Y-%m-%d")
+        OR r.lease_end = DATE_FORMAT(NOW(), "%Y-%m-%d"))
+        AND r.rental_status='ACTIVE'
+        AND c.contract_status = 'ACTIVE'
+        AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
         if len(response['result']) > 0:
             for i in range(len(response['result'])):
-                print(i)
+                print(response['result'][i]['rental_uid'])
+
                 pk = {
                     'rental_uid': response['result'][i]['rental_uid']}
                 updateLeaseEnd = {
@@ -1776,33 +2663,182 @@ def LeasetoMonth():
                 payment = json.loads(
                     response['result'][i]['rent_payments'])
                 print(payment, len(payment))
-
+                managementPayments = json.loads(
+                    response['result'][i]['contract_fees'])
                 for r in range(len(payment)):
                     if payment[r]['fee_name'] == 'Rent':
                         print('RENT', payment[r]['fee_name'])
 
                         charge_date = date.today()
                         due_date = charge_date.replace(
-                            day=int(response['result'][i]['due_by']))
+                            day=int(payment[r]['due_by']))
                         charge_month = charge_date.strftime(
                             '%B')
-                        print(charge_date, charge_month)
-                        purchaseResponse = newPurchase(
-                            linked_bill_id=None,
-                            pur_property_id=json.dumps(
-                                [response['result'][i]['rental_property_id']]),
-                            payer=json.dumps(tenants),
-                            receiver=response['result'][i]['linked_business_id'],
-                            purchase_type='RENT',
-                            description=payment[r]['fee_name'],
-                            amount_due=payment[r]['charge'],
-                            purchase_notes=charge_month,
-                            purchase_date=charge_date.isoformat(),
-                            purchase_frequency=payment[r]['frequency'],
-                            next_payment=due_date
-                        )
+                        if len(payment[r]['available_topay']) == 0:
+                            available_date = due_date
+                        else:
+                            available_date = due_date - \
+                                timedelta(
+                                    days=int(payment[r]['available_topay']))
+                        print(available_date, charge_date, charge_month)
 
-    return purchaseResponse
+                        if available_date == charge_date:
+                            charge = payment[r]['charge']
+                            purchaseResponse = newPurchase(
+                                linked_bill_id=None,
+                                pur_property_id=json.dumps(
+                                    [response['result'][i]['rental_property_id']]),
+                                payer=json.dumps(tenants),
+                                receiver=response['result'][i]['linked_business_id'],
+                                purchase_type='RENT',
+                                description=charge_month +
+                                ' ' + payment[r]['fee_name'],
+                                amount_due=payment[r]['charge'],
+                                purchase_notes=charge_month,
+                                purchase_date=charge_date.isoformat(),
+                                purchase_frequency=payment[r]['frequency'],
+                                next_payment=due_date
+                            )
+                            for mpayment in managementPayments:
+                                weeks_current_month = len(
+                                    calendar.monthcalendar(charge_date.year, int(charge_date.strftime("%m"))))
+                                print('mpayment fee type %')
+                                if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                    if mpayment['of'] == 'Gross Rent':
+
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [response['result'][i]['property_uid']]),
+                                            payer=json.dumps(
+                                                [response['result'][i]['business_uid']]),
+                                            receiver=response['result'][i]['owner_id'],
+                                            purchase_type='OWNER PAYMENT RENT',
+                                            description=charge_month + ' ' +
+                                            payment['fee_name'],
+                                            amount_due=weeks_current_month*(charge *
+                                                                            (1-mpayment['charge']/100)),
+                                            purchase_notes=charge_month,
+                                            purchase_date=available_date,
+                                            purchase_frequency=mpayment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                    # if net rent (listed rent-expenses)
+                                    else:
+
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [response['result'][i]['property_uid']]),
+                                            payer=json.dumps(
+                                                [response['result'][i]['business_uid']]),
+                                            receiver=response['result'][i]['owner_id'],
+                                            purchase_type='OWNER PAYMENT RENT',
+                                            description=charge_month + ' ' +
+                                            payment['fee_name'],
+                                            amount_due=weeks_current_month*((charge-mpayment['expense_amount'])*(
+                                                1-mpayment['charge']/100)),
+                                            purchase_notes=charge_month,
+                                            purchase_date=available_date,
+                                            purchase_frequency=mpayment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
+
+                                    # if gross rent (listed rent)
+                                    if mpayment['of'] == 'Gross Rent':
+
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [response['result'][i]['property_uid']]),
+                                            payer=json.dumps(
+                                                [response['result'][i]['business_uid']]),
+                                            receiver=response['result'][i]['owner_id'],
+                                            purchase_type='OWNER PAYMENT RENT',
+                                            description=charge_month + ' ' +
+                                            payment['fee_name'],
+                                            amount_due=(weeks_current_month/2) *
+                                            ((charge *
+                                                (1-mpayment['charge']/100)))/weeks_current_month/2,
+                                            purchase_notes=charge_month,
+                                            purchase_date=available_date,
+                                            purchase_frequency=mpayment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                    # if net rent (listed rent-expenses)
+                                    else:
+
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [response['result'][i]['property_uid']]),
+                                            payer=json.dumps(
+                                                [response['result'][i]['business_uid']]),
+                                            receiver=response['result'][i]['owner_id'],
+                                            purchase_type='OWNER PAYMENT RENT',
+                                            description=charge_month + ' ' +
+                                            payment['fee_name'],
+                                            amount_due=(weeks_current_month/2) *
+                                            ((charge-mpayment['expense_amount'])*(
+                                                1-mpayment['charge']/100))/weeks_current_month/2,
+                                            purchase_notes=charge_month,
+                                            purchase_date=available_date,
+                                            purchase_frequency=mpayment['frequency'],
+                                            next_payment=charge_date
+                                        )
+
+                                elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
+
+                                    # if gross rent (listed rent)
+                                    if mpayment['of'] == 'Gross Rent':
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [response['result'][i]['property_uid']]),
+                                            payer=json.dumps(
+                                                [response['result'][i]['business_uid']]),
+                                            receiver=response['result'][i]['owner_id'],
+                                            purchase_type='OWNER PAYMENT RENT',
+                                            description=charge_month + ' ' +
+                                            payment['fee_name'],
+                                            amount_due=(
+                                                charge*(1-int(mpayment['charge'])/100)),
+                                            purchase_notes=charge_month,
+                                            purchase_date=available_date,
+                                            purchase_frequency=mpayment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                        print(
+                                            purchaseResponse)
+
+                                    # if net rent (listed rent-expenses)
+                                    else:
+                                        purchaseResponse = newPurchase(
+                                            linked_bill_id=None,
+                                            pur_property_id=json.dumps(
+                                                [response['result'][i]['property_uid']]),
+                                            payer=json.dumps(
+                                                [response['result'][i]['business_uid']]),
+                                            receiver=response['result'][i]['owner_id'],
+                                            purchase_type='OWNER PAYMENT RENT',
+                                            description=charge_month + ' ' +
+                                            payment['fee_name'],
+                                            amount_due=(
+                                                (charge-mpayment['expense_amount'])*(1-int(mpayment['charge'])/100)),
+                                            purchase_notes=charge_month,
+                                            purchase_date=available_date,
+                                            purchase_frequency=mpayment['frequency'],
+                                            next_payment=charge_date
+                                        )
+                                        print(
+                                            purchaseResponse)
+
+                                else:
+                                    print(
+                                        'payment frequency one-time %')
+
+        return response
 
 
 class LateFee_CLASS(Resource):
@@ -1854,7 +2890,7 @@ class LateFee_CLASS(Resource):
                     SELECT *
                     FROM pm.purchases p
                     WHERE p.purchase_status='UNPAID' 
-                    AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES')
+                    AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES' OR p.purchase_type='DEPOSIT')
                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
                     AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
                     # getting all the expenses and calculating the expense amount
@@ -2091,7 +3127,7 @@ def LateFee():
                 SELECT *
                 FROM pm.purchases p
                 WHERE p.purchase_status='UNPAID'
-                AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES')
+                AND (p.purchase_type='RENT' OR p.purchase_type='EXTRA CHARGES' OR p.purchase_type='DEPOSIT')
                 AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\'
                 AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
                 # getting all the expenses and calculating the expense amount
@@ -2324,7 +3360,7 @@ class PerDay_LateFee_CLASS(Resource):
                     SELECT *
                     FROM pm.purchases p
                     WHERE p.purchase_status='UNPAID' 
-                    AND (p.purchase_type='RENT' OR p.purchase_type= 'EXTRA CHARGES')
+                    AND (p.purchase_type='RENT' OR p.purchase_type= 'EXTRA CHARGES' OR p.purchase_type='DEPOSIT')
                     AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
                     AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
@@ -2535,7 +3571,7 @@ def PerDay_LateFee():
                 SELECT *
                 FROM pm.purchases p
                 WHERE p.purchase_status='UNPAID' 
-                AND (p.purchase_type='RENT' OR p.purchase_type= 'EXTRA CHARGES')
+                AND (p.purchase_type='RENT' OR p.purchase_type= 'EXTRA CHARGES' OR p.purchase_type='DEPOSIT')
                 AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
                 AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
 
