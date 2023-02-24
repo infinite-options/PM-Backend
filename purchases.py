@@ -64,7 +64,17 @@ class Purchases(Resource):
             if filterValue is not None:
                 where[filter] = filterValue
         with connect() as db:
-            response = db.select('purchases', where)
+            if 'purchase_uid' in where:
+                response = db.execute("""SELECT *
+                FROM pm.purchases pur
+                LEFT JOIN pm.bills b
+                ON b.bill_uid = pur.linked_bill_id
+                LEFT JOIN pm.properties p
+                ON pur.pur_property_id LIKE CONCAT('%', p.property_uid, '%')
+                WHERE pur.purchase_uid = \'""" + where['purchase_uid'] + """\' """)
+
+            else:
+                response = db.select('purchases', where)
         return response
 
     def post(self):

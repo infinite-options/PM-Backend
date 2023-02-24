@@ -269,7 +269,7 @@ class TenantPayments_CLASS(Resource):
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
-                                                    description=payment['fee_name'],
+                                                    description=charge_month + ' ' + payment['fee_name'],
                                                     amount_due=payment['charge'],
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
@@ -292,7 +292,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(rent *
                                                                             (1-payment['charge']/100)),
                                                                 purchase_notes=charge_month,
@@ -311,7 +311,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
                                                                 purchase_notes=charge_month,
@@ -332,7 +332,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=((rent *
                                                                              (1-payment['charge']/100)))/weeks_current_month/2,
                                                                 purchase_notes=charge_month,
@@ -351,7 +351,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))/weeks_current_month/2,
                                                                 purchase_notes=charge_month,
@@ -371,7 +371,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100))/weeks_current_month,
                                                                 purchase_notes=charge_month,
@@ -392,7 +392,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))/weeks_current_month,
                                                                 purchase_notes=charge_month,
@@ -441,7 +441,7 @@ class TenantPayments_CLASS(Resource):
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
-                                                    description=payment['fee_name'],
+                                                    description=charge_month + ' ' + payment['fee_name'],
                                                     amount_due=payment['charge'],
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
@@ -465,7 +465,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=((rent *
                                                                              (1-payment['charge']/100))),
                                                                 purchase_notes=charge_month,
@@ -484,7 +484,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
                                                                 purchase_notes=charge_month,
@@ -503,7 +503,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(rent *
                                                                             (1-payment['charge']/100))/2,
                                                                 purchase_notes=charge_month,
@@ -522,7 +522,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))/2,
                                                                 purchase_notes=charge_month,
@@ -542,7 +542,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100))*2,
                                                                 purchase_notes=charge_month,
@@ -563,7 +563,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100))*2,
                                                                 purchase_notes=charge_month,
@@ -630,7 +630,8 @@ class TenantPayments_CLASS(Resource):
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
-                                                    description=payment['fee_name'],
+                                                    description=charge_month +
+                                                    ' ' + payment['fee_name'],
                                                     amount_due=payment['charge'],
                                                     purchase_notes=charge_month,
                                                     purchase_date=charge_date,
@@ -652,7 +653,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=weeks_current_month*(rent *
                                                                                                 (1-payment['charge']/100)),
                                                                 purchase_notes=charge_month,
@@ -671,7 +672,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=weeks_current_month*((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100)),
                                                                 purchase_notes=charge_month,
@@ -692,7 +693,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent *
                                                                  (1-payment['charge']/100)))/weeks_current_month/2,
@@ -712,7 +713,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(weeks_current_month/2) *
                                                                 ((rent-payment['expense_amount'])*(
                                                                     1-payment['charge']/100))/weeks_current_month/2,
@@ -734,7 +735,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(
                                                                     rent*(1-int(payment['charge'])/100)),
                                                                 purchase_notes=charge_month,
@@ -755,7 +756,7 @@ class TenantPayments_CLASS(Resource):
                                                                     [lease['business_uid']]),
                                                                 receiver=lease['owner_id'],
                                                                 purchase_type='OWNER PAYMENT RENT',
-                                                                description='Rent',
+                                                                description=charge_month + ' ' + 'Rent',
                                                                 amount_due=(
                                                                     (rent-payment['expense_amount'])*(1-int(payment['charge'])/100)),
                                                                 purchase_notes=charge_month,
@@ -780,7 +781,8 @@ class TenantPayments_CLASS(Resource):
                                                     payer=payer,
                                                     receiver=lease['linked_business_id'],
                                                     purchase_type='RENT',
-                                                    description=payment['fee_name'],
+                                                    description=charge_month +
+                                                    ' ' + payment['fee_name'],
                                                     # amount_due=prorated_charge_end,
 
                                                     amount_due=int(
