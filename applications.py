@@ -777,7 +777,9 @@ class Applications(Resource):
                                             available_date = charge_date - \
                                                 timedelta(
                                                     days=int(payment['available_topay']))
+                                        print(available_date, today)
                                         while available_date < today and charge_date < end_date:
+                                            print('enter rent')
                                             charge_month = charge_date.strftime(
                                                 '%B')
                                             if charge_month == start_date.strftime(

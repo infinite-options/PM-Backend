@@ -311,7 +311,7 @@ class UpdateActiveLease(Resource):
                                 SELECT * FROM pm.purchases
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
                                 AND (purchase_type = "EXTRA CHARGES" OR purchase_type = "RENT" OR purchase_type= 'DEPOSIT')
-                                AND description = \'""" + payment['fee_name'] + """\'  """)
+                                AND description LIKE '%""" + payment['fee_name'] + """%'  """)
                                 if len(pur_response['result']) > 0:
                                     for purchase in pur_response['result']:
                                         if(purchase['purchase_status'] == 'UNPAID' and purchase['purchase_date'] <= getRentInfo['result'][0]['effective_date'] and purchase['next_payment'] > getRentInfo['result'][0]['effective_date']):
@@ -1407,21 +1407,21 @@ class UpdateActiveLease(Resource):
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
                                 AND DATE(next_payment) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
                                 AND purchase_status ="UNPAID"
-                                AND description = \'""" + payment['fee_name'] + """\'  """)
+                                AND description LIKE '%""" + payment['fee_name'] + """%'  """)
                             # delete older unpaid owner payment purchase records
                             delOwnerPurchases = db.delete("""
                                 DELETE FROM pm.purchases
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
                                 AND DATE(next_payment) >= DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
                                 AND purchase_status ="UNPAID"
-                                AND purchase_type = 'OWNER PAYMENT RENT' AND description = 'Rent'  """)
+                                AND purchase_type = 'OWNER PAYMENT RENT' AND description LIKE '%RENT%'  """)
                             # find paid purchases after the effective date
                             paidPurchases = db.execute("""
                                 SELECT * FROM pm.purchases
                                 WHERE pur_property_id LIKE '%""" + getRentInfo['result'][0]['rental_property_id'] + """%'
                                 -- AND DATE(next_payment) > DATE(\'""" + getRentInfo['result'][0]['effective_date'] + """\')
                                 AND purchase_status ="PAID"
-                                AND description = \'""" + payment['fee_name'] + """\'  """)
+                                AND description LIKE '%""" + payment['fee_name'] + """%'  """)
                             # if paid purchases, store in paidEntries
                             if len(paidPurchases['result']) > 0:
                                 paidEntries = list(paidPurchases['result'])

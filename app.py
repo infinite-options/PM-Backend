@@ -884,7 +884,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every week
@@ -943,7 +943,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every 2 week
@@ -1001,7 +1001,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
 
@@ -1155,7 +1155,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Move-Out Charge' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     charge_month = (
@@ -1224,7 +1224,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every week
@@ -1289,7 +1289,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every 2 week
@@ -1355,7 +1355,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
@@ -1556,7 +1556,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every week
@@ -1615,7 +1615,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every 2 week
@@ -1673,7 +1673,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
 
@@ -1827,7 +1827,7 @@ def TenantEmailNotifications(self):
                             # get previous purchases
                             if lease['prevPurchases'] != []:
                                 for prev in lease['prevPurchases']:
-                                    if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                    if prev['purchase_frequency'] == 'Move-Out Charge' and payment['fee_name'] in prev['description']:
                                         prevPurchaseDate = datetime.strptime(
                                             prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 charge_month = (
@@ -1896,7 +1896,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every week
@@ -1961,7 +1961,7 @@ def TenantEmailNotifications(self):
                             if today < lease_end:
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
-                                    if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                    if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                         prevPurchaseDate = datetime.strptime(
                                             prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every 2 week
@@ -2027,7 +2027,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as first of every month
