@@ -143,7 +143,7 @@ class Rentals(Resource):
         with connect() as db:
             data = request.form
             rental_uid = data.get('rental_uid')
-            fields = ['rental_property_id', 'actual_rent', 'lease_start', 'lease_end',
+            fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
                       'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children', "effective_date"]
             newRental = {}
             for field in fields:
@@ -167,6 +167,24 @@ class Rentals(Resource):
             primaryKey = {'rental_uid': rental_uid}
             print('newRental', newRental)
             response = db.update('rentals', primaryKey, newRental)
+            tenants = data.get('tenant_id')
+            print('tenants1', tenants)
+            if '[' in tenants:
+                print('tenants2', tenants)
+                tenants = json.loads(tenants)
+                print('tenants3', tenants)
+            print('tenants4', tenants)
+            if type(tenants) == str:
+                tenants = [tenants]
+                print('tenants5', tenants)
+            for tenant_id in tenants:
+                print('tenants6', tenant_id, rental_uid)
+                leaseTenant = {
+                    'linked_tenant_id': tenant_id
+                }
+                pk = {'linked_rental_uid': rental_uid, }
+
+                db.update('leaseTenants', pk, leaseTenant)
         return response
 
 
@@ -269,7 +287,7 @@ class UpdateActiveLease(Resource):
                 start_date = date.fromisoformat(
                     getRentInfo['result'][0]['lease_start'])
                 end_date = date.fromisoformat(
-                    getRentInfo['result'][0]['lease_start'])
+                    getRentInfo['result'][0]['lease_end'])
                 effective_date = date.fromisoformat(
                     getRentInfo['result'][0]['effective_date'])
 
@@ -314,8 +332,8 @@ class UpdateActiveLease(Resource):
                                 AND description LIKE '%""" + payment['fee_name'] + """%'  """)
                                 if len(pur_response['result']) > 0:
                                     for purchase in pur_response['result']:
-                                        if(purchase['purchase_status'] == 'UNPAID' and purchase['purchase_date'] <= getRentInfo['result'][0]['effective_date'] and purchase['next_payment'] > getRentInfo['result'][0]['effective_date']):
-                                            # print('in purchase', purchase)
+                                        if(purchase['purchase_status'] == 'UNPAID' and purchase['purchase_date'] <= getRentInfo['result'][0]['effective_date'] and purchase['next_payment'] >= getRentInfo['result'][0]['effective_date']):
+                                            print('in purchase', purchase)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -404,7 +422,7 @@ class UpdateActiveLease(Resource):
                                     available_date = due_date - \
                                         timedelta(
                                             days=int(payment['available_topay']))
-                                while due_date < today:
+                                while available_date < today:
                                     # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
                                     charge_month = due_date.strftime(
                                         '%B')
@@ -602,6 +620,8 @@ class UpdateActiveLease(Resource):
                                                         'payment frequency one-time %')
 
                                         due_date += relativedelta(weeks=1)
+                                        available_date += relativedelta(
+                                            weeks=1)
                             elif payment['frequency'] == 'Biweekly':
                                 print('biweekly')
                                 due_date = next_weekday_biweekly(
@@ -613,7 +633,7 @@ class UpdateActiveLease(Resource):
                                         timedelta(
                                             days=int(payment['available_topay']))
 
-                                while due_date < today:
+                                while available_date < today:
                                     # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
                                     if(due_date >= effective_date):
                                         charge_month = due_date.strftime(
@@ -800,9 +820,10 @@ class UpdateActiveLease(Resource):
                                                     print(
                                                         'payment frequency one-time %')
                                     due_date += relativedelta(weeks=2)
+                                    available_date += relativedelta(weeks=2)
                             elif payment['frequency'] == 'Monthly':
                                 print('monthly')
-                                while due_date < today:
+                                while available_date < today:
                                     # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
                                     if(due_date >= effective_date):
                                         charge_month = due_date.strftime(
@@ -818,9 +839,12 @@ class UpdateActiveLease(Resource):
                                                 due_date) - start_date.day + 1
                                             charge = round(
                                                 num_days_active_begin * daily_charge_begin, 2)
+                                            due_date = start_date
 
                                         else:
                                             charge = int(payment['charge'])
+                                            due_date = (due_date.replace(
+                                                day=int(payment['due_by'])))
                                         newPurchase = {
                                             "linked_bill_id": None,
                                             "pur_property_id": json.dumps(
@@ -999,6 +1023,8 @@ class UpdateActiveLease(Resource):
                                                 else:
                                                     print(
                                                         'payment frequency one-time %')
+
+                                    available_date += relativedelta(months=1)
                                     due_date += relativedelta(months=1)
                             elif payment['frequency'] == 'Annually':
 
@@ -1236,7 +1262,7 @@ class UpdateActiveLease(Resource):
                                             '%B'),
                                         "purchase_date": effective_date.isoformat(),
                                         "purchase_frequency": payment['frequency'],
-                                        "next_payment": due_date,
+                                        "next_payment": start_date if due_date.strftime('%B') == start_date.strftime('%B') else due_date,
                                         "purchase_status": 'UNPAID'
                                     }
                                     newEntries.append(
@@ -1504,6 +1530,7 @@ class ExtendLease(Resource):
             fields = ['rental_property_id', 'linked_application_id', 'actual_rent', 'lease_start', 'lease_end',
                       'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'pets', 'vehicles', 'referred', 'adults', 'children', 'effective_date']
             newRental = {}
+            updateRental = {}
             for field in fields:
                 newRental[field] = data.get(field)
 
@@ -1570,6 +1597,7 @@ class ExtendLease(Resource):
                       'rent_payments', 'assigned_contacts', 'rental_status', 'available_topay', 'due_by', 'late_by', 'late_fee', 'perDay_late_fee', 'application_uid', 'property_uid',
                       'message', 'application_status']
             newRental = {}
+            updateRental = {}
             for field in fields:
                 fieldValue = data.get(field)
                 if fieldValue:
@@ -1645,17 +1673,29 @@ class ExtendLease(Resource):
                     # set application_status back to RENTED
                     elif newRental['application_status'] == 'REFUSED':
                         # print('pm rejected to extend lease')
-                        response = db.execute(
+                        responseApp = db.execute(
                             """SELECT * FROM pm.applications WHERE (application_status='LEASE EXTENSION REQUESTED' OR application_status='LEASE EXTENSION')  AND property_uid = \'"""
                             + newRental['property_uid']
                             + """\' """)
                         newRental['application_status'] = 'RENTED'
-                        for response in response['result']:
+                        for responseApp in responseApp['result']:
                             pk = {
-                                'application_uid': response['application_uid']
+                                'application_uid': responseApp['application_uid']
+                            }
+                            responseApp = db.update(
+                                'applications', pk, newRental)
+                        responseRental = db.execute(
+                            """SELECT * FROM pm.rentals WHERE rental_status='PENDING' AND rental_property_id = \'"""
+                            + newRental['property_uid']
+                            + """\' """)
+
+                        updateRental['rental_status'] = 'REFUSED'
+                        for rr in responseRental['result']:
+                            pk = {
+                                'rental_uid': rr['rental_uid']
                             }
                             response = db.update(
-                                'applications', pk, newRental)
+                                'rentals', pk, updateRental)
 
                     else:
                         primaryKeyA = {
@@ -1775,6 +1815,8 @@ class ExtendLeaseCRON_CLASS(Resource):
                                 day=int(payment['due_by']))
                             lease_end = date.fromisoformat(
                                 nl['lease_end'])
+                            lease_start = date.fromisoformat(
+                                nl['lease_start'])
 
                             # available date-> when the payment is available to pay
                             if len(payment['available_topay']) == 0:
@@ -1799,9 +1841,12 @@ class ExtendLeaseCRON_CLASS(Resource):
                                             charge_date) - charge_date.day + 1
                                         charge = round(
                                             num_days_active_begin * daily_charge_begin, 2)
+                                        charge_date = lease_start
 
                                     else:
                                         charge = int(payment['charge'])
+                                        charge_date = (charge_date.replace(
+                                            day=int(payment['due_by'])))
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=json.dumps(
@@ -2301,6 +2346,8 @@ def ExtendLeaseCRON():
                             day=int(payment['due_by']))
                         lease_end = date.fromisoformat(
                             nl['lease_end'])
+                        lease_start = date.fromisoformat(
+                            nl['lease_start'])
 
                         # available date-> when the payment is available to pay
                         if len(payment['available_topay']) == 0:
@@ -2325,9 +2372,12 @@ def ExtendLeaseCRON():
                                         charge_date) - charge_date.day + 1
                                     charge = round(
                                         num_days_active_begin * daily_charge_begin, 2)
+                                    charge_date = lease_start
 
                                 else:
                                     charge = int(payment['charge'])
+                                    charge_date = (charge_date.replace(
+                                        day=int(payment['due_by'])))
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(

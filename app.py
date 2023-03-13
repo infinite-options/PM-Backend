@@ -16,13 +16,13 @@ from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
 from employees import Employees
 from leaseTenants import LeaseTenants
 from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
-from maintenanceQuotes import MaintenanceQuotes
+from maintenanceQuotes import MaintenanceQuotes, FinishMaintenance, QuotePaid
 from managerCashflows import ManagerCashflow, ManagerCashflowProperty
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
 from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
 from ownerProfileInfo import OwnerProfileInfo
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON, MaintenancePayments
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
 from purchases import Purchases, CreateExpenses, DeletePurchase
@@ -2193,6 +2193,9 @@ api.add_resource(OwnerMaintenanceRequestsandQuotes,
                  '/ownerMaintenanceRequestsandQuotes')
 # maintenanceQuotes
 api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
+api.add_resource(FinishMaintenance, '/FinishMaintenance')
+api.add_resource(QuotePaid, '/QuotePaid')
+
 # managerCashflows
 api.add_resource(ManagerCashflow, "/managerCashflow")
 api.add_resource(ManagerCashflowProperty, "/managerCashflowProperty")
@@ -2217,6 +2220,7 @@ api.add_resource(OwnerPropertyBills, '/ownerPropertyBills')
 api.add_resource(Payments, '/payments')
 api.add_resource(UserPayments, '/userPayments')
 api.add_resource(ManagerPayments, '/managerPayments')
+api.add_resource(MaintenancePayments, '/maintenancePayments')
 api.add_resource(OwnerPayments, '/ownerPayments')
 api.add_resource(TenantPayments_CLASS, '/TenantPayments_CLASS')
 api.add_resource(ManagerPayments_CLASS, '/ManagerPayments_CLASS')

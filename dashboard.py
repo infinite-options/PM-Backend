@@ -88,8 +88,10 @@ class TenantDashboard(Resource):
                     maintenance_res['result'][y]['total_estimate'] = 0
                     if len(quotes_res['result']) > 0:
                         for quote in quotes_res['result']:
-                            if quote['quote_status'] == 'ACCEPTED':
+                            if quote['quote_status'] == 'ACCEPTED' or quote['quote_status'] == 'AGREED' or quote['quote_status'] == 'PAID':
                                 maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                            else:
+                                maintenance_res['result'][y]['total_estimate'] = 0
 
                     else:
                         maintenance_res['result'][y]['total_estimate'] = 0
@@ -415,8 +417,10 @@ class OwnerDashboard(Resource):
                             quotes_res['result'])
                         if len(quotes_res['result']) > 0:
                             for quote in quotes_res['result']:
-                                if quote['quote_status'] == 'ACCEPTED':
+                                if quote['quote_status'] == 'ACCEPTED' or quote['quote_status'] == 'AGREED' or quote['quote_status'] == 'PAID':
                                     maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                                else:
+                                    maintenance_res['result'][y]['total_estimate'] = 0
 
                         else:
                             maintenance_res['result'][y]['total_estimate'] = 0
@@ -643,8 +647,10 @@ class ManagerDashboard(Resource):
                         if len(quotes_res['result']) > 0:
                             quotes_received = 0
                             for quote in quotes_res['result']:
-                                if quote['quote_status'] == 'ACCEPTED':
+                                if quote['quote_status'] == 'ACCEPTED' or quote['quote_status'] == 'AGREED' or quote['quote_status'] == 'PAID':
                                     maintenance_res['result'][y]['total_estimate'] = quote['total_estimate']
+                                else:
+                                    maintenance_res['result'][y]['total_estimate'] = 0
 
                                 if quote['quote_status'] == 'SENT':
                                     maintenance_res['result'][y]['quotes_received'] = quotes_received + 1

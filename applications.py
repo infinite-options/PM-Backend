@@ -793,9 +793,11 @@ class Applications(Resource):
                                                     charge_date) - start_date.day + 1
                                                 charge = round(
                                                     num_days_active_begin * daily_charge_begin, 2)
-
+                                                charge_date = start_date
                                             else:
                                                 charge = int(payment['charge'])
+                                                charge_date = (charge_date.replace(
+                                                    day=int(payment['due_by'])))
 
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
@@ -1557,6 +1559,7 @@ class Applications(Resource):
                                                 charge = round(
                                                     num_days_active * daily_charge, 2)
                                                 print('charge', charge)
+
                                             else:
                                                 charge = int(
                                                     payment['charge'])
@@ -1932,9 +1935,12 @@ class Applications(Resource):
                                                     charge_date) - start_date.day + 1
                                                 charge = round(
                                                     num_days_active_begin * daily_charge_begin, 2)
+                                                charge_date = start_date
 
                                             else:
                                                 charge = int(payment['charge'])
+                                                charge_date = (charge_date.replace(
+                                                    day=int(payment['due_by'])))
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -2427,6 +2433,13 @@ class Applications(Resource):
                                                     print(
                                                         'payment frequency one-time %')
                                         else:
+                                            if len(payment['available_topay']) == 0:
+                                                available_date = start_date
+                                            else:
+                                                available_date = start_date - \
+                                                    timedelta(
+                                                        days=int(payment['available_topay']))
+
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
@@ -2439,7 +2452,7 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=start_date
                                             )
                             # payment fee type %
                             else:
@@ -3081,10 +3094,13 @@ class Applications(Resource):
                                                     charge_date) - start_date.day + 1
                                                 charge = round(
                                                     num_days_active_begin * daily_charge_begin, 2)
+                                                charge_date = start_date
 
                                             else:
                                                 charge = (
                                                     int(payment['charge']) * int(rent))/100
+                                                charge_date = (charge_date.replace(
+                                                    day=int(payment['due_by'])))
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(

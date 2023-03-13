@@ -8,9 +8,6 @@ from datetime import datetime
 import boto3
 
 
-# If it is an s3 link, we save the file data into the attribute
-# If it is a file, no need to worry about it, the data is already there.
-
 def updateImages(imageFiles, maintenance_request_uid):
     content = []
 
@@ -128,7 +125,7 @@ class MaintenanceRequests(Resource):
             print(data)
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                      'assigned_business', 'assigned_worker', 'scheduled_date', 'scheduled_time', 'request_status', 'request_created_by', 'request_type', "notes"]
+                      'assigned_business', 'assigned_worker', 'scheduled_date', 'scheduled_time', 'request_status', 'request_created_by', 'request_type', "notes", "request_adjustment_date"]
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -137,9 +134,7 @@ class MaintenanceRequests(Resource):
             images = []
             i = -1
             imageFiles = {}
-
             while True:
-                print('if true')
                 filename = f'img_{i}'
                 if i == -1:
                     filename = 'img_cover'
@@ -153,9 +148,6 @@ class MaintenanceRequests(Resource):
                     break
                 i += 1
             images = updateImages(imageFiles, maintenance_request_uid)
-            print(images)
-
-            # Perform write to database
             newRequest['images'] = json.dumps(images)
             primaryKey = {
                 'maintenance_request_uid': maintenance_request_uid
@@ -186,6 +178,7 @@ class MaintenanceRequestsandQuotes(Resource):
                 ON p.property_uid = mr.property_uid
                 LEFT JOIN propertyManager pm
                 ON pm.linked_property_id = p.property_uid
+               
                 WHERE linked_business_id =  \'""" + where['manager_id'] + """\' AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY'  )""")
                 print(response)
                 for i in range(len(response['result'])):
@@ -217,6 +210,15 @@ class MaintenanceRequestsandQuotes(Resource):
                                                 FROM pm.ownerProfileInfo o
                                                 WHERE o.owner_id = \'""" + response['result'][i]['owner_id'] + """\'""")
                     response['result'][i]['owner'] = list(owner_res['result'])
+                    purchase_res = db.execute("""
+                    SELECT * FROM
+                    pm.purchases pur
+                    LEFT JOIN pm.properties pr
+                    ON pur.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+                    WHERE pur.linked_bill_id = \'""" + response['result'][i]['maintenance_request_uid'] + """\'""")
+                    response['result'][i]['purchase'] = list(
+                        purchase_res['result'])
+
                     rental_res = db.execute("""
                    SELECT r.*,
                     GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,

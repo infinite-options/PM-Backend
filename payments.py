@@ -147,7 +147,30 @@ class ManagerPayments(Resource):
                 # response = db.execute(sql, args)
         return response
 
+class MaintenancePayments(Resource):
 
+    def get(self):
+        response = {}
+        filters = ['business_id']
+        where = {}
+        with connect() as db:
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+
+                response = db.execute("""
+                    SELECT * FROM pm.purchases pu
+                    LEFT JOIN pm.payments pa
+                    ON pa.pay_purchase_id = pu.purchase_uid
+                    LEFT JOIN pm.properties pr
+                    ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
+                    WHERE pu.payer LIKE '%""" + filterValue + """%'
+                    OR pu.receiver =  \'""" + filterValue + """\'
+                """)
+                # response = db.execute(sql, args)
+        return response
+    
 def diff_month(d1, d2):
     return (d1.year - d2.year) * 12 + d1.month - d2.month
 

@@ -84,8 +84,8 @@ class AvailableProperties(Resource):
                             rentals['lease_end'], '%Y-%m-%d') - datetime.now()
                         print(time_between_insertion)
                         # if older than 30 days
-                        if time_between_insertion.days > 31:
-                            print('skip if over 30')
+                        if time_between_insertion.days > 91:
+                            print('skip if over 90')
                         else:
                             print('make available')
                             endingSoon.append(rentals)
@@ -145,8 +145,17 @@ class AvailableProperties(Resource):
                         #   rentals['rental_status'])
                         notRented.append(rentals)
             availableProperties = terminated + expired + notRented + endingSoon
-            response['result'] = availableProperties
-            # print(availableProperties, len(availableProperties))
+
+            print(type(availableProperties))
+            # remove any duplicates
+            seen_titles = set()
+            new_list = []
+            for obj in availableProperties:
+                print(obj)
+                if obj['property_uid'] not in seen_titles:
+                    new_list.append(obj)
+                    seen_titles.add(obj['property_uid'])
+            response['result'] = new_list
         return response
 
 
@@ -310,7 +319,7 @@ class PropertiesManagerDetail(Resource):
                         LEFT JOIN pm.tenantProfileInfo tpi
                         ON tpi.tenant_id = lt.linked_tenant_id
                         WHERE r.rental_property_id = \'""" + property_id + """\'
-                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED' OR r.rental_status = 'PENDING')
+                        AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED' OR r.rental_status = 'PENDING' OR r.rental_status = 'REFUSED')
                         GROUP BY lt.linked_rental_uid""")
                         response['result'][i]['rentalInfo'] = list(
                             rental_res['result'])
