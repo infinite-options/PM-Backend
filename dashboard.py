@@ -401,6 +401,14 @@ class OwnerDashboard(Resource):
                         req_id = maintenance_res['result'][y]['maintenance_request_uid']
                         rid = {'linked_request_uid': req_id}  # rid
                         # print(rid)
+                        if maintenance_res['result'][y]['assigned_business'] != None:
+                            as_busiResponse = db.execute("""SELECT * FROM businesses b
+                            WHERE business_uid = \'""" + maintenance_res['result'][y]['assigned_business'] + """\' """)
+                            print(as_busiResponse)
+                            maintenance_res['result'][y]['assigned_business_info'] = as_busiResponse['result']
+                        else:
+                            maintenance_res['result'][y]['assigned_business_info'] = [
+                            ]
                         quotes_res = db.select(
                             ''' maintenanceQuotes quote ''', rid)
                         # print(quotes_res)
@@ -566,7 +574,15 @@ class ManagerDashboard(Resource):
                 response['result'][i]['quote_accepted_mr'] = quote_accepted_mr
                 if len(maintenance_res['result']) > 0:
                     for mr in maintenance_res['result']:
+
                         req_id = mr['maintenance_request_uid']
+                        if mr['assigned_business'] != None:
+                            as_busiResponse = db.execute("""SELECT * FROM businesses b
+                            WHERE business_uid = \'""" + mr['assigned_business'] + """\' """)
+                            print(as_busiResponse)
+                            mr['assigned_business_info'] = as_busiResponse['result']
+                        else:
+                            mr['assigned_business_info'] = []
                         rid = {'linked_request_uid': req_id}  # rid
                         quotes_res = db.select(
                             ''' maintenanceQuotes quote ''', rid)
