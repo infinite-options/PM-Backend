@@ -121,7 +121,7 @@ class Properties(Resource):
                 file = request.files.get(filename)
                 if file:
                     key = f'properties/{newPropertyID}/{filename}'
-                    image = uploadImage(file, key,'')
+                    image = uploadImage(file, key, '')
                     images.append(image)
                 else:
                     break
@@ -198,9 +198,23 @@ class Properties(Resource):
                     'linked_business_id': '',
                     'management_status': management_status
                 }
-                if management_status == 'REJECT':
+                if management_status == 'REJECTED' or management_status == 'REFUSED':
                     print('in reject')
                     db.update('propertyManager', pk, propertyManagerReject)
+                    contractRes = db.execute(""" SELECT * FROM contracts
+                                                WHERE business_uid = \'""" + manager_id + """\'
+                                                AND property_uid = \'""" + property_uid + """\'
+                                                AND contract_status = 'ACTIVE'""")
+                    if len(contractRes['result']) > 0:
+                        contractPK = {
+                            'contract_uid': contractRes['result'][0]['contract_uid']
+                        }
+                        contractUpdate = {
+                            'contract_status': 'INACTIVE',
+                            'end_date': contractRes['result'][0]['early_end_date']
+                        }
+                        response = db.update(
+                            'contracts', contractPK, contractUpdate)
                 if management_status != 'FORWARDED':
                     print('in not forward')
                     db.update('propertyManager', pk, propertyManager)

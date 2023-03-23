@@ -172,12 +172,27 @@ class ManagerDocuments(Resource):
                                     d['created_for'] = doc['business_name']
                                     expired_manager_docs.append(d)
                     print(expired_manager_docs)
-
+                    business_docs = db.execute("""
+                    SELECT *
+                    FROM businesses b
+                    WHERE business_uid  = \'""" + filterValue + """\'""")
+                    business_uploaded_docs = []
+                    if len(business_docs['result']) > 0:
+                        print('business_uploaded_docs')
+                        for doc in business_docs['result']:
+                            if len(json.loads(doc['business_documents'])) > 0:
+                                for d in json.loads(doc['business_documents']):
+                                    print(d)
+                                    d['created_by'] = doc['business_name']
+                                    d['created_for'] = doc['business_name']
+                                    business_uploaded_docs.append(d)
+                    print(business_uploaded_docs)
                     response['result'] = [{
                         'active_lease_docs': list(active_lease_docs),
                         'past_lease_docs': list(expired_lease_docs),
                         'active_manager_docs': list(active_manager_docs),
-                        'past_manager_docs': list(expired_manager_docs)
+                        'past_manager_docs': list(expired_manager_docs),
+                        'business_uploaded_docs': list(business_uploaded_docs)
                     }]
 
         return response
@@ -477,6 +492,42 @@ class TenantDocuments(Resource):
                         'active_lease_docs': list(active_lease_docs),
                         'past_lease_docs': list(expired_lease_docs),
                         'tenant_uploaded_docs': list(tenant_uploaded_docs),
+                    }]
+
+        return response
+
+
+class MaintenanceDocuments(Resource):
+    def get(self):
+        response = {'message': 'Successfully committed SQL query',
+                    'code': 200,
+                    'result': []}
+        filters = ['business_id']
+        where = {}
+
+        with connect() as db:
+            for filter in filters:
+                filterValue = request.args.get(filter)
+                if filterValue is not None:
+                    where[filter] = filterValue
+                    today = date.today()
+                    business_docs = db.execute("""
+                    SELECT *
+                    FROM businesses b
+                    WHERE business_uid  = \'""" + filterValue + """\'""")
+                    business_uploaded_docs = []
+                    if len(business_docs['result']) > 0:
+                        print('business_uploaded_docs')
+                        for doc in business_docs['result']:
+                            if len(json.loads(doc['business_documents'])) > 0:
+                                for d in json.loads(doc['business_documents']):
+                                    print(d)
+                                    d['created_by'] = doc['business_name']
+                                    d['created_for'] = doc['business_name']
+                                    business_uploaded_docs.append(d)
+                    print(business_uploaded_docs)
+                    response['result'] = [{
+                        'business_uploaded_docs': list(business_uploaded_docs)
                     }]
 
         return response

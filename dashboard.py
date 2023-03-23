@@ -530,6 +530,7 @@ class ManagerDashboard(Resource):
             SELECT *
             FROM pm.propertyInfo
             WHERE management_status <> 'REJECTED'
+            AND management_status <> 'REFUSED'
             AND management_status <> 'TERMINATED'
             AND management_status <> 'EXPIRED'
             AND management_status <> 'END EARLY'

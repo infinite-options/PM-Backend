@@ -12,7 +12,7 @@ from contact import Contact
 from contracts import Contracts
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from data import connect
-from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
+from documents import OwnerDocuments, ManagerDocuments, TenantDocuments, MaintenanceDocuments
 from employees import Employees
 from leaseTenants import LeaseTenants
 from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
@@ -2181,6 +2181,7 @@ api.add_resource(OwnerDashboard, '/ownerDashboard')
 # documents
 api.add_resource(OwnerDocuments, '/ownerDocuments')
 api.add_resource(ManagerDocuments, '/managerDocuments')
+api.add_resource(MaintenanceDocuments, '/maintenanceDocuments')
 api.add_resource(TenantDocuments, '/tenantDocuments')
 # employees
 api.add_resource(Employees, '/employees')
