@@ -21,14 +21,16 @@ class TenantDashboard(Resource):
             res = db.select('tenantProfileInfo', where)
             # print('res:', res)
             response = db.execute(""" 
-            SELECT * FROM pm.properties
-            LEFT JOIN pm.rentals
-            ON rental_property_id = property_uid
-            LEFT JOIN pm.leaseTenants
-            ON linked_rental_uid = rental_uid
+            SELECT * FROM pm.properties prop
+            LEFT JOIN pm.rentals r
+            ON r.rental_property_id = prop.property_uid
+            LEFT JOIN pm.leaseTenants lt
+            ON lt.linked_rental_uid = r.rental_uid
+            LEFT JOIN pm.applications a
+            ON r.linked_application_id LIKE CONCAT('%', a.application_uid, '%') 
             LEFT JOIN pm.propertyManager p
-            ON linked_property_id = property_uid
-            WHERE linked_tenant_id = \'""" + user['tenant_id'][0]['tenant_id'] + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
+            ON p.linked_property_id = prop.property_uid
+            WHERE lt.linked_tenant_id = \'""" + user['tenant_id'][0]['tenant_id'] + """\' AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'PM END EARLY' OR r.rental_status = 'TENANT END EARLY') AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY')  ; """)
 
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
