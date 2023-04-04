@@ -63,13 +63,18 @@ class CheckTenantProfileComplete(Resource):
     def get(self):
         response = {}
         user = get_jwt_identity()
-        where = {'tenant_id': user['tenant_id'][0]['tenant_id']}
+        print(user)
+        where = {'tenant_id': user['tenant_id']}
+        if len(where['tenant_id']) == 0:
+            response['message'] = 'Incomplete Profile'
+        else:
+            response['message'] = 'Complete Profile'
+            response['result'] = where
 
-        print('where', where)
-        with connect() as db:
-            response = db.select('tenantProfileInfo', where)
-            if len(response['result']) == 0:
-                response['message'] = 'Incomplete Profile'
+        # with connect() as db:
+        #     # response = db.select('tenantProfileInfo', where)
+        #     if len(response['result']) == 0:
+        #         response['message'] = 'Incomplete Profile'
         return response
 
 

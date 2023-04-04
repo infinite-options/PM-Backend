@@ -98,11 +98,14 @@ class Users(Resource):
         #     response['message'] = 'Signup success'
         #     response['code'] = 200
         #     response['result'] = createTokens(user)
-        user = createUser(firstName, lastName, phoneNumber,
-                          email, password, role)
-        response['message'] = 'Signup success'
-        response['code'] = 200
-        response['result'] = createTokens(user)
+        if user:
+            response['message'] = 'User already exists'
+        else:
+            user = createUser(firstName, lastName, phoneNumber,
+                              email, password, role)
+            response['message'] = 'Signup success'
+            response['code'] = 200
+            response['result'] = createTokens(user)
         return response
 
     def put(self):
