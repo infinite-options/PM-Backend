@@ -546,7 +546,9 @@ class ManagerDashboard(Resource):
                 # get tenant applications
                 application_res = db.execute("""
                 SELECT *
-                FROM pm.applications WHERE property_uid = \'""" + property_id + """\'""")
+                FROM pm.applications a
+                LEFT JOIN pm.tenantProfileInfo tpi
+                ON a.tenant_id = tpi.tenant_id WHERE a.property_uid = \'""" + property_id + """\'""")
 
                 response['result'][i]['applications'] = list(
                     application_res['result'])

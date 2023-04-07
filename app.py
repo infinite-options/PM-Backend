@@ -392,7 +392,7 @@ class MessageEmail(Resource):
     def get(self):
         response = {}
         filters = ['message_uid', 'message_created_at',
-                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -410,7 +410,7 @@ class MessageEmail(Resource):
         with connect() as db:
             data = request.json
             fields = ['sender_name', 'sender_email', 'sender_phone', 'message_subject',
-                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
             newMessage = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -437,6 +437,53 @@ class MessageEmail(Resource):
             )
             # mail.send(msg)
             sendEmail(recipient, subject, body)
+        return response
+
+
+class MessageText(Resource):
+
+    def get(self):
+        response = {}
+        filters = ['message_uid', 'message_created_at',
+                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[f'a.{filter}'] = filterValue
+        with connect() as db:
+            sql = 'SELECT  FROM messages c'
+            cols = 'c.*'
+            tables = 'messages c '
+            response = db.select(cols=cols, tables=tables, where=where)
+        return response
+
+    def post(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            fields = ['sender_name', 'sender_email', 'sender_phone', 'message_subject',
+                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
+            newMessage = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                print(fields, fieldValue)
+                if fieldValue:
+                    newMessage[field] = fieldValue
+            newMessageID = db.call('new_message_uid')['result'][0]['new_id']
+            newMessage['message_uid'] = newMessageID
+
+            print('newMessage', newMessage)
+            response = db.insert('messages', newMessage)
+            response['message_uid'] = newMessageID
+
+            subject = data['message_subject']
+            message = data['message_details']
+            recipient = data['receiver_phone']
+            text_msg = (subject + "\n" +
+                        message)
+            Send_Twilio_SMS2(
+                text_msg, recipient)
         return response
 
 
@@ -2284,7 +2331,9 @@ api.add_resource(DeleteAnnouncement, '/DeleteAnnouncement')
 api.add_resource(stripe_key, "/stripe_key/<string:desc>")
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
-api.add_resource(MessageEmail, '/message')
+api.add_resource(MessageEmail, '/messageEmail')
+
+api.add_resource(MessageText, '/messageText')
 api.add_resource(Announcement, '/announcement')
 api.add_resource(RequestMorePictures, '/RequestMorePictures')
 api.add_resource(TenantEmailNotifications_CLASS,

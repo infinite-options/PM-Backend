@@ -47,7 +47,7 @@ def getEmployeeBusinesses(user):
     response = {}
     with connect() as db:
         sql = '''
-            SELECT b.business_uid, b.business_type, e.employee_role
+            SELECT b.*, e.employee_role
             FROM employees e LEFT JOIN businesses b ON e.business_uid = b.business_uid
             WHERE user_uid = %(user_uid)s
         '''
