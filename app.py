@@ -811,9 +811,13 @@ class SendAnnouncement(Resource):
         data = request.get_json(force=True)
         subject = data['announcement_title']
         message = data['announcement_msg']
-        tenant_email = data['tenant_email']
-        tenant_pno = data['tenant_pno']
-        tenant_name = data['tenant_name']
+        tenant_email = data['email']
+        tenant_pno = data['pno']
+        tenant_name = data['name']
+        sender_name = data['sender_name']
+        sender_email = data['sender_email']
+        sender_phone = data['sender_phone']
+
         for e in range(len(tenant_email)):
             recipient = tenant_email[e]
             body = (
@@ -827,6 +831,18 @@ class SendAnnouncement(Resource):
                         message)
             Send_Twilio_SMS2(
                 text_msg, tenant_pno[e])
+        recipient_sender = sender_email
+        body = (
+            "Hello " + sender_name + "\n"
+            "\n" + str(message) + "\n"
+            "\n"
+        )
+
+        sendEmail(recipient_sender, subject, body)
+        text_msg_sender = (subject + "\n" +
+                           message)
+        Send_Twilio_SMS2(
+            text_msg_sender, sender_phone)
         return 'Email and Text Sent'
 
 
