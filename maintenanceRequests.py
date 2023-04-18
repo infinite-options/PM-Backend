@@ -10,11 +10,8 @@ import boto3
 
 def updateImages(imageFiles, maintenance_request_uid):
     content = []
-
     for filename in imageFiles:
-
         if type(imageFiles[filename]) == str:
-
             bucket = 'io-pm'
             key = imageFiles[filename].split('/io-pm/')[1]
             data = s3.get_object(
