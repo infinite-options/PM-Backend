@@ -16,7 +16,7 @@ from documents import OwnerDocuments, ManagerDocuments, TenantDocuments, Mainten
 from employees import Employees
 from leaseTenants import LeaseTenants
 from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
-from maintenanceQuotes import MaintenanceQuotes, FinishMaintenance, QuotePaid
+from maintenanceQuotes import MaintenanceQuotes, FinishMaintenance, QuotePaid, FinishMaintenanceNoQuote
 from managerCashflows import ManagerCashflow, ManagerCashflowProperty
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
 from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
@@ -436,7 +436,13 @@ class MessageEmail(Resource):
                 "\n"
             )
             # mail.send(msg)
-            sendEmail(recipient, subject, body)
+            try:
+                sendEmail(recipient, subject, body)
+                response['message'] = 'Email to ' + \
+                    recipient + ' sent successfully'
+            except:
+                response['message'] = 'Email to ' + recipient + ' failed'
+
         return response
 
 
@@ -482,8 +488,99 @@ class MessageText(Resource):
             recipient = data['receiver_phone']
             text_msg = (subject + "\n" +
                         message)
+            try:
+                Send_Twilio_SMS2(
+                    text_msg, recipient)
+                response['message'] = 'Text message to ' + \
+                    recipient + ' sent successfully'
+            except:
+                response['message'] = 'Text message to ' + \
+                    recipient + ' failed'
+
+        return response
+
+
+class MessageGroupEmail(Resource):
+    def post(self):
+        response = {}
+        response['message'] = []
+        data = request.get_json(force=True)
+        sender_name = data['sender_name']
+        sender_email = data['sender_email']
+        subject = data['announcement_title']
+        message = data['announcement_msg']
+        tenant_email = data['email']
+        tenant_name = data['name']
+
+        for e in range(len(tenant_email)):
+
+            recipient = tenant_email[e]
+            body = (
+                "Hello " + tenant_name[e] + "\n"
+                "\n" + str(message) + "\n"
+                "\n"
+            )
+            try:
+                sendEmail(recipient, subject, body)
+                response['message'].append(
+                    'Email to ' + tenant_email[e] + ' sent successfully')
+            except:
+                response['message'].append(
+                    'Email to ' + tenant_email[e] + ' failed')
+                continue
+        recipient_sender = sender_email
+        body = (
+            "Hello " + sender_name + "\n"
+            "\n" + str(message) + "\n"
+            "\n"
+        )
+        try:
+            sendEmail(recipient_sender, subject, body)
+            response['message'].append(
+                'Email to sender ' + tenant_email[e] + ' sent successfully')
+        except:
+            response['message'].append(
+                'Email to sender ' + tenant_email[e] + ' failed')
+
+        return response
+
+
+class MessageGroupText(Resource):
+    def post(self):
+        response = {}
+        response['message'] = []
+        data = request.get_json(force=True)
+        subject = data['announcement_title']
+        message = data['announcement_msg']
+        tenant_pno = data['pno']
+        tenant_name = data['name']
+        sender_name = data['sender_name']
+        sender_phone = data['sender_phone']
+
+        for e in range(len(tenant_pno)):
+            text_msg = (subject + "\n" +
+                        message)
+            try:
+                Send_Twilio_SMS2(
+                    text_msg, tenant_pno[e])
+                response['message'].append('Text message to ' +
+                                           tenant_pno[e] + ' sent successfully')
+
+            except:
+                response['message'].append('Text message to ' +
+                                           tenant_pno[e] + ' failed')
+                continue
+        text_msg_sender = (subject + "\n" +
+                           message)
+        try:
             Send_Twilio_SMS2(
-                text_msg, recipient)
+                text_msg_sender, sender_phone)
+            response['message'].append('Text message to sender ' +
+                                       sender_phone + ' sent successfully')
+        except:
+            response['message'].append('Text message to sender ' +
+                                       sender_phone + ' failed')
+
         return response
 
 
@@ -517,14 +614,16 @@ def Send_Twilio_SMS2(message, phone_number):
     numbers = list(set(numbers.split(',')))
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     for destination in numbers:
-        try:
-            client.messages.create(
-                body=message,
-                from_='+19254815757',
-                to="+1" + destination
-            )
-        except:
-            continue
+        client.messages.create(
+            body=message,
+            from_='+19254815757',
+            to="+1" + destination
+        )
+        print('client.mes', client.messages.create(
+            body=message,
+            from_='+19254815757',
+            to="+1" + destination
+        ))
     items['code'] = 200
     items['Message'] = 'SMS sent successfully to all recipients'
     return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
@@ -2258,6 +2357,8 @@ api.add_resource(OwnerMaintenanceRequestsandQuotes,
 # maintenanceQuotes
 api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
 api.add_resource(FinishMaintenance, '/FinishMaintenance')
+
+api.add_resource(FinishMaintenanceNoQuote, '/FinishMaintenanceNoQuote')
 api.add_resource(QuotePaid, '/QuotePaid')
 
 # managerCashflows
@@ -2348,8 +2449,9 @@ api.add_resource(stripe_key, "/stripe_key/<string:desc>")
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
 api.add_resource(MessageEmail, '/messageEmail')
-
 api.add_resource(MessageText, '/messageText')
+api.add_resource(MessageGroupEmail, '/messageGroupEmail')
+api.add_resource(MessageGroupText, '/messageGroupText')
 api.add_resource(Announcement, '/announcement')
 api.add_resource(RequestMorePictures, '/RequestMorePictures')
 api.add_resource(TenantEmailNotifications_CLASS,

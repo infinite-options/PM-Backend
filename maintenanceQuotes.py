@@ -338,3 +338,74 @@ class QuotePaid(Resource):
                                      primaryKey, updateQuote)
 
         return response
+
+
+class FinishMaintenanceNoQuote(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.form
+            print(data)
+            maintenance_request_uid = data.get('maintenance_request_uid')
+            request_status = data.get('request_status')
+            request_adjustment_date = data.get('request_adjustment_date')
+            notes = data.get('notes')
+            cost = data.get('cost')
+            linked_mr = db.execute("""SELECT * FROM pm.maintenanceRequests mr
+            LEFT JOIN pm.propertyManager p
+            ON p.linked_property_id = mr.property_uid 
+            WHERE mr.maintenance_request_uid = \'""" + maintenance_request_uid + """\'
+            AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY');""")
+            if len(linked_mr['result']) > 0:
+                images = []
+                i = -1
+                imageFiles = {}
+                while True:
+                    filename = f'img_{i}'
+                    if i == -1:
+                        filename = 'img_cover'
+                    file = request.files.get(filename)
+                    s3Link = data.get(filename)
+                    if file:
+                        imageFiles[filename] = file
+                    elif s3Link:
+                        imageFiles[filename] = s3Link
+                    else:
+                        break
+                    i += 1
+                images = updateImages(imageFiles, maintenance_request_uid)
+                updateRequest = {
+                    'request_closed_date': request_adjustment_date,
+                    'request_status': request_status,
+                    'request_adjustment_date': request_adjustment_date,
+                    'notes': notes,
+
+                    'images': json.dumps(images),
+                    'assigned_business': linked_mr['result'][0]['linked_business_id']
+                }
+                primaryKey = {
+                    'maintenance_request_uid': linked_mr['result'][0]['maintenance_request_uid']
+                }
+                response = db.update('maintenanceRequests',
+                                     primaryKey, updateRequest)
+
+            date_created = datetime.strptime(
+                linked_mr['result'][0]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+            purchaseResponse = newPurchase(
+                linked_bill_id=linked_mr['result'][0]['maintenance_request_uid'],
+                pur_property_id=json.dumps(
+                    [linked_mr['result'][0]['property_uid']]),
+                payer=json.dumps(
+                    [linked_mr['result'][0]['request_created_by']]),
+                receiver=linked_mr['result'][0]['linked_business_id'],
+                purchase_type='MAINTENANCE',
+                description=linked_mr['result'][0]['title'],
+                amount_due=int(cost),
+                purchase_notes=date.today().strftime(
+                    '%B'),
+                purchase_date=datetime.strftime(
+                    date_created, '%Y-%m-%d 00:00:00'),
+                purchase_frequency='ONE-TIME',
+                next_payment=date.today()
+            )
+        return response

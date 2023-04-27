@@ -98,16 +98,25 @@ class MaintenanceRequests(Resource):
             i = -1
             while True:
                 filename = f'img_{i}'
+                # print(filename)
                 if i == -1:
                     filename = 'img_cover'
                 file = request.files.get(filename)
+                # print(file)
+                s3Link = data.get(filename)
+                # print(s3Link)
                 if file:
+                    # print('in if')
                     key = f'maintenanceRequests/{newRequestID}/{filename}'
                     image = uploadImage(file, key, '')
                     images.append(image)
+                elif s3Link:
+                    # print('in elif')
+                    images.append(s3Link)
                 else:
                     break
                 i += 1
+            # print(images)
             newRequest['images'] = json.dumps(images)
             newRequest['request_status'] = 'NEW'
             newRequest['frequency'] = 'One time'
