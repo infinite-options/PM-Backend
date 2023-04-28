@@ -136,7 +136,8 @@ class ManagerContractFees_CLASS(Resource):
                                                 payer=payer,
                                                 receiver=contract['business_uid'],
                                                 purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
+                                                description=charge_month +
+                                                ' ' + payment['fee_name'],
                                                 amount_due=payment['charge'],
                                                 purchase_notes=charge_month,
                                                 purchase_date=today,
@@ -173,7 +174,8 @@ class ManagerContractFees_CLASS(Resource):
                                                 payer=payer,
                                                 receiver=contract['business_uid'],
                                                 purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
+                                                description=charge_month +
+                                                ' ' + payment['fee_name'],
                                                 amount_due=payment['charge'],
                                                 purchase_notes=charge_month,
                                                 purchase_date=today,
@@ -210,7 +212,8 @@ class ManagerContractFees_CLASS(Resource):
                                                 payer=payer,
                                                 receiver=contract['business_uid'],
                                                 purchase_type='MANAGEMENT',
-                                                description=payment['fee_name'],
+                                                description=charge_month +
+                                                ' ' + payment['fee_name'],
                                                 amount_due=payment['charge'],
                                                 purchase_notes=charge_month,
                                                 purchase_date=today,
@@ -245,7 +248,8 @@ class ManagerContractFees_CLASS(Resource):
                                             payer=payer,
                                             receiver=contract['business_uid'],
                                             purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
+                                            description=payment['fee_name'] + ' ' + charge_date.strftime(
+                                                '%Y'),
                                             amount_due=payment['charge'],
                                             purchase_notes=charge_month,
                                             purchase_date=today,
@@ -372,7 +376,8 @@ def ManagerContractFees():
                                             payer=payer,
                                             receiver=contract['business_uid'],
                                             purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
+                                            description=charge_month +
+                                            ' ' + payment['fee_name'],
                                             amount_due=payment['charge'],
                                             purchase_notes=charge_month,
                                             purchase_date=today,
@@ -409,7 +414,8 @@ def ManagerContractFees():
                                             payer=payer,
                                             receiver=contract['business_uid'],
                                             purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
+                                            description=charge_month +
+                                            ' ' + payment['fee_name'],
                                             amount_due=payment['charge'],
                                             purchase_notes=charge_month,
                                             purchase_date=today,
@@ -446,7 +452,8 @@ def ManagerContractFees():
                                             payer=payer,
                                             receiver=contract['business_uid'],
                                             purchase_type='MANAGEMENT',
-                                            description=payment['fee_name'],
+                                            description=charge_month +
+                                            ' ' + payment['fee_name'],
                                             amount_due=payment['charge'],
                                             purchase_notes=charge_month,
                                             purchase_date=today,
@@ -481,7 +488,8 @@ def ManagerContractFees():
                                         payer=payer,
                                         receiver=contract['business_uid'],
                                         purchase_type='MANAGEMENT',
-                                        description=payment['fee_name'],
+                                        description=payment['fee_name'] +
+                                        ' ' + charge_date.strftime('%Y'),
                                         amount_due=payment['charge'],
                                         purchase_notes=charge_month,
                                         purchase_date=today,

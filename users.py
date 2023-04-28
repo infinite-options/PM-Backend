@@ -98,11 +98,14 @@ class Users(Resource):
         #     response['message'] = 'Signup success'
         #     response['code'] = 200
         #     response['result'] = createTokens(user)
-        user = createUser(firstName, lastName, phoneNumber,
-                          email, password, role)
-        response['message'] = 'Signup success'
-        response['code'] = 200
-        response['result'] = createTokens(user)
+        if user:
+            response['message'] = 'User already exists'
+        else:
+            user = createUser(firstName, lastName, phoneNumber,
+                              email, password, role)
+            response['message'] = 'Signup success'
+            response['code'] = 200
+            response['result'] = createTokens(user)
         return response
 
     def put(self):
@@ -407,10 +410,10 @@ class UserDetails(Resource):
             if user_id[0] == '1':
                 query = (
                     """SELECT user_uid
-                                    , email, first_name
-                                    , last_name
-                                    , google_auth_token
-                                    , google_refresh_token FROM users WHERE user_uid = \'"""
+                , email, first_name
+                , last_name
+                , google_auth_token
+                , google_refresh_token FROM users WHERE user_uid = \'"""
                     + user_id
                     + """\' """
                 )
@@ -423,6 +426,19 @@ class UserDetails(Resource):
                                     , google_refresh_token FROM users WHERE user_uid = \'"""
                                       + user_id
                                       + """\' """)
+            elif user_id[0] == '3':
+                response = db.execute("""SELECT user_uid
+                                    , email
+                                    , first_name
+                                    , last_name
+                                    , google_auth_token
+                                    , google_refresh_token FROM tenantProfileInfo t
+                                    LEFT JOIN
+                                    users u
+                                     ON t.tenant_user_id = u.user_uid WHERE tenant_id = \'"""
+                                      + user_id
+                                      + """\' """)
+
             else:
                 business_email = db.execute("""SELECT business_uid
                                     , business_email

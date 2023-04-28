@@ -6,21 +6,23 @@ from bills import Bills
 from businesses import Businesses
 from businessProfileInfo import BusinessProfileInfo
 from cashflow import OwnerCashflow, OwnerCashflowProperty
+from cashflowManager import CashflowManager
+from cashflowOwner import CashflowOwner
 from contact import Contact
 from contracts import Contracts
 from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from data import connect
-from documents import OwnerDocuments, ManagerDocuments, TenantDocuments
+from documents import OwnerDocuments, ManagerDocuments, TenantDocuments, MaintenanceDocuments
 from employees import Employees
 from leaseTenants import LeaseTenants
 from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
-from maintenanceQuotes import MaintenanceQuotes
+from maintenanceQuotes import MaintenanceQuotes, FinishMaintenance, QuotePaid, FinishMaintenanceNoQuote
 from managerCashflows import ManagerCashflow, ManagerCashflowProperty
 from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerPropertyTenants
 from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
 from ownerProfileInfo import OwnerProfileInfo
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON, MaintenancePayments
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
 from purchases import Purchases, CreateExpenses, DeletePurchase
@@ -390,7 +392,7 @@ class MessageEmail(Resource):
     def get(self):
         response = {}
         filters = ['message_uid', 'message_created_at',
-                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -408,7 +410,7 @@ class MessageEmail(Resource):
         with connect() as db:
             data = request.json
             fields = ['sender_name', 'sender_email', 'sender_phone', 'message_subject',
-                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
             newMessage = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -434,7 +436,151 @@ class MessageEmail(Resource):
                 "\n"
             )
             # mail.send(msg)
-            sendEmail(recipient, subject, body)
+            try:
+                sendEmail(recipient, subject, body)
+                response['message'] = 'Email to ' + \
+                    recipient + ' sent successfully'
+            except:
+                response['message'] = 'Email to ' + recipient + ' failed'
+
+        return response
+
+
+class MessageText(Resource):
+
+    def get(self):
+        response = {}
+        filters = ['message_uid', 'message_created_at',
+                   'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
+        where = {}
+        for filter in filters:
+            filterValue = request.args.get(filter)
+            if filterValue is not None:
+                where[f'a.{filter}'] = filterValue
+        with connect() as db:
+            sql = 'SELECT  FROM messages c'
+            cols = 'c.*'
+            tables = 'messages c '
+            response = db.select(cols=cols, tables=tables, where=where)
+        return response
+
+    def post(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            fields = ['sender_name', 'sender_email', 'sender_phone', 'message_subject',
+                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
+            newMessage = {}
+            for field in fields:
+                fieldValue = data.get(field)
+                print(fields, fieldValue)
+                if fieldValue:
+                    newMessage[field] = fieldValue
+            newMessageID = db.call('new_message_uid')['result'][0]['new_id']
+            newMessage['message_uid'] = newMessageID
+
+            print('newMessage', newMessage)
+            response = db.insert('messages', newMessage)
+            response['message_uid'] = newMessageID
+
+            subject = data['message_subject']
+            message = data['message_details']
+            recipient = data['receiver_phone']
+            text_msg = (subject + "\n" +
+                        message)
+            try:
+                Send_Twilio_SMS2(
+                    text_msg, recipient)
+                response['message'] = 'Text message to ' + \
+                    recipient + ' sent successfully'
+            except:
+                response['message'] = 'Text message to ' + \
+                    recipient + ' failed'
+
+        return response
+
+
+class MessageGroupEmail(Resource):
+    def post(self):
+        response = {}
+        response['message'] = []
+        data = request.get_json(force=True)
+        sender_name = data['sender_name']
+        sender_email = data['sender_email']
+        subject = data['announcement_title']
+        message = data['announcement_msg']
+        tenant_email = data['email']
+        tenant_name = data['name']
+
+        for e in range(len(tenant_email)):
+
+            recipient = tenant_email[e]
+            body = (
+                "Hello " + tenant_name[e] + "\n"
+                "\n" + str(message) + "\n"
+                "\n"
+            )
+            try:
+                sendEmail(recipient, subject, body)
+                response['message'].append(
+                    'Email to ' + tenant_email[e] + ' sent successfully')
+            except:
+                response['message'].append(
+                    'Email to ' + tenant_email[e] + ' failed')
+                continue
+        recipient_sender = sender_email
+        body = (
+            "Hello " + sender_name + "\n"
+            "\n" + str(message) + "\n"
+            "\n"
+        )
+        try:
+            sendEmail(recipient_sender, subject, body)
+            response['message'].append(
+                'Email to sender ' + tenant_email[e] + ' sent successfully')
+        except:
+            response['message'].append(
+                'Email to sender ' + tenant_email[e] + ' failed')
+
+        return response
+
+
+class MessageGroupText(Resource):
+    def post(self):
+        response = {}
+        response['message'] = []
+        data = request.get_json(force=True)
+        subject = data['announcement_title']
+        message = data['announcement_msg']
+        tenant_pno = data['pno']
+        tenant_name = data['name']
+        sender_name = data['sender_name']
+        sender_phone = data['sender_phone']
+
+        for e in range(len(tenant_pno)):
+            text_msg = (subject + "\n" +
+                        message)
+            try:
+                Send_Twilio_SMS2(
+                    text_msg, tenant_pno[e])
+                response['message'].append('Text message to ' +
+                                           tenant_pno[e] + ' sent successfully')
+
+            except:
+                response['message'].append('Text message to ' +
+                                           tenant_pno[e] + ' failed')
+                continue
+        text_msg_sender = (subject + "\n" +
+                           message)
+        try:
+            Send_Twilio_SMS2(
+                text_msg_sender, sender_phone)
+            response['message'].append('Text message to sender ' +
+                                       sender_phone + ' sent successfully')
+        except:
+            response['message'].append('Text message to sender ' +
+                                       sender_phone + ' failed')
+
         return response
 
 
@@ -468,14 +614,16 @@ def Send_Twilio_SMS2(message, phone_number):
     numbers = list(set(numbers.split(',')))
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     for destination in numbers:
-        try:
-            client.messages.create(
-                body=message,
-                from_='+19254815757',
-                to="+1" + destination
-            )
-        except:
-            continue
+        client.messages.create(
+            body=message,
+            from_='+19254815757',
+            to="+1" + destination
+        )
+        print('client.mes', client.messages.create(
+            body=message,
+            from_='+19254815757',
+            to="+1" + destination
+        ))
     items['code'] = 200
     items['Message'] = 'SMS sent successfully to all recipients'
     return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
@@ -762,9 +910,13 @@ class SendAnnouncement(Resource):
         data = request.get_json(force=True)
         subject = data['announcement_title']
         message = data['announcement_msg']
-        tenant_email = data['tenant_email']
-        tenant_pno = data['tenant_pno']
-        tenant_name = data['tenant_name']
+        tenant_email = data['email']
+        tenant_pno = data['pno']
+        tenant_name = data['name']
+        sender_name = data['sender_name']
+        sender_email = data['sender_email']
+        sender_phone = data['sender_phone']
+
         for e in range(len(tenant_email)):
             recipient = tenant_email[e]
             body = (
@@ -778,6 +930,18 @@ class SendAnnouncement(Resource):
                         message)
             Send_Twilio_SMS2(
                 text_msg, tenant_pno[e])
+        recipient_sender = sender_email
+        body = (
+            "Hello " + sender_name + "\n"
+            "\n" + str(message) + "\n"
+            "\n"
+        )
+
+        sendEmail(recipient_sender, subject, body)
+        text_msg_sender = (subject + "\n" +
+                           message)
+        Send_Twilio_SMS2(
+            text_msg_sender, sender_phone)
         return 'Email and Text Sent'
 
 
@@ -882,7 +1046,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every week
@@ -941,7 +1105,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every 2 week
@@ -999,7 +1163,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
 
@@ -1153,7 +1317,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Move-Out Charge' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     charge_month = (
@@ -1222,7 +1386,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every week
@@ -1287,7 +1451,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                 if today < lease_end:
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
-                                        if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as friday of every 2 week
@@ -1353,7 +1517,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                     # get previous purchases
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
-                                            if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                            if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
                                                     prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                         # set charge date as first of every month
@@ -1554,7 +1718,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every week
@@ -1613,7 +1777,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every 2 week
@@ -1671,7 +1835,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
 
@@ -1825,7 +1989,7 @@ def TenantEmailNotifications(self):
                             # get previous purchases
                             if lease['prevPurchases'] != []:
                                 for prev in lease['prevPurchases']:
-                                    if prev['purchase_frequency'] == 'Move-Out Charge' and prev['description'] == payment['fee_name']:
+                                    if prev['purchase_frequency'] == 'Move-Out Charge' and payment['fee_name'] in prev['description']:
                                         prevPurchaseDate = datetime.strptime(
                                             prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 charge_month = (
@@ -1894,7 +2058,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Weekly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Weekly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every week
@@ -1959,7 +2123,7 @@ def TenantEmailNotifications(self):
                             if today < lease_end:
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
-                                    if prev['purchase_frequency'] == 'Biweekly' and prev['description'] == payment['fee_name']:
+                                    if prev['purchase_frequency'] == 'Biweekly' and payment['fee_name'] in prev['description']:
                                         prevPurchaseDate = datetime.strptime(
                                             prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                 # set charge date as friday of every 2 week
@@ -2025,7 +2189,7 @@ def TenantEmailNotifications(self):
                                 # get previous purchases
                                 if lease['prevPurchases'] != []:
                                     for prev in lease['prevPurchases']:
-                                        if prev['purchase_frequency'] == 'Monthly' and prev['description'] == payment['fee_name']:
+                                        if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                             prevPurchaseDate = datetime.strptime(
                                                 prev['next_payment'], '%Y-%m-%d %H:%M:%S').date()
                                     # set charge date as first of every month
@@ -2164,6 +2328,10 @@ api.add_resource(BusinessProfileInfo, '/businessProfileInfo')
 # cashflow
 api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
+# CashflowManager
+api.add_resource(CashflowManager, "/CashflowManager")
+# CashflowOwner
+api.add_resource(CashflowOwner, "/CashflowOwner")
 # contact
 api.add_resource(Contact, "/contact")
 # contracts
@@ -2175,6 +2343,7 @@ api.add_resource(OwnerDashboard, '/ownerDashboard')
 # documents
 api.add_resource(OwnerDocuments, '/ownerDocuments')
 api.add_resource(ManagerDocuments, '/managerDocuments')
+api.add_resource(MaintenanceDocuments, '/maintenanceDocuments')
 api.add_resource(TenantDocuments, '/tenantDocuments')
 # employees
 api.add_resource(Employees, '/employees')
@@ -2187,6 +2356,11 @@ api.add_resource(OwnerMaintenanceRequestsandQuotes,
                  '/ownerMaintenanceRequestsandQuotes')
 # maintenanceQuotes
 api.add_resource(MaintenanceQuotes, '/maintenanceQuotes')
+api.add_resource(FinishMaintenance, '/FinishMaintenance')
+
+api.add_resource(FinishMaintenanceNoQuote, '/FinishMaintenanceNoQuote')
+api.add_resource(QuotePaid, '/QuotePaid')
+
 # managerCashflows
 api.add_resource(ManagerCashflow, "/managerCashflow")
 api.add_resource(ManagerCashflowProperty, "/managerCashflowProperty")
@@ -2211,6 +2385,7 @@ api.add_resource(OwnerPropertyBills, '/ownerPropertyBills')
 api.add_resource(Payments, '/payments')
 api.add_resource(UserPayments, '/userPayments')
 api.add_resource(ManagerPayments, '/managerPayments')
+api.add_resource(MaintenancePayments, '/maintenancePayments')
 api.add_resource(OwnerPayments, '/ownerPayments')
 api.add_resource(TenantPayments_CLASS, '/TenantPayments_CLASS')
 api.add_resource(ManagerPayments_CLASS, '/ManagerPayments_CLASS')
@@ -2273,7 +2448,10 @@ api.add_resource(DeleteAnnouncement, '/DeleteAnnouncement')
 api.add_resource(stripe_key, "/stripe_key/<string:desc>")
 api.add_resource(LeaseExpiringNotify_CLASS, '/LeaseExpiringNotify_CLASS')
 api.add_resource(SignUpForm, '/signUpForm')
-api.add_resource(MessageEmail, '/message')
+api.add_resource(MessageEmail, '/messageEmail')
+api.add_resource(MessageText, '/messageText')
+api.add_resource(MessageGroupEmail, '/messageGroupEmail')
+api.add_resource(MessageGroupText, '/messageGroupText')
 api.add_resource(Announcement, '/announcement')
 api.add_resource(RequestMorePictures, '/RequestMorePictures')
 api.add_resource(TenantEmailNotifications_CLASS,

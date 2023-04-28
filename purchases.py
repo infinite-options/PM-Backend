@@ -64,7 +64,17 @@ class Purchases(Resource):
             if filterValue is not None:
                 where[filter] = filterValue
         with connect() as db:
-            response = db.select('purchases', where)
+            if 'purchase_uid' in where:
+                response = db.execute("""SELECT *
+                FROM pm.purchases pur
+                LEFT JOIN pm.bills b
+                ON b.bill_uid = pur.linked_bill_id
+                LEFT JOIN pm.properties p
+                ON pur.pur_property_id LIKE CONCAT('%', p.property_uid, '%')
+                WHERE pur.purchase_uid = \'""" + where['purchase_uid'] + """\' """)
+
+            else:
+                response = db.select('purchases', where)
         return response
 
     def post(self):
@@ -281,7 +291,7 @@ class CreateExpenses(Resource):
                             "pur_property_id": json.dumps([data['pur_property_id']]),
                             "payer": json.dumps([data.get('managerID')]),
                             "receiver": data['ownerID'],
-                            "purchase_type": 'OWNER PAYMENT',
+                            "purchase_type": 'OWNER PAYMENT' + ' ' + data['purchase_type'].upper(),
                             "description": data['description'],
                             "amount_due": amount_due,
                             "amount_paid": amount_paid,
@@ -347,7 +357,7 @@ class CreateExpenses(Resource):
                             "pur_property_id": json.dumps([data['pur_property_id']]),
                             "payer": json.dumps([data.get('managerID')]),
                             "receiver": data['ownerID'],
-                            "purchase_type": 'OWNER PAYMENT',
+                            "purchase_type": 'OWNER PAYMENT' + ' ' + data['purchase_type'].upper(),
                             "description": data['description'],
                             "amount_due": amount_due,
                             "amount_paid": amount_paid,
@@ -409,7 +419,7 @@ class CreateExpenses(Resource):
                             "pur_property_id": json.dumps([data['pur_property_id']]),
                             "payer": json.dumps([data.get('managerID')]),
                             "receiver": data['ownerID'],
-                            "purchase_type": 'OWNER PAYMENT',
+                            "purchase_type": 'OWNER PAYMENT' + ' ' + data['purchase_type'].upper(),
                             "description": data['description'],
                             "amount_due": amount_due,
                             "amount_paid": amount_paid,
@@ -573,7 +583,7 @@ class CreateExpenses(Resource):
                                 "pur_property_id": json.dumps([data['pur_property_id']]),
                                 "payer": json.dumps([data.get('managerID')]),
                                 "receiver": data['ownerID'],
-                                "purchase_type": 'OWNER PAYMENT',
+                                "purchase_type": 'OWNER PAYMENT' + ' ' + data['purchase_type'].upper(),
                                 "description": data['description'],
                                 "amount_due": data["amount_due"],
                                 "amount_paid": amount_paid,
@@ -633,7 +643,7 @@ class CreateExpenses(Resource):
                                 "pur_property_id": json.dumps([data['pur_property_id']]),
                                 "payer": json.dumps([data.get('managerID')]),
                                 "receiver": data['ownerID'],
-                                "purchase_type": 'OWNER PAYMENT',
+                                "purchase_type": 'OWNER PAYMENT' + ' ' + data['purchase_type'].upper(),
                                 "description": data['description'],
                                 "amount_due": data["amount_due"],
                                 "amount_paid": amount_paid,
@@ -688,7 +698,7 @@ class CreateExpenses(Resource):
                             "pur_property_id": json.dumps([data['pur_property_id']]),
                             "payer": json.dumps([data.get('managerID')]),
                             "receiver": data['ownerID'],
-                            "purchase_type": 'OWNER PAYMENT',
+                            "purchase_type": 'OWNER PAYMENT' + ' ' + data['purchase_type'].upper(),
                             "description": data['description'],
                             "amount_due": data["amount_due"],
                             "amount_paid": amount_paid,
