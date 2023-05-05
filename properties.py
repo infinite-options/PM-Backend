@@ -3,6 +3,7 @@ from flask import request
 from flask_restful import Resource
 
 import boto3
+from helper import diff_month, days_in_month, next_weekday, next_weekday_biweekly
 from data import connect, uploadImage, s3
 from datetime import date, timedelta, datetime
 from calendar import monthrange
@@ -45,28 +46,6 @@ def updateImages(imageFiles, property_uid):
 
         images.append(image)
     return images
-
-
-def days_in_month(dt): return monthrange(
-    dt.year, dt.month)[1]
-
-
-def next_weekday(d, weekday):
-    days_ahead = weekday - d.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 7
-    return d + timedelta(days_ahead)
-
-
-def next_weekday_biweekly(d, weekday):
-    days_ahead = weekday - d.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 14
-    return d + timedelta(days_ahead)
-
-
-def diff_month(d1, d2):
-    return (d1.year - d2.year) * 12 + d1.month - d2.month
 
 
 class Properties(Resource):

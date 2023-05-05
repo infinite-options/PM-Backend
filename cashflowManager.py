@@ -161,3 +161,36 @@ class CashflowManager(Resource):
             response['result']['expense_unit'] = list(
                 response_expense_unit['result'])
         return response
+
+
+class AllCashflowManager(Resource):
+    def get(self):
+        response = {}
+        response['message'] = 'Successfully executed SQL query'
+        response['code'] = 200
+        response['result'] = {}
+        filters = ['property_id']
+
+        with connect() as db:
+            filterValue = request.args.get(filters[0])
+            print(filterValue)
+            today = date.today()
+            response = db.execute("""
+                SELECT prop.owner_id, prop.property_uid, address, unit, city,
+                state, zip, 
+                pur.*, 
+                DATE_FORMAT(next_payment, "%M") AS month, 
+                DATE_FORMAT(next_payment, "%Y") AS year
+                FROM pm.properties prop
+                LEFT JOIN pm.purchases pur
+                ON pur_property_id LIKE CONCAT ('%',prop.property_uid, '%')
+                LEFT JOIN pm.propertyManager pr
+                ON pr.linked_property_id = prop.property_uid
+                LEFT JOIN pm.contracts c
+                ON c.property_uid LIKE CONCAT('%', prop.property_uid, '%')
+                WHERE prop.property_uid= \'""" + filterValue + """\'
+                AND c.contract_status = 'ACTIVE'
+                AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')
+                ORDER BY pur.next_payment;""")
+
+            return response

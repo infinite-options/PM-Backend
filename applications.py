@@ -5,11 +5,10 @@ import boto3
 from data import connect, uploadImage, s3
 import json
 
-from text_to_num import alpha2digit
+from helper import days_in_month, date_for_weekday
 from purchases import newPurchase
 from datetime import date, timedelta, datetime
 import calendar
-from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 
 
@@ -45,43 +44,6 @@ def updateDocuments(documents, application_uid):
         del doc['file']
         docs.append(doc)
     return docs
-
-
-def days_in_month(dt): return monthrange(
-    dt.year, dt.month)[1]
-
-
-def next_weekday(d, weekday):
-    # d being the start date
-    days_ahead = weekday - d.weekday()
-    print(weekday, d, d.weekday())
-    print(days_ahead)
-    # if days_ahead <= d:
-
-    if days_ahead < 0:  # Target day already happened this week
-        days_ahead += 7
-
-    print(days_ahead, d + timedelta(days_ahead))
-
-    return d + timedelta(days_ahead)
-
-
-def date_for_weekday(day: int, start_date):
-    #  today = date.today()
-    # weekday returns the offsets 0-6
-    # If you need 1-7, use isoweekday
-    weekday = start_date.weekday()
-    return start_date + timedelta(days=day - weekday)
-
-
-def next_weekday_biweekly(d, weekday):
-    days_ahead = weekday - d.weekday()
-    print(weekday, d, d.weekday())
-    print(days_ahead)
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 14
-    print(days_ahead, d + timedelta(days_ahead))
-    return d + timedelta(days_ahead)
 
 
 class Applications(Resource):

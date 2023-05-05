@@ -1,4 +1,6 @@
 
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import BackendApplicationClient
 from applepay import ApplePay
 from appliances import Appliances, RemoveAppliance
 from applications import Applications, EndEarly,  TenantRentalEnd_CLASS, TenantRentalEnd_CRON
@@ -6,7 +8,7 @@ from bills import Bills
 from businesses import Businesses
 from businessProfileInfo import BusinessProfileInfo
 from cashflow import OwnerCashflow, OwnerCashflowProperty
-from cashflowManager import CashflowManager
+from cashflowManager import CashflowManager, AllCashflowManager
 from cashflowOwner import CashflowOwner
 from contact import Contact
 from contracts import Contracts
@@ -14,6 +16,7 @@ from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
 from data import connect
 from documents import OwnerDocuments, ManagerDocuments, TenantDocuments, MaintenanceDocuments
 from employees import Employees
+from helper import diff_month, days_in_month, next_weekday, next_weekday_biweekly
 from leaseTenants import LeaseTenants
 from maintenanceRequests import MaintenanceRequests, MaintenanceRequestsandQuotes, OwnerMaintenanceRequestsandQuotes
 from maintenanceQuotes import MaintenanceQuotes, FinishMaintenance, QuotePaid, FinishMaintenanceNoQuote
@@ -42,9 +45,11 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_mail import Mail, Message
 
-from flask import request
+from flask import request, redirect, url_for
 from flask_restful import Resource
+# from flask_oauthlib.client import OAuth
 import os
+import uuid
 import stripe
 import json
 import string
@@ -53,7 +58,7 @@ from datetime import date, timedelta, datetime
 import calendar
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
-
+from docusign_esign import ApiClient
 app = Flask(__name__)
 
 # cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
@@ -66,6 +71,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 jwt = JWTManager(app)
 
 # Twilio settings
+print(os.path)
 
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
@@ -90,10 +96,28 @@ stripe_secret_live_key = os.environ.get("stripe_secret_live_key")
 
 stripe.api_key = stripe_secret_test_key
 
-# app.config["MAIL_USERNAME"] = "support@skedul.online"
-# # app.config["MAIL_PASSWORD"] = "SupportSkedul1"
-# app.config["MAIL_SUPPRESS_SEND"] = False
 mail = Mail(app)
+# oauth = OAuth(app)
+
+
+class GetToken(Resource):
+    """Get access token from Docusign API using a client ID and its secret.
+
+    More info on https://requests-oauthlib.readthedocs.io/en/latest/oauth2_workflow.html#backend-application-flow
+    """
+
+    def get(self):
+        client_id = 'b37b90c2-bc4a-443b-824f-ca11c80af8b1'
+        client_secret = '91054378-5b28-48d7-a8d1-eb442498df76'
+        token_url = 'https://account-d.docusign.com/oauth/token'
+        client = BackendApplicationClient(client_id=client_id)
+        oauth = OAuth2Session(client=client)
+        token = oauth.fetch_token(
+            token_url=token_url,
+            client_id=client_id,
+            client_secret=client_secret
+        )
+        return "Bearer " + token["access_token"]
 
 
 def sendEmail(recipient, subject, body):
@@ -108,26 +132,49 @@ def sendEmail(recipient, subject, body):
         mail.send(msg)
 
 
-def diff_month(d1, d2):
-    return (d1.year - d2.year) * 12 + d1.month - d2.month
+def Send_Twilio_SMS2(message, phone_number):
+    items = {}
+    numbers = phone_number
+    message = message
+    numbers = list(set(numbers.split(',')))
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    for destination in numbers:
+        client.messages.create(
+            body=message,
+            from_='+19254815757',
+            to="+1" + destination
+        )
+        print('client.mes', client.messages.create(
+            body=message,
+            from_='+19254815757',
+            to="+1" + destination
+        ))
+    items['code'] = 200
+    items['Message'] = 'SMS sent successfully to all recipients'
+    return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
 
 
-def days_in_month(dt): return monthrange(
-    dt.year, dt.month)[1]
+class Send_Twilio_SMS(Resource):
 
-
-def next_weekday(d, weekday):
-    days_ahead = weekday - d.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 7
-    return d + timedelta(days_ahead)
-
-
-def next_weekday_biweekly(d, weekday):
-    days_ahead = weekday - d.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 14
-    return d + timedelta(days_ahead)
+    def post(self):
+        items = {}
+        data = request.get_json(force=True)
+        numbers = data['numbers']
+        message = data['message']
+        numbers = list(set(numbers.split(',')))
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        for destination in numbers:
+            try:
+                client.messages.create(
+                    body=message,
+                    from_='+19254815757',
+                    to="+1" + destination
+                )
+            except:
+                continue
+        items['code'] = 200
+        items['Message'] = 'SMS sent successfully to all recipients'
+        return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
 
 
 class stripe_key(Resource):
@@ -509,24 +556,24 @@ class MessageGroupEmail(Resource):
         sender_email = data['sender_email']
         subject = data['announcement_title']
         message = data['announcement_msg']
-        tenant_email = data['email']
-        tenant_name = data['name']
+        receiver_email = data['email']
+        receiver_name = data['name']
 
-        for e in range(len(tenant_email)):
+        for e in range(len(receiver_email)):
 
-            recipient = tenant_email[e]
+            recipient = receiver_email[e]
             body = (
-                "Hello " + tenant_name[e] + "\n"
+                "Hello " + receiver_name[e] + "\n"
                 "\n" + str(message) + "\n"
                 "\n"
             )
             try:
                 sendEmail(recipient, subject, body)
                 response['message'].append(
-                    'Email to ' + tenant_email[e] + ' sent successfully')
+                    receiver_name[e] + ': Email to ' + receiver_email[e] + ' sent successfully')
             except:
                 response['message'].append(
-                    'Email to ' + tenant_email[e] + ' failed')
+                    receiver_name[e] + ': Email to ' + receiver_email[e] + ' failed')
                 continue
         recipient_sender = sender_email
         body = (
@@ -537,10 +584,10 @@ class MessageGroupEmail(Resource):
         try:
             sendEmail(recipient_sender, subject, body)
             response['message'].append(
-                'Email to sender ' + tenant_email[e] + ' sent successfully')
+                sender_name + ': Email to sender ' + recipient_sender + ' sent successfully')
         except:
             response['message'].append(
-                'Email to sender ' + tenant_email[e] + ' failed')
+                sender_name + ': Email to sender ' + recipient_sender + ' failed')
 
         return response
 
@@ -552,81 +599,36 @@ class MessageGroupText(Resource):
         data = request.get_json(force=True)
         subject = data['announcement_title']
         message = data['announcement_msg']
-        tenant_pno = data['pno']
-        tenant_name = data['name']
+        receiver_pno = data['pno']
+        receiver_name = data['name']
         sender_name = data['sender_name']
         sender_phone = data['sender_phone']
 
-        for e in range(len(tenant_pno)):
+        for e in range(len(receiver_pno)):
             text_msg = (subject + "\n" +
                         message)
             try:
                 Send_Twilio_SMS2(
-                    text_msg, tenant_pno[e])
-                response['message'].append('Text message to ' +
-                                           tenant_pno[e] + ' sent successfully')
+                    text_msg, receiver_pno[e])
+                response['message'].append(receiver_name[e] + ': Text message to ' +
+                                           receiver_pno[e] + ' sent successfully')
 
             except:
-                response['message'].append('Text message to ' +
-                                           tenant_pno[e] + ' failed')
+                response['message'].append(receiver_name[e] + ': Text message to ' +
+                                           receiver_pno[e] + ' failed')
                 continue
         text_msg_sender = (subject + "\n" +
                            message)
         try:
             Send_Twilio_SMS2(
                 text_msg_sender, sender_phone)
-            response['message'].append('Text message to sender ' +
+            response['message'].append(sender_name+': Text message to sender ' +
                                        sender_phone + ' sent successfully')
         except:
-            response['message'].append('Text message to sender ' +
+            response['message'].append(sender_name + ': Text message to sender ' +
                                        sender_phone + ' failed')
 
         return response
-
-
-class Send_Twilio_SMS(Resource):
-
-    def post(self):
-        items = {}
-        data = request.get_json(force=True)
-        numbers = data['numbers']
-        message = data['message']
-        numbers = list(set(numbers.split(',')))
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        for destination in numbers:
-            try:
-                client.messages.create(
-                    body=message,
-                    from_='+19254815757',
-                    to="+1" + destination
-                )
-            except:
-                continue
-        items['code'] = 200
-        items['Message'] = 'SMS sent successfully to all recipients'
-        return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
-
-
-def Send_Twilio_SMS2(message, phone_number):
-    items = {}
-    numbers = phone_number
-    message = message
-    numbers = list(set(numbers.split(',')))
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-    for destination in numbers:
-        client.messages.create(
-            body=message,
-            from_='+19254815757',
-            to="+1" + destination
-        )
-        print('client.mes', client.messages.create(
-            body=message,
-            from_='+19254815757',
-            to="+1" + destination
-        ))
-    items['code'] = 200
-    items['Message'] = 'SMS sent successfully to all recipients'
-    return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
 
 
 class Announcement(Resource):
@@ -641,7 +643,7 @@ class Announcement(Resource):
                 where[f'a.{filter}'] = filterValue
         with connect() as db:
             print('filter', filter, filterValue)
-            if(filter == 'receiver' and filterValue is not None):
+            if (filter == 'receiver' and filterValue is not None):
                 print('do this if receiver')
                 response = db.execute(
                     """SELECT * FROM announcements WHERE receiver LIKE '%""" + filterValue + """%'; """)
@@ -673,7 +675,7 @@ class Announcement(Resource):
                                     ON r.rental_property_id = p.property_uid
                                     WHERE t.tenant_id LIKE '%""" + filterValue + """%' AND p.property_uid = \'""" + prop + """\' ; """)
                                     print(tenantResponse)
-                                    if(len(tenantResponse['result'])) > 0:
+                                    if (len(tenantResponse['result'])) > 0:
                                         tenantInfo.append(
                                             (tenantResponse['result'][0]))
                                     res['receiver_details'] = (tenantInfo)
@@ -693,7 +695,7 @@ class Announcement(Resource):
                                     ON p.owner_id = o.owner_id
                                     WHERE p.property_uid = \'""" + prop + """\' ; """)
                                     print(ownerResponse)
-                                    if(len(ownerResponse['result'])) > 0:
+                                    if (len(ownerResponse['result'])) > 0:
                                         ownerInfo.append(
                                             (ownerResponse['result'][0]))
                             res['receiver_details'] = (ownerInfo)
@@ -721,7 +723,7 @@ class Announcement(Resource):
                                     ON r.rental_property_id = p.property_uid
                                     WHERE p.property_uid = \'""" + prop + """\' ; """)
                                     print(tenantResponse['result'])
-                                    if(len(tenantResponse['result'])) > 0:
+                                    if (len(tenantResponse['result'])) > 0:
                                         for tenant in tenantResponse['result']:
                                             tenantInfo.append(tenant)
                             res['receiver_details'] = (tenantInfo)
@@ -765,7 +767,7 @@ class Announcement(Resource):
                                             ON r.rental_property_id = p.property_uid
                                             WHERE tenant_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
                                             print(tenantResponse)
-                                            if(len(tenantResponse['result'])) > 0:
+                                            if (len(tenantResponse['result'])) > 0:
                                                 tenantInfo.append(
                                                     (tenantResponse['result'][0]))
                                     res['receiver_details'] = (tenantInfo)
@@ -789,7 +791,7 @@ class Announcement(Resource):
                                             ON p.owner_id = o.owner_id
                                             WHERE o.owner_id =  \'""" + info + """\' AND p.property_uid = \'""" + prop + """\' ; """)
                                             print(ownerResponse)
-                                            if(len(ownerResponse['result'])) > 0:
+                                            if (len(ownerResponse['result'])) > 0:
                                                 ownerInfo.append(
                                                     (ownerResponse['result'][0]))
                                     res['receiver_details'] = (ownerInfo)
@@ -818,7 +820,7 @@ class Announcement(Resource):
                                     ON r.rental_property_id = p.property_uid
                                     WHERE p.property_uid = \'""" + prop + """\' ; """)
                                     print(tenantResponse['result'])
-                                    if(len(tenantResponse['result'])) > 0:
+                                    if (len(tenantResponse['result'])) > 0:
                                         for tenant in tenantResponse['result']:
                                             tenantInfo.append(tenant)
                             res['receiver_details'] = (tenantInfo)
@@ -1033,7 +1035,7 @@ class TenantEmailNotifications_CLASS(Resource):
                         # if fee_type is $, put the charge amount directly
                         print(lease['property_uid'], payment)
 
-                        if(payment['fee_name'] == 'Rent'):
+                        if (payment['fee_name'] == 'Rent'):
                             print('payment fee purchase_type RENT')
                             if payment['frequency'] == 'Weekly':
                                 print('payment frequency weekly $')
@@ -1705,7 +1707,7 @@ def TenantEmailNotifications(self):
                     # if fee_type is $, put the charge amount directly
                     print(lease['property_uid'], payment)
 
-                    if(payment['fee_name'] == 'Rent'):
+                    if (payment['fee_name'] == 'Rent'):
                         print('payment fee purchase_type RENT')
                         if payment['frequency'] == 'Weekly':
                             print('payment frequency weekly $')
@@ -2330,6 +2332,7 @@ api.add_resource(OwnerCashflow, "/ownerCashflow")
 api.add_resource(OwnerCashflowProperty, "/ownerCashflowProperty")
 # CashflowManager
 api.add_resource(CashflowManager, "/CashflowManager")
+api.add_resource(AllCashflowManager, "/AllCashflowManager")
 # CashflowOwner
 api.add_resource(CashflowOwner, "/CashflowOwner")
 # contact
@@ -2458,5 +2461,6 @@ api.add_resource(TenantEmailNotifications_CLASS,
                  '/TenantEmailNotifications_CLASS')
 api.add_resource(set_temp_password, "/set_temp_password")
 api.add_resource(update_email_password, '/update_email_password')
+api.add_resource(GetToken, '/GetToken')
 if __name__ == '__main__':
     app.run(debug=True)
