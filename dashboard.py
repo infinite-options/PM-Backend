@@ -463,7 +463,7 @@ class OwnerDashboard(Resource):
                             FROM pm.bills b                
                             WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                            if(len(billRes['result']) > 0):
+                            if (len(billRes['result']) > 0):
                                 for j in range(len(billRes['result'])):
                                     expense_res['result'][i].update(
                                         billRes['result'][j])
@@ -473,16 +473,18 @@ class OwnerDashboard(Resource):
                         elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
                             # print('in maintenance')
                             if expense_res['result'][i]['linked_bill_id'] != None:
+                                print(expense_res['result']
+                                      [i]['linked_bill_id'])
                                 maintenanceRes = db.execute("""
                                 SELECT mq.*, mr.*, b.*
                                 FROM maintenanceQuotes mq
                                 LEFT JOIN pm.maintenanceRequests mr
                                 ON mr.maintenance_request_uid = mq.linked_request_uid
                                 LEFT JOIN pm.businesses b
-                                ON b.business_uid = mq.quote_business_uid)
-                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
-
-                                if(len(maintenanceRes['result']) > 0):
+                                ON b.business_uid = mq.quote_business_uid
+                                WHERE  mr.maintenance_request_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                                print(maintenanceRes)
+                                if (len(maintenanceRes['result']) > 0):
                                     for j in range(len(maintenanceRes['result'])):
                                         expense_res['result'][i].update(
                                             maintenanceRes['result'][j])
@@ -497,9 +499,9 @@ class OwnerDashboard(Resource):
                                 ON mr.maintenance_request_uid = mq.linked_request_uid
                                 LEFT JOIN pm.businesses b
                                 ON b.business_uid = mq.quote_business_uid
-                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                                WHERE  mr.maintenance_request_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                                if(len(repairRes['result']) > 0):
+                                if (len(repairRes['result']) > 0):
                                     for j in range(len(repairRes['result'])):
                                         expense_res['result'][i].update(
                                             repairRes['result'][j])
@@ -799,7 +801,7 @@ class ManagerDashboard(Resource):
                             FROM pm.bills b
                             WHERE b.bill_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                            if(len(billRes['result']) > 0):
+                            if (len(billRes['result']) > 0):
                                 for j in range(len(billRes['result'])):
                                     expense_res['result'][i].update(
                                         billRes['result'][j])
@@ -816,9 +818,9 @@ class ManagerDashboard(Resource):
                                 ON mr.maintenance_request_uid = mq.linked_request_uid
                                 LEFT JOIN pm.businesses b
                                 ON b.business_uid = mq.quote_business_uid
-                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                                WHERE  mr.maintenance_request_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                                if(len(maintenanceRes['result']) > 0):
+                                if (len(maintenanceRes['result']) > 0):
                                     for j in range(len(maintenanceRes['result'])):
                                         expense_res['result'][i].update(
                                             maintenanceRes['result'][j])
@@ -833,9 +835,9 @@ class ManagerDashboard(Resource):
                                 ON mr.maintenance_request_uid = mq.linked_request_uid
                                 LEFT JOIN pm.businesses b
                                 ON b.business_uid = mq.quote_business_uid
-                                WHERE  mq.maintenance_quote_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
+                                WHERE  mr.maintenance_request_uid = \'""" + expense_res['result'][i]['linked_bill_id'] + """\' """)
 
-                                if(len(repairRes['result']) > 0):
+                                if (len(repairRes['result']) > 0):
                                     for j in range(len(repairRes['result'])):
                                         expense_res['result'][i].update(
                                             repairRes['result'][j])

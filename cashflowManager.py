@@ -191,6 +191,6 @@ class AllCashflowManager(Resource):
                 WHERE prop.property_uid= \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')
-                ORDER BY pur.next_payment;""")
+                ORDER BY pur.next_payment DESC;""")
 
             return response
