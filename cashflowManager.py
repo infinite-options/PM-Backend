@@ -178,9 +178,7 @@ class AllCashflowManager(Resource):
             response = db.execute("""
                 SELECT prop.owner_id, prop.property_uid, address, unit, city,
                 state, zip, 
-                pur.*, 
-                DATE_FORMAT(next_payment, "%M") AS month, 
-                DATE_FORMAT(next_payment, "%Y") AS year
+                pur.*
                 FROM pm.properties prop
                 LEFT JOIN pm.purchases pur
                 ON pur_property_id LIKE CONCAT ('%',prop.property_uid, '%')
@@ -190,7 +188,7 @@ class AllCashflowManager(Resource):
                 ON c.property_uid LIKE CONCAT('%', prop.property_uid, '%')
                 WHERE prop.property_uid= \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
-                AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')
+                AND (pr.management_status= 'ACCEPTED' OR pr.management_status='PM END EARLY' OR pr.management_status='OWNER END EARLY')
                 ORDER BY pur.next_payment DESC;""")
 
             return response
