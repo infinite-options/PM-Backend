@@ -25,7 +25,7 @@ from managerProfileInfo import ManagerProfileInfo, ManagerClients, ManagerProper
 from managerProperties import ManagerProperties, ManagerContractFees_CLASS, ManagerContractFees
 from ownerProfileInfo import OwnerProfileInfo
 from ownerProperties import OwnerProperties, PropertiesOwnerDetail, PropertiesOwner, OwnerPropertyBills
-from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON, MaintenancePayments
+from payments import ManagerPayments, Payments, UserPayments, OwnerPayments, MarkUnpaid, TenantPayments_CLASS, ManagerPayments_CLASS, TenantPayments, ManagerPayments_CRON, MaintenancePayments
 from properties import Properties, Property, NotManagedProperties, CancelAgreement, ManagerContractEnd_CLASS, RemovePropertyOwner
 from propertyInfo import PropertyInfo, AvailableProperties, PropertiesManagerDetail
 from purchases import Purchases, CreateExpenses, DeletePurchase
@@ -2390,6 +2390,7 @@ api.add_resource(UserPayments, '/userPayments')
 api.add_resource(ManagerPayments, '/managerPayments')
 api.add_resource(MaintenancePayments, '/maintenancePayments')
 api.add_resource(OwnerPayments, '/ownerPayments')
+api.add_resource(MarkUnpaid, '/MarkUnpaid')
 api.add_resource(TenantPayments_CLASS, '/TenantPayments_CLASS')
 api.add_resource(ManagerPayments_CLASS, '/ManagerPayments_CLASS')
 # properties

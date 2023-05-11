@@ -8308,3 +8308,31 @@ def ManagerPayments_CRON():
                                 print('payment frequency one-time %')
 
         return response
+
+
+class MarkUnpaid(Resource):
+    def put(self):
+        response = {}
+        with connect() as db:
+            data = request.json
+            # res = db.execute("""SELECT * FROM p.purchase pur
+            # WHERE pur.purchase_uid = \'""" + data['purchase_uid'] + """\' """)
+
+            updatePurchase = {
+                'purchase_status': 'UNPAID',
+                'amount_paid': 0,
+            }
+            primaryKey = {
+                'purchase_uid': data['purchase_uid']
+            }
+            response = db.update('purchases',
+                                 primaryKey, updatePurchase)
+
+            res = db.execute("""SELECT * FROM pm.payments pa
+            WHERE pa.pay_purchase_id = \'""" + data['purchase_uid'] + """\' """)
+
+            print(res)
+            if len(res['result']) > 0:
+                del_pay = pur_response = db.delete(
+                    """DELETE FROM pm.payments WHERE payment_uid= \'""" + res['result'][0]['payment_uid'] + """\' """)
+        return response

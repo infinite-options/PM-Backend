@@ -42,7 +42,8 @@ class CashflowManager(Resource):
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')               
-                AND (YEAR(pur.next_payment) = \'""" + year + """\');""")
+                AND (YEAR(pur.next_payment) = \'""" + year + """\')
+                ORDER BY address,unit ASC;""")
 
             # revenue summary
             response_revenue_summary = db.execute("""
@@ -63,7 +64,8 @@ class CashflowManager(Resource):
                     AND pr.linked_business_id = \'""" + filterValue + """\'
                     AND c.contract_status = 'ACTIVE'
                     AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
 
             # revenue by unit
             response_revenue_unit = db.execute("""
@@ -85,7 +87,8 @@ class CashflowManager(Resource):
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
 
             response['result']['revenue'] = list(
                 response_revenue['result'])
@@ -111,7 +114,8 @@ class CashflowManager(Resource):
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED') 
-                AND (YEAR(pur.next_payment) = \'""" + year + """\');""")
+                AND (YEAR(pur.next_payment) = \'""" + year + """\')
+                ORDER BY address,unit ASC;""")
             print(response_expense)
             # expense summary
             response_expense_summary = db.execute("""
@@ -133,7 +137,8 @@ class CashflowManager(Resource):
                     AND c.contract_status = 'ACTIVE'
                     AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')    
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
             print(response_expense_summary)
             # expense by unit
             response_expense_unit = db.execute("""
@@ -153,7 +158,8 @@ class CashflowManager(Resource):
                 AND c.contract_status = 'ACTIVE'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED') 
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
             print(response_expense_unit)
             response['result']['expense_summary'] = list(
                 response_expense_summary['result'])

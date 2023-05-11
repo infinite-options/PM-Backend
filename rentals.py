@@ -85,6 +85,18 @@ class Rentals(Resource):
                 else:
                     break
             newRental['documents'] = json.dumps(documents)
+
+            docuSign = json.loads(data.get('docuSign'))
+            for i in range(len(docuSign)):
+                filename = f'doc_{i}'
+                file = request.files.get(filename)
+                if file:
+                    key = f'rentals/{newRentalID}/{filename}'
+                    doc = uploadImage(file, key, '')
+                    docuSign[i]['link'] = doc
+                else:
+                    break
+            newRental['docuSign'] = json.dumps(docuSign)
             # print('newRental', newRental)
             response = db.insert('rentals', newRental)
             # print(response)
@@ -306,7 +318,7 @@ class UpdateActiveLease(Resource):
                                 AND description LIKE '%""" + payment['fee_name'] + """%'  """)
                                 if len(pur_response['result']) > 0:
                                     for purchase in pur_response['result']:
-                                        if(purchase['purchase_status'] == 'UNPAID' and purchase['purchase_date'] <= getRentInfo['result'][0]['effective_date'] and purchase['next_payment'] >= getRentInfo['result'][0]['effective_date']):
+                                        if (purchase['purchase_status'] == 'UNPAID' and purchase['purchase_date'] <= getRentInfo['result'][0]['effective_date'] and purchase['next_payment'] >= getRentInfo['result'][0]['effective_date']):
                                             # print('in purchase', purchase)
                                             purchaseResponse = newPurchase(
                                                 linked_bill_id=None,
@@ -341,7 +353,7 @@ class UpdateActiveLease(Resource):
                         if len(unpaidPurchases['result']) > 0:
 
                             for unpaid in unpaidPurchases['result']:
-                                if(any(unpaid['description'] == payment['fee_name'] for payment in rentPayments)):
+                                if (any(unpaid['description'] == payment['fee_name'] for payment in rentPayments)):
                                     print('do nothing')
                                 else:
                                     # print(unpaid['description'])
@@ -400,7 +412,7 @@ class UpdateActiveLease(Resource):
                                     # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
                                     charge_month = due_date.strftime(
                                         '%B')
-                                    if(due_date >= effective_date):
+                                    if (due_date >= effective_date):
                                         if charge_month == start_date.strftime('%B') and (effective_date-due_date).days < 7:
                                             daily_charge = int(
                                                 int(payment['charge']) / 7)
@@ -609,7 +621,7 @@ class UpdateActiveLease(Resource):
 
                                 while available_date < today:
                                     # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
-                                    if(due_date >= effective_date):
+                                    if (due_date >= effective_date):
                                         charge_month = due_date.strftime(
                                             '%B')
                                         charge = int(
@@ -799,7 +811,7 @@ class UpdateActiveLease(Resource):
                                 # print('monthly')
                                 while available_date < today:
                                     # if(available_date > effective_date or (available_date < effective_date and due_date > effective_date)):
-                                    if(due_date >= effective_date):
+                                    if (due_date >= effective_date):
                                         charge_month = due_date.strftime(
                                             '%B')
                                         if charge_month == start_date.strftime(
@@ -1220,7 +1232,7 @@ class UpdateActiveLease(Resource):
                             else:
                                 # print('one-time', due_date)
                                 # if(available_date > effective_date or (available_date < effective_date and due_date >= effective_date)):
-                                if(due_date >= effective_date):
+                                if (due_date >= effective_date):
                                     charge = int(payment['charge'])
                                     newPurchase = {
                                         "linked_bill_id": None,
@@ -1432,9 +1444,9 @@ class UpdateActiveLease(Resource):
                                 for paid in paidEntries:
                                     for new in newEntries:
                                         # if same purchase found, remove from newEntries list
-                                        if(paid['pur_property_id'] == new['pur_property_id'] and paid['payer'] == new['payer'] and paid['description'] == new['description'] and paid['purchase_notes'] == new['purchase_notes']):
+                                        if (paid['pur_property_id'] == new['pur_property_id'] and paid['payer'] == new['payer'] and paid['description'] == new['description'] and paid['purchase_notes'] == new['purchase_notes']):
                                             newEntries.remove(new)
-                                        elif(paid['pur_property_id'] == new['pur_property_id'] and paid['payer'] == new['payer'] and paid['description'] == new['description'] and paid['purchase_frequency'] == 'One-time' and new['purchase_frequency'] == 'One-time'):
+                                        elif (paid['pur_property_id'] == new['pur_property_id'] and paid['payer'] == new['payer'] and paid['description'] == new['description'] and paid['purchase_frequency'] == 'One-time' and new['purchase_frequency'] == 'One-time'):
                                             newEntries.remove(new)
                                         else:
                                             print('do nothing')
@@ -1803,7 +1815,7 @@ class ExtendLeaseCRON_CLASS(Resource):
                             while datetime.strftime(available_date, '%Y-%m-%d') < today and datetime.strftime(due_date, '%Y-%m-%d') < nl['lease_end']:
                                 charge_month = due_date.strftime(
                                     '%B')
-                                if(payment['fee_name'] == 'Rent'):
+                                if (payment['fee_name'] == 'Rent'):
                                     if charge_month == charge_date.strftime(
                                             '%B') and charge_date.strftime('%d') != '01':
                                         # prorate first month
@@ -1971,7 +1983,7 @@ class ExtendLeaseCRON_CLASS(Resource):
                                             print(
                                                 'payment frequency one-time %')
 
-                                elif(payment['fee_name'] == 'Deposit'):
+                                elif (payment['fee_name'] == 'Deposit'):
                                     purchaseResponse = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=json.dumps(
@@ -2157,7 +2169,7 @@ class ExtendLeaseCRON_CLASS(Resource):
 
                             charge_month = due_date.strftime(
                                 '%B')
-                            if(payment['fee_name'] == 'Rent'):
+                            if (payment['fee_name'] == 'Rent'):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(
@@ -2172,7 +2184,7 @@ class ExtendLeaseCRON_CLASS(Resource):
                                     purchase_frequency=payment['frequency'],
                                     next_payment=due_date
                                 )
-                            elif(payment['fee_name'] == 'Deposit'):
+                            elif (payment['fee_name'] == 'Deposit'):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(
@@ -2326,7 +2338,7 @@ def ExtendLeaseCRON():
                         while datetime.strftime(available_date, '%Y-%m-%d') < today and datetime.strftime(due_date, '%Y-%m-%d') < nl['lease_end']:
                             charge_month = due_date.strftime(
                                 '%B')
-                            if(payment['fee_name'] == 'Rent'):
+                            if (payment['fee_name'] == 'Rent'):
                                 if charge_month == charge_date.strftime(
                                         '%B') and charge_date.strftime('%d') != '01':
                                     # prorate first month
@@ -2494,7 +2506,7 @@ def ExtendLeaseCRON():
                                         print(
                                             'payment frequency one-time %')
 
-                            elif(payment['fee_name'] == 'Deposit'):
+                            elif (payment['fee_name'] == 'Deposit'):
                                 purchaseResponse = newPurchase(
                                     linked_bill_id=None,
                                     pur_property_id=json.dumps(
@@ -2680,7 +2692,7 @@ def ExtendLeaseCRON():
 
                         charge_month = due_date.strftime(
                             '%B')
-                        if(payment['fee_name'] == 'Rent'):
+                        if (payment['fee_name'] == 'Rent'):
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
                                 pur_property_id=json.dumps(
@@ -2695,7 +2707,7 @@ def ExtendLeaseCRON():
                                 purchase_frequency=payment['frequency'],
                                 next_payment=due_date
                             )
-                        elif(payment['fee_name'] == 'Deposit'):
+                        elif (payment['fee_name'] == 'Deposit'):
                             purchaseResponse = newPurchase(
                                 linked_bill_id=None,
                                 pur_property_id=json.dumps(

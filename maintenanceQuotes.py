@@ -354,6 +354,8 @@ class FinishMaintenanceNoQuote(Resource):
             linked_mr = db.execute("""SELECT * FROM pm.maintenanceRequests mr
             LEFT JOIN pm.propertyManager p
             ON p.linked_property_id = mr.property_uid 
+            LEFT JOIN pm.properties prop
+            ON prop.property_uid = mr.property_uid
             WHERE mr.maintenance_request_uid = \'""" + maintenance_request_uid + """\'
             AND (p.management_status = 'ACCEPTED' OR p.management_status='END EARLY' OR p.management_status='PM END EARLY' OR p.management_status='OWNER END EARLY');""")
             if len(linked_mr['result']) > 0:
@@ -375,7 +377,7 @@ class FinishMaintenanceNoQuote(Resource):
                     i += 1
                 images = updateImages(imageFiles, maintenance_request_uid)
                 updateRequest = {
-                    'request_closed_date': request_adjustment_date,
+                    'request_closed_date': (request_adjustment_date),
                     'request_status': request_status,
                     'request_adjustment_date': request_adjustment_date,
                     'notes': notes,
@@ -396,7 +398,7 @@ class FinishMaintenanceNoQuote(Resource):
                 pur_property_id=json.dumps(
                     [linked_mr['result'][0]['property_uid']]),
                 payer=json.dumps(
-                    [linked_mr['result'][0]['request_created_by']]),
+                    [linked_mr['result'][0]['owner_id']]),
                 receiver=linked_mr['result'][0]['linked_business_id'],
                 purchase_type='MAINTENANCE',
                 description=linked_mr['result'][0]['title'],
