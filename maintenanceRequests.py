@@ -432,6 +432,47 @@ class MaintenanceRequestsandQuotes(Resource):
                         quotes_res['result'])
                     response['result'][i]['total_quotes'] = len(
                         quotes_res['result'])
+                    # owner info for the property
+                    owner_res = db.execute("""
+                    SELECT
+                    o.owner_id AS owner_id,
+                    o.owner_first_name AS owner_first_name,
+                    o.owner_last_name AS owner_last_name,
+                    o.owner_email AS owner_email ,
+                    o.owner_phone_number AS owner_phone_number
+                    FROM pm.ownerProfileInfo o
+                    WHERE o.owner_id = \'""" + response['result'][i]['owner_id'] + """\'""")
+                    response['result'][i]['owner'] = list(owner_res['result'])
+                    rental_res = db.execute("""
+                   SELECT r.*,
+                    GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                    GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                    GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                    GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                    GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                    FROM pm.rentals r 
+                    LEFT JOIN pm.leaseTenants lt
+                    ON lt.linked_rental_uid = r.rental_uid
+                    LEFT JOIN pm.tenantProfileInfo tpi
+                    ON tpi.tenant_id = lt.linked_tenant_id
+                    WHERE r.rental_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                    AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                    GROUP BY lt.linked_rental_uid""")
+
+                    if len(rental_res['result']) > 0:
+
+                        response['result'][i]['rentalInfo'] = list(
+                            rental_res['result'])
+                    else:
+                        response['result'][i]['rentalInfo'] = 'Not Rented'
+
+                    manager_res = db.execute("""SELECT * FROM businesses b WHERE b.business_uid = \'""" + response['result'][i]['linked_business_id'] + """\' """)
+                    if len(manager_res['result']) > 0:
+
+                        response['result'][i]['managerInfo'] = list(
+                            manager_res['result'])
+                    else:
+                        response['result'][i]['managerInfo'] = 'Not Rented'
             else:
                 response = db.select(
                     ''' maintenanceRequests request ''', where)

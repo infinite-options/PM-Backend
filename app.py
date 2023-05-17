@@ -1,4 +1,9 @@
 
+from docusign_esign.client.api_exception import ApiException
+from docusign_esign import ApiClient, AccountsApi
+from flask import current_app as apprequest
+import requests
+from os import path
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
 from applepay import ApplePay
@@ -47,7 +52,7 @@ from flask_mail import Mail, Message
 
 from flask import request, redirect, url_for
 from flask_restful import Resource
-# from flask_oauthlib.client import OAuth
+
 import os
 import uuid
 import stripe
@@ -71,14 +76,11 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 jwt = JWTManager(app)
 
 # Twilio settings
-print(os.path)
-
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
-
-app.config['MAIL_USERNAME'] = os.environ.get('SUPPORT_EMAIL')
-app.config['MAIL_PASSWORD'] = os.environ.get('SUPPORT_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+app.config['MAIL_USERNAME'] = os.getenv('SUPPORT_EMAIL')
+app.config['MAIL_PASSWORD'] = os.getenv('SUPPORT_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
 app.config["MAIL_SERVER"] = "smtp.mydomain.com"
 app.config["MAIL_PORT"] = 465
@@ -88,37 +90,15 @@ app.config["MAIL_USE_SSL"] = True
 
 # STRIPE KEYS
 
-stripe_public_test_key = os.environ.get("stripe_public_test_key")
-stripe_secret_test_key = os.environ.get("stripe_secret_test_key")
+stripe_public_test_key = os.getenv("stripe_public_test_key")
+stripe_secret_test_key = os.getenv("stripe_secret_test_key")
 
-stripe_public_live_key = os.environ.get("stripe_public_live_key")
-stripe_secret_live_key = os.environ.get("stripe_secret_live_key")
+stripe_public_live_key = os.getenv("stripe_public_live_key")
+stripe_secret_live_key = os.getenv("stripe_secret_live_key")
 
 stripe.api_key = stripe_secret_test_key
 
 mail = Mail(app)
-# oauth = OAuth(app)
-
-
-class GetToken(Resource):
-    """Get access token from Docusign API using a client ID and its secret.
-
-    More info on https://requests-oauthlib.readthedocs.io/en/latest/oauth2_workflow.html#backend-application-flow
-    """
-
-    def get(self):
-        client_id = 'b37b90c2-bc4a-443b-824f-ca11c80af8b1'
-        client_secret = '91054378-5b28-48d7-a8d1-eb442498df76'
-        token_url = 'https://account-d.docusign.com/oauth/token'
-        client = BackendApplicationClient(client_id=client_id)
-        oauth = OAuth2Session(client=client)
-        token = oauth.fetch_token(
-            token_url=token_url,
-            client_id=client_id,
-            client_secret=client_secret
-        )
-        return "Bearer " + token["access_token"]
-
 
 def sendEmail(recipient, subject, body):
     with app.app_context():
@@ -139,19 +119,20 @@ def Send_Twilio_SMS2(message, phone_number):
     numbers = list(set(numbers.split(',')))
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     for destination in numbers:
-        client.messages.create(
+        message = client.messages.create(
             body=message,
             from_='+19254815757',
             to="+1" + destination
         )
-        print('client.mes', client.messages.create(
-            body=message,
-            from_='+19254815757',
-            to="+1" + destination
-        ))
+        # print('client.mes', client.messages.create(
+        #     body=message,
+        #     from_='+19254815757',
+        #     to="+1" + destination
+        # ))
+
     items['code'] = 200
     items['Message'] = 'SMS sent successfully to all recipients'
-    return {'code': 200, 'Message': 'SMS sent successfully to all recipients'}
+    return items
 
 
 class Send_Twilio_SMS(Resource):
@@ -205,7 +186,7 @@ class LeaseExpiringNotify_CLASS(Resource):
             WHERE r.lease_end = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 MONTH), "%Y-%m-%d")
             AND r.rental_status='ACTIVE'
             AND pM.management_status= 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY'; """)
-
+            print(response)
             if len(response['result']) > 0:
                 for i in range(len(response['result'])):
                     print(response['result'][i]['rental_uid'])
@@ -497,17 +478,18 @@ class MessageText(Resource):
 
     def get(self):
         response = {}
-        filters = ['message_uid', 'message_created_at',
+        filters = ['message_uid', 'message_created_at', 'request_linked_id',
                    'sender_name', 'sender_email', 'sender_phone', 'message_subject', 'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
             if filterValue is not None:
-                where[f'a.{filter}'] = filterValue
+                where[f'{filter}'] = filterValue
         with connect() as db:
             sql = 'SELECT  FROM messages c'
             cols = 'c.*'
             tables = 'messages c '
+            print(where)
             response = db.select(cols=cols, tables=tables, where=where)
         return response
 
@@ -516,8 +498,15 @@ class MessageText(Resource):
         with connect() as db:
             data = request.json
             fields = ['sender_name', 'sender_email', 'sender_phone', 'message_subject',
-                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone']
+                      'message_details', 'message_created_by', 'user_messaged', 'message_status', 'receiver_email', 'receiver_phone', 'request_linked_id']
             newMessage = {}
+
+            subject = data['message_subject']
+            message = data['message_details']
+            recipient = data['receiver_phone']
+            text_msg = (subject + "\n" +
+                        message)
+            
             for field in fields:
                 fieldValue = data.get(field)
                 print(fields, fieldValue)
@@ -525,24 +514,20 @@ class MessageText(Resource):
                     newMessage[field] = fieldValue
             newMessageID = db.call('new_message_uid')['result'][0]['new_id']
             newMessage['message_uid'] = newMessageID
-
-            print('newMessage', newMessage)
-            response = db.insert('messages', newMessage)
-            response['message_uid'] = newMessageID
-
-            subject = data['message_subject']
-            message = data['message_details']
-            recipient = data['receiver_phone']
-            text_msg = (subject + "\n" +
-                        message)
             try:
                 Send_Twilio_SMS2(
                     text_msg, recipient)
                 response['message'] = 'Text message to ' + \
                     recipient + ' sent successfully'
+                
             except:
                 response['message'] = 'Text message to ' + \
                     recipient + ' failed'
+
+            print(response)
+            print('newMessage', newMessage)
+            response = db.insert('messages', newMessage)
+            response['message_uid'] = newMessageID
 
         return response
 
@@ -550,44 +535,69 @@ class MessageText(Resource):
 class MessageGroupEmail(Resource):
     def post(self):
         response = {}
-        response['message'] = []
-        data = request.get_json(force=True)
-        sender_name = data['sender_name']
-        sender_email = data['sender_email']
-        subject = data['announcement_title']
-        message = data['announcement_msg']
-        receiver_email = data['email']
-        receiver_name = data['name']
+        with connect() as db:
+            response['message'] = []
+            data = request.get_json(force=True)
+            receiver_id = data['id']
+            sender_id = data['sender_id']
+            sender_name = data['sender_name']
+            sender_email = data['sender_email']
+            sender_phone = data['sender_phone']
+            subject = data['announcement_title']
+            message = data['announcement_msg']
+            receiver_email = data['email']
+            receiver_name = data['name']
+            receiver_pno = data['pno']
 
-        for e in range(len(receiver_email)):
+            for e in range(len(receiver_email)):
 
-            recipient = receiver_email[e]
+                recipient = receiver_email[e]
+                body = (
+                    "Hello " + receiver_name[e] + "\n"
+                    "\n" + str(message) + "\n"
+                    "\n"
+                )
+                try:
+                    sendEmail(recipient, subject, body)
+                    response['message'].append(
+                        receiver_name[e] + ': Email to ' + receiver_email[e] + ' sent successfully')
+
+                    response['message'].append(receiver_name[e] + ': Text message to ' +
+                                               receiver_pno[e] + ' sent successfully')
+                    newMessageID = db.call('new_message_uid')[
+                        'result'][0]['new_id']
+                    newMessage = {
+                        "sender_name": sender_name,
+                        "sender_email": sender_email,
+                        "sender_phone": sender_phone,
+                        "message_subject": subject,
+                        "message_details": message,
+                        "message_created_by": sender_id,
+                        "user_messaged": receiver_id[e],
+                        "message_status": "PENDING",
+                        "receiver_email": receiver_email[e],
+                        "receiver_phone": receiver_pno[e],
+                        "message_created_at": datetime.now()
+                    }
+                    newMessage['message_uid'] = newMessageID
+                    res = db.insert('messages', newMessage)
+                except:
+                    response['message'].append(
+                        receiver_name[e] + ': Email to ' + receiver_email[e] + ' failed')
+                    continue
+            recipient_sender = sender_email
             body = (
-                "Hello " + receiver_name[e] + "\n"
+                "Hello " + sender_name + "\n"
                 "\n" + str(message) + "\n"
                 "\n"
             )
             try:
-                sendEmail(recipient, subject, body)
+                sendEmail(recipient_sender, subject, body)
                 response['message'].append(
-                    receiver_name[e] + ': Email to ' + receiver_email[e] + ' sent successfully')
+                    sender_name + ': Email to sender ' + recipient_sender + ' sent successfully')
             except:
                 response['message'].append(
-                    receiver_name[e] + ': Email to ' + receiver_email[e] + ' failed')
-                continue
-        recipient_sender = sender_email
-        body = (
-            "Hello " + sender_name + "\n"
-            "\n" + str(message) + "\n"
-            "\n"
-        )
-        try:
-            sendEmail(recipient_sender, subject, body)
-            response['message'].append(
-                sender_name + ': Email to sender ' + recipient_sender + ' sent successfully')
-        except:
-            response['message'].append(
-                sender_name + ': Email to sender ' + recipient_sender + ' failed')
+                    sender_name + ': Email to sender ' + recipient_sender + ' failed')
 
         return response
 
@@ -595,38 +605,61 @@ class MessageGroupEmail(Resource):
 class MessageGroupText(Resource):
     def post(self):
         response = {}
-        response['message'] = []
-        data = request.get_json(force=True)
-        subject = data['announcement_title']
-        message = data['announcement_msg']
-        receiver_pno = data['pno']
-        receiver_name = data['name']
-        sender_name = data['sender_name']
-        sender_phone = data['sender_phone']
+        with connect() as db:
+            response['message'] = []
+            data = request.get_json(force=True)
+            subject = data['announcement_title']
+            message = data['announcement_msg']
+            receiver_id = data['id']
+            receiver_pno = data['pno']
+            receiver_name = data['name']
+            receiver_email = data['email']
+            sender_id = data['sender_id']
+            sender_name = data['sender_name']
+            sender_phone = data['sender_phone']
+            sender_email = data['sender_email']
 
-        for e in range(len(receiver_pno)):
-            text_msg = (subject + "\n" +
-                        message)
+            for e in range(len(receiver_pno)):
+                newMessage = {}
+                text_msg = (subject + "\n" +
+                            message)
+                try:
+                    Send_Twilio_SMS2(
+                        text_msg, receiver_pno[e])
+                    response['message'].append(receiver_name[e] + ': Text message to ' +
+                                               receiver_pno[e] + ' sent successfully')
+                    newMessageID = db.call('new_message_uid')[
+                        'result'][0]['new_id']
+                    newMessage = {
+                        "sender_name": sender_name,
+                        "sender_email": sender_email,
+                        "sender_phone": sender_phone,
+                        "message_subject": subject,
+                        "message_details": message,
+                        "message_created_by": sender_id,
+                        "user_messaged": receiver_id[e],
+                        "message_status": "PENDING",
+                        "receiver_email": receiver_email[e],
+                        "receiver_phone": receiver_pno[e],
+                        "message_created_at": datetime.now()
+                    }
+                    newMessage['message_uid'] = newMessageID
+                    res = db.insert('messages', newMessage)
+
+                except:
+                    response['message'].append(receiver_name[e] + ': Text message to ' +
+                                               receiver_pno[e] + ' failed')
+                    continue
+            text_msg_sender = (subject + "\n" +
+                               message)
             try:
                 Send_Twilio_SMS2(
-                    text_msg, receiver_pno[e])
-                response['message'].append(receiver_name[e] + ': Text message to ' +
-                                           receiver_pno[e] + ' sent successfully')
-
+                    text_msg_sender, sender_phone)
+                response['message'].append(sender_name+': Text message to sender ' +
+                                           sender_phone + ' sent successfully')
             except:
-                response['message'].append(receiver_name[e] + ': Text message to ' +
-                                           receiver_pno[e] + ' failed')
-                continue
-        text_msg_sender = (subject + "\n" +
-                           message)
-        try:
-            Send_Twilio_SMS2(
-                text_msg_sender, sender_phone)
-            response['message'].append(sender_name+': Text message to sender ' +
-                                       sender_phone + ' sent successfully')
-        except:
-            response['message'].append(sender_name + ': Text message to sender ' +
-                                       sender_phone + ' failed')
+                response['message'].append(sender_name + ': Text message to sender ' +
+                                           sender_phone + ' failed')
 
         return response
 
@@ -853,9 +886,11 @@ class Announcement(Resource):
             tenant_pno = []
             tenant_email = []
             tenant_name = []
+            tenant_id = []
             owner_pno = []
             owner_email = []
             owner_name = []
+            owner_id = []
             if len(data['receiver']) > 0:
                 if data['announcement_mode'] == 'Owners':
                     print('send to owner info')
@@ -870,6 +905,8 @@ class Announcement(Resource):
                         FROM pm.ownerProfileInfo
                         WHERE
                         owner_id =  \'""" + info + """\'; """)
+                        owner_id.append(
+                            ownerResponse['result'][0]['owner_id'])
                         owner_pno.append(
                             ownerResponse['result'][0]['owner_phone_number'])
                         owner_email.append(
@@ -879,6 +916,7 @@ class Announcement(Resource):
                         response['name'] = owner_name
                         response['pno'] = owner_pno
                         response['email'] = owner_email
+                        response['id'] = owner_id
 
                 else:
 
@@ -893,6 +931,9 @@ class Announcement(Resource):
                         FROM pm.tenantProfileInfo
                         WHERE
                         tenant_id =  \'""" + info + """\'; """)
+
+                        tenant_id.append(
+                            ownerResponse['result'][0]['tenant_id'])
                         tenant_pno.append(
                             tenantResponse['result'][0]['tenant_phone_number'])
                         tenant_email.append(
@@ -903,6 +944,7 @@ class Announcement(Resource):
                         response['name'] = tenant_name
                         response['pno'] = tenant_pno
                         response['email'] = tenant_email
+                        response['id'] = tenant_id
         return response
 
 
@@ -1163,7 +1205,9 @@ class TenantEmailNotifications_CLASS(Resource):
                                 # check if today's date is before lease end
                                 if today < lease_end:
                                     # get previous purchases
+                                    print('here')
                                     if lease['prevPurchases'] != []:
+                                        print('here 2')
                                         for prev in lease['prevPurchases']:
                                             if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
                                                 prevPurchaseDate = datetime.strptime(
@@ -1509,7 +1553,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     recipient, subject, body)
 
                             elif payment['frequency'] == 'Monthly':
-                                print('payment frequency monthly $')
+                                print('payment frequency monthly? $')
                                 lease_start = date.fromisoformat(
                                     lease['lease_start'])
                                 lease_end = date.fromisoformat(
@@ -1517,6 +1561,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                 # check if today's date is before lease end
                                 if today < lease_end:
                                     # get previous purchases
+                                    print('here')
                                     if lease['prevPurchases'] != []:
                                         for prev in lease['prevPurchases']:
                                             if prev['purchase_frequency'] == 'Monthly' and payment['fee_name'] in prev['description']:
@@ -2462,6 +2507,6 @@ api.add_resource(TenantEmailNotifications_CLASS,
                  '/TenantEmailNotifications_CLASS')
 api.add_resource(set_temp_password, "/set_temp_password")
 api.add_resource(update_email_password, '/update_email_password')
-api.add_resource(GetToken, '/GetToken')
+
 if __name__ == '__main__':
     app.run(debug=True)
