@@ -100,6 +100,7 @@ stripe.api_key = stripe_secret_test_key
 
 mail = Mail(app)
 
+
 def sendEmail(recipient, subject, body):
     with app.app_context():
         print(recipient, subject, body)
@@ -506,7 +507,7 @@ class MessageText(Resource):
             recipient = data['receiver_phone']
             text_msg = (subject + "\n" +
                         message)
-            
+
             for field in fields:
                 fieldValue = data.get(field)
                 print(fields, fieldValue)
@@ -519,7 +520,7 @@ class MessageText(Resource):
                     text_msg, recipient)
                 response['message'] = 'Text message to ' + \
                     recipient + ' sent successfully'
-                
+
             except:
                 response['message'] = 'Text message to ' + \
                     recipient + ' failed'
@@ -933,7 +934,7 @@ class Announcement(Resource):
                         tenant_id =  \'""" + info + """\'; """)
 
                         tenant_id.append(
-                            ownerResponse['result'][0]['tenant_id'])
+                            tenantResponse['result'][0]['tenant_id'])
                         tenant_pno.append(
                             tenantResponse['result'][0]['tenant_phone_number'])
                         tenant_email.append(

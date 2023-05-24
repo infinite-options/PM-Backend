@@ -41,6 +41,7 @@ class CashflowManager(Resource):
                 WHERE receiver = \'""" + filterValue + """\'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')               
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')
                 ORDER BY address,unit ASC;""")
@@ -63,6 +64,7 @@ class CashflowManager(Resource):
                     WHERE pur.receiver = \'""" + filterValue + """\'
                     AND pr.linked_business_id = \'""" + filterValue + """\'
                     AND c.contract_status = 'ACTIVE'
+                    AND pur.purchase_status <> 'DELETED'
                     AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
                 GROUP BY pp.purchase_type,pp.month, pp.year
                 ORDER BY address,unit ASC;""")
@@ -86,6 +88,7 @@ class CashflowManager(Resource):
                 WHERE pur.receiver = \'""" + filterValue + """\'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
                 GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
                 ORDER BY address,unit ASC;""")
@@ -113,6 +116,7 @@ class CashflowManager(Resource):
                 WHERE payer LIKE '%""" + filterValue + """%'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED') 
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')
                 ORDER BY address,unit ASC;""")
@@ -135,6 +139,7 @@ class CashflowManager(Resource):
                     WHERE payer LIKE '%""" + filterValue + """%'
                     AND pr.linked_business_id = \'""" + filterValue + """\'
                     AND c.contract_status = 'ACTIVE'
+                    AND pur.purchase_status <> 'DELETED'
                     AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')    
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
                 GROUP BY pp.purchase_type,pp.month, pp.year
@@ -156,6 +161,7 @@ class CashflowManager(Resource):
                 WHERE payer LIKE '%""" + filterValue + """%'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED') 
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
                 GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
@@ -194,6 +200,7 @@ class AllCashflowManager(Resource):
                 ON c.property_uid LIKE CONCAT('%', prop.property_uid, '%')
                 WHERE prop.property_uid= \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status= 'ACCEPTED' OR pr.management_status='PM END EARLY' OR pr.management_status='OWNER END EARLY')
                 ORDER BY pur.next_payment ASC;""")
 
