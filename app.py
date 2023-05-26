@@ -1152,7 +1152,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1168,7 +1168,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1230,7 +1230,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1248,7 +1248,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1264,7 +1264,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1280,7 +1280,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1322,7 +1322,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1338,7 +1338,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1377,7 +1377,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1393,7 +1393,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1445,7 +1445,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1461,7 +1461,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1503,7 +1503,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1519,7 +1519,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1564,7 +1564,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1580,7 +1580,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1619,7 +1619,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1635,7 +1635,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1686,7 +1686,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1702,7 +1702,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1746,7 +1746,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1762,7 +1762,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1808,7 +1808,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1824,7 +1824,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -1863,7 +1863,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1879,7 +1879,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1922,7 +1922,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1938,7 +1938,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -1990,7 +1990,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -2006,7 +2006,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -2050,7 +2050,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -2066,7 +2066,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -2112,7 +2112,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent available to pay"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -2128,7 +2128,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                     subject = "Rent due today"
                                                     body = (
                                                         "Hello " + "\n"
-                                                        "\n" + "This email is to notify your rent is due today" + "\n"
+                                                        "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                         "\n"
                                                         "Thank you - Team Manifest MySpace"
                                                     )
@@ -2167,7 +2167,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2183,7 +2183,7 @@ class TenantEmailNotifications_CLASS(Resource):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2337,7 +2337,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2353,7 +2353,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2415,7 +2415,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2433,7 +2433,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2449,7 +2449,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2465,7 +2465,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2507,7 +2507,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent available to pay"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -2523,7 +2523,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent due today"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -2562,7 +2562,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent available to pay"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -2578,7 +2578,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent due today"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -2630,7 +2630,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2646,7 +2646,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2688,7 +2688,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2704,7 +2704,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2749,7 +2749,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2765,7 +2765,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2804,7 +2804,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent available to pay"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -2820,7 +2820,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent due today"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -2871,7 +2871,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2887,7 +2887,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2931,7 +2931,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2947,7 +2947,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -2993,7 +2993,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3009,7 +3009,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3048,7 +3048,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent available to pay"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -3064,7 +3064,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent due today"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -3107,7 +3107,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent available to pay"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -3123,7 +3123,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent due today"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -3175,7 +3175,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3191,7 +3191,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3235,7 +3235,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3251,7 +3251,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3297,7 +3297,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent available to pay"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3313,7 +3313,7 @@ def TenantEmailNotifications(self):
                                                 subject = "Rent due today"
                                                 body = (
                                                     "Hello " + "\n"
-                                                    "\n" + "This email is to notify your rent is due today" + "\n"
+                                                    "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                     "\n"
                                                     "Thank you - Team Manifest MySpace"
                                                 )
@@ -3352,7 +3352,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent available to pay"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is availablle to pay" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is posted and available to pay" + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
@@ -3368,7 +3368,7 @@ def TenantEmailNotifications(self):
                                             subject = "Rent due today"
                                             body = (
                                                 "Hello " + "\n"
-                                                "\n" + "This email is to notify your rent is due today" + "\n"
+                                                "\n" + "This is a notice to remind you that rent is due today. Please pay and register your payment at Manifest MySpace." + "\n"
                                                 "\n"
                                                 "Thank you - Team Manifest MySpace"
                                             )
