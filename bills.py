@@ -45,7 +45,8 @@ class Bills(Resource):
 
     def get(self):
         response = {}
-        filters = ['bill_property_id', 'bill_created_by', 'bill_utility_type']
+        filters = ['bill_property_id', 'bill_created_by',
+                   'bill_utility_type', 'bill_requested_from']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -63,7 +64,7 @@ class Bills(Resource):
         with connect() as db:
             data = request.form
             fields = ['bill_created_by', 'bill_description',
-                      'bill_utility_type', 'bill_algorithm']
+                      'bill_utility_type', 'bill_algorithm', 'bill_requested_from']
             newBill = {}
             for field in fields:
                 fieldValue = data.get(field)
