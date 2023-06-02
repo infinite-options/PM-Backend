@@ -513,23 +513,23 @@ class OwnerDashboard(Resource):
 
 class ManagerDashboard(Resource):
 
-    # decorators = [jwt_required()]
+    decorators = [jwt_required()]
 
     def get(self):
         response = {}
 
-        # user = get_jwt_identity()
-        # buid = ''
-        # for business in user['businesses']:
-        #     print(business)
-        #     if business['business_type'] == 'MANAGEMENT' and business['employee_role'] == 'Owner':
-        #         buid = business['business_uid']
-        #         print(buid)
-        # print('buid', buid)
+        user = get_jwt_identity()
+        buid = ''
+        for business in user['businesses']:
+            print(business)
+            if business['business_type'] == 'MANAGEMENT' and business['employee_role'] == 'Owner':
+                buid = business['business_uid']
+                print(buid)
+        print('buid', buid)
         with connect() as db:
 
             today = date.today()
-            buid = "600-000003"
+
             print(buid)
 
             response = db.execute("""
