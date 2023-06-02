@@ -3271,7 +3271,7 @@ class LateFee_CLASS(Resource):
                 for lease in response['result']:
                     # today date
                     today_date = date.today()
-                    # print('today_date', today_date)
+                    print('today_date', today_date)
                     isusholiday = usholiday(f"{datetime.now():%Y-%m-%d}")
                     # print('now', isusholiday)
                     if isusholiday == None:

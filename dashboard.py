@@ -513,21 +513,23 @@ class OwnerDashboard(Resource):
 
 class ManagerDashboard(Resource):
 
-    decorators = [jwt_required()]
+    # decorators = [jwt_required()]
 
     def get(self):
         response = {}
-        user = get_jwt_identity()
-        buid = ''
-        for business in user['businesses']:
-            print(business)
-            if business['business_type'] == 'MANAGEMENT' and business['employee_role'] == 'Owner':
-                buid = business['business_uid']
-                print(buid)
-        print('buid', buid)
+
+        # user = get_jwt_identity()
+        # buid = ''
+        # for business in user['businesses']:
+        #     print(business)
+        #     if business['business_type'] == 'MANAGEMENT' and business['employee_role'] == 'Owner':
+        #         buid = business['business_uid']
+        #         print(buid)
+        # print('buid', buid)
         with connect() as db:
 
             today = date.today()
+            buid = "600-000003"
             print(buid)
 
             response = db.execute("""
@@ -539,7 +541,7 @@ class ManagerDashboard(Resource):
             AND management_status <> 'EXPIRED'
             AND management_status <> 'END EARLY'
             AND manager_id = \'""" + buid + """\' """)
-            print(response)
+            # print(response)
             for i in range(len(response['result'])):
                 property_id = response['result'][i]['property_uid']
                 print(property_id)
@@ -586,7 +588,7 @@ class ManagerDashboard(Resource):
                         if mr['assigned_business'] != None:
                             as_busiResponse = db.execute("""SELECT * FROM businesses b
                             WHERE business_uid = \'""" + mr['assigned_business'] + """\' """)
-                            print(as_busiResponse)
+                            # print(as_busiResponse)
                             mr['assigned_business_info'] = as_busiResponse['result']
                         else:
                             mr['assigned_business_info'] = []
@@ -604,7 +606,7 @@ class ManagerDashboard(Resource):
                         elif mr['request_status'] == 'PROCESSING' and (quote_received_mr == 0 and quote_accepted_mr == 0):
                             process_mr = process_mr + 1
                         else:
-                            print('do nothing')
+                            print('')
 
                 response['result'][i]['new_mr'] = new_mr
                 response['result'][i]['process_mr'] = process_mr
@@ -701,7 +703,7 @@ class ManagerDashboard(Resource):
                                 time_between_insertion = datetime.now() - \
                                     datetime.strptime(
                                     mr['request_created_date'], '%Y-%m-%d %H:%M:%S')
-                                print('mr', time_between_insertion)
+                                # print('mr', time_between_insertion)
                                 if ',' in str(time_between_insertion):
                                     response['result'][i]['oldestOpenMR'] = int(
                                         (str(time_between_insertion).split(',')[0]).split(' ')[0])
@@ -738,40 +740,69 @@ class ManagerDashboard(Resource):
                 ON r.rental_property_id LIKE '%""" + property_id + """%'
                 WHERE p.pur_property_id LIKE '%""" + property_id + """%'
                 AND ({fn MONTHNAME(p.next_payment)} = {fn MONTHNAME(now())} AND YEAR(p.next_payment) = YEAR(now()))
+                AND ({fn MONTHNAME(p.purchase_date)} = {fn MONTHNAME(DATE_ADD(NOW(), INTERVAL -1 MONTH))} AND YEAR(p.purchase_date) = YEAR(now()))
                 AND p.purchase_type= "RENT"
                 AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                 AND p.receiver = \'""" + buid + """\'""")
-                print('rent_status_result', rent_status_result['result'])
+                # print('rent_status_result', rent_status_result['result'])
                 if len(rent_status_result['result']) > 0:
                     response['result'][i]['rent_status'] = rent_status_result['result'][0]['purchase_status']
                     rent_payments = json.loads(
                         rent_status_result['result'][0]['rent_payments'])
                     for r in range(len(rent_payments)):
-
-                        print(rent_payments[r])
                         if rent_payments[r]['fee_name'] == 'Rent':
-                            charge_date = date.today()
-                            due_date = charge_date.replace(
-                                day=int(rent_payments[r]['due_by']))
-                            print(due_date)
+                            due_date = datetime.strptime(
+                                rent_status_result['result'][0]['next_payment'], '%Y-%m-%d %H:%M:%S').date()
+
                             late_date = due_date + \
                                 relativedelta(
                                     days=int(rent_payments[r]['late_by']))
-                            time_between_insertion = (
-                                date.today() - late_date)
-                            if ',' in str(time_between_insertion):
+                            print('due_date', due_date, late_date)
 
-                                print('time', due_date, time_between_insertion,
-                                      'late_date', late_date)
-                                response['result'][i]['late_date'] = int((str(
-                                    time_between_insertion).split(',')[0]).split(' ')[0])
-                                print(int((str(
-                                    time_between_insertion).split(',')[0]).split(' ')[0]))
-                            else:
-                                time_between_insertion = 0
-                                print('time', due_date, time_between_insertion,
-                                      'late_date', late_date)
-                                response['result'][i]['late_date'] = 0
+                            if rent_status_result['result'][0]['purchase_status'] == 'PAID':
+                                print('rent paid')
+                                # get date paid
+                                date_paid = datetime.strptime(
+                                    rent_status_result['result'][0]['payment_date'], '%Y-%m-%d %H:%M:%S').date()
+                                print('date_paid', date_paid, type(date_paid))
+                                # compare with due date
+                                if date_paid <= due_date:
+                                    # if not late, late_date = 0
+                                    print('late_date = ', 0)
+                                    response['result'][i]['late_date'] = 0
+                                else:
+                                    # calculate late_date
+                                    time_between_insertion = abs(
+                                        (date_paid - due_date)).days
+                                    print('late_date =', time_between_insertion)
+                                    response['result'][i]['late_date'] = time_between_insertion
+
+                            elif rent_status_result['result'][0]['purchase_status'] == 'UNPAID':
+                                print('rent unpaid')
+                                # due date and late date compare
+                                # calculate late_date
+                                time_between_insertion = abs(
+                                    (late_date - due_date)).days
+                                print('late_date =', time_between_insertion)
+                                response['result'][i]['late_date'] = time_between_insertion
+
+                    #         print('due_date', due_date, late_date)
+                    #         time_between_insertion = (
+                    #             date.today() - late_date)
+
+                    #         if ',' in str(time_between_insertion):
+
+                    #             print('time', due_date, time_between_insertion,
+                    #                   'late_date', late_date)
+                    #             response['result'][i]['late_date'] = int((str(
+                    #                 time_between_insertion).split(',')[0]).split(' ')[0])
+                    #             print(int((str(
+                    #                 time_between_insertion).split(',')[0]).split(' ')[0]))
+                    #         else:
+                    #             time_between_insertion = 0
+                    #             print('time', due_date, time_between_insertion,
+                    #                   'late_date', late_date)
+                    #             response['result'][i]['late_date'] = 0
 
                 else:
                     response['result'][i]['rent_status'] = 'No Rent Info'
@@ -794,7 +825,7 @@ class ManagerDashboard(Resource):
                     for i in range(len(expense_res['result'])):
                         # if utility return all the details related to the utility
                         if expense_res['result'][i]['purchase_type'] == 'UTILITY':
-                            print('in utility')
+                            # print('in utility')
 
                             billRes = db.execute("""
                             SELECT b.*
@@ -809,7 +840,7 @@ class ManagerDashboard(Resource):
                                     #     billRes['result'][j])
                         # if maintainence return all the details related to the maintenance requests
                         elif expense_res['result'][i]['purchase_type'] == 'MAINTENANCE':
-                            print('in maintenance')
+                            # print('in maintenance')
                             if expense_res['result'][i]['linked_bill_id'] != None:
                                 maintenanceRes = db.execute("""
                                 SELECT mq.*, mr.*, b.*
@@ -826,7 +857,7 @@ class ManagerDashboard(Resource):
                                             maintenanceRes['result'][j])
                         # if repair return all the details related to the repair requests
                         elif expense_res['result'][i]['purchase_type'] == 'REPAIRS':
-                            print('in maintenance')
+                            # print('in maintenance')
                             if expense_res['result'][i]['linked_bill_id'] != None:
                                 repairRes = db.execute("""
                                 SELECT mq.*, mr.*, b.*

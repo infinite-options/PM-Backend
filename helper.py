@@ -35,7 +35,7 @@ def usholiday(dt):
     holidays = cal.rules
     holidays = cal.holidays(
         start='2023-01-01', end='2023-12-31').to_pydatetime()
-    if dTime in holidays or dTime > 5:
+    if dTime in holidays:
         return 'true'
 
 

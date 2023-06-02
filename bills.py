@@ -93,3 +93,18 @@ class Bills(Resource):
             response = db.insert('bills', newBill)
             response['bill_uid'] = newBillID
         return response
+
+
+class DeleteUtilities(Resource):
+    def put(self):
+        ann_response = {}
+        with connect() as db:
+            data = request.json
+            a_id = {
+                'bill_uid': data['bill_uid']
+            }
+            ann_response = db.delete(
+                """DELETE FROM pm.bills WHERE bill_uid = \'""" + data['bill_uid'] + """\' """)
+            pur_response = db.delete(
+                """DELETE FROM pm.purchases WHERE linked_bill_id = \'""" + data['bill_uid'] + """\' """)
+        return ann_response
