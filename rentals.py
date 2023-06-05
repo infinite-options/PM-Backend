@@ -3275,7 +3275,7 @@ class LateFee_CLASS(Resource):
                     isusholiday = usholiday(f"{datetime.now():%Y-%m-%d}")
                     # print('now', isusholiday)
                     if isusholiday == None:
-                        # print('in if')
+                        print('in if')
                         tenants = lease['tenants']
                         tenantPayments = json.loads(lease['rent_payments'])
 
@@ -3289,12 +3289,14 @@ class LateFee_CLASS(Resource):
                         AND p.purchase_notes= \'""" + today_date.strftime('%B') + """\' 
                         AND p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'; """)
                         # getting all the expenses and calculating the expense amount
-
+                        print(res['result'])
                         if len(res['result']) > 0:
                             for unpaid in res['result']:
                                 for payment in tenantPayments:
                                     # if fee name matches the current unpaid purchase, calculate the late date n fee
-                                    if payment['fee_name'] == unpaid['description']:
+                                    if payment['fee_name'] in unpaid['description']:
+                                        print(
+                                            'here', payment['fee_name'], unpaid['description'])
                                         # calculate charge due date
                                         due_date = today_date.replace(
                                             day=int(payment['due_by']))
@@ -3316,8 +3318,7 @@ class LateFee_CLASS(Resource):
                                                 payer=json.dumps([tenants]),
                                                 receiver=lease['linked_business_id'],
                                                 purchase_type='LATE FEE',
-                                                description=today_date.strftime(
-                                                    '%B') + ' ' + unpaid['description'],
+                                                description=unpaid['description'],
                                                 amount_due=lease['late_fee'],
                                                 purchase_notes=today_date.strftime(
                                                     '%B'),
@@ -3341,8 +3342,7 @@ class LateFee_CLASS(Resource):
                                                                 [lease['business_uid']]),
                                                             receiver=lease['owner_id'],
                                                             purchase_type='OWNER PAYMENT LATE FEE',
-                                                            description=today_date.strftime(
-                                                                '%B') + ' ' + unpaid['description'] +
+                                                            description=unpaid['description'] +
                                                             ' Late fee',
                                                             amount_due=weeks_current_month*(lease['late_fee'] *
                                                                                             (1-payment['charge']/100)),
@@ -3363,8 +3363,7 @@ class LateFee_CLASS(Resource):
                                                                 [lease['business_uid']]),
                                                             receiver=lease['owner_id'],
                                                             purchase_type='OWNER PAYMENT LATE FEE',
-                                                            description=today_date.strftime(
-                                                                '%B') + ' ' + unpaid['description'] +
+                                                            description=unpaid['description'] +
                                                             ' Late fee',
                                                             amount_due=weeks_current_month*((lease['late_fee']-payment['expense_amount'])*(
                                                                 1-payment['charge']/100)),
@@ -3387,8 +3386,7 @@ class LateFee_CLASS(Resource):
                                                                 [lease['business_uid']]),
                                                             receiver=lease['owner_id'],
                                                             purchase_type='OWNER PAYMENT LATE FEE',
-                                                            description=today_date.strftime(
-                                                                '%B') + ' ' + unpaid['description'] +
+                                                            description=unpaid['description'] +
                                                             ' Late fee',
                                                             amount_due=weeks_current_month/2*((lease['late_fee'] *
                                                                                                (1-payment['charge']/100))),
@@ -3409,8 +3407,7 @@ class LateFee_CLASS(Resource):
                                                                 [lease['business_uid']]),
                                                             receiver=lease['owner_id'],
                                                             purchase_type='OWNER PAYMENT LATE FEE',
-                                                            description=today_date.strftime(
-                                                                '%B') + ' ' + unpaid['description'] +
+                                                            description=unpaid['description'] +
                                                             ' Late fee',
                                                             amount_due=weeks_current_month/2*((lease['late_fee']-payment['expense_amount'])*(
                                                                 1-payment['charge']/100)),
@@ -3432,8 +3429,7 @@ class LateFee_CLASS(Resource):
                                                                 [lease['business_uid']]),
                                                             receiver=lease['owner_id'],
                                                             purchase_type='OWNER PAYMENT LATE FEE',
-                                                            description=today_date.strftime(
-                                                                '%B') + ' ' + unpaid['description'] +
+                                                            description=unpaid['description'] +
                                                             ' Late fee',
                                                             amount_due=(
                                                                 lease['late_fee']*(1-int(payment['charge'])/100)),
@@ -3454,8 +3450,7 @@ class LateFee_CLASS(Resource):
                                                                 [lease['business_uid']]),
                                                             receiver=lease['owner_id'],
                                                             purchase_type='OWNER PAYMENT LATE FEE',
-                                                            description=today_date.strftime(
-                                                                '%B') + ' ' + unpaid['description'] +
+                                                            description=unpaid['description'] +
                                                             ' Late fee',
                                                             amount_due=(
                                                                 (lease['late_fee']-payment['expense_amount'])*(1-int(payment['charge'])/100)),
@@ -3536,7 +3531,7 @@ def LateFee():
                         for unpaid in res['result']:
                             for payment in tenantPayments:
                                 # if fee name matches the current unpaid purchase, calculate the late date n fee
-                                if payment['fee_name'] == unpaid['description']:
+                                if payment['fee_name'] in unpaid['description']:
                                     # calculate rent due date
                                     due_date = today_date.replace(
                                         day=int(payment['due_by']))
@@ -3558,8 +3553,7 @@ def LateFee():
                                             payer=json.dumps([tenants]),
                                             receiver=lease['linked_business_id'],
                                             purchase_type='LATE FEE',
-                                            description=today_date.strftime(
-                                                '%B') + ' ' + unpaid['description'],
+                                            description=unpaid['description'],
                                             amount_due=lease['late_fee'],
                                             purchase_notes=today_date.strftime(
                                                 '%B'),
@@ -3583,8 +3577,7 @@ def LateFee():
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
                                                         purchase_type='OWNER PAYMENT LATE FEE',
-                                                        description=today_date.strftime(
-                                                            '%B') + ' ' + unpaid['description'] +
+                                                        description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month*(lease['late_fee'] *
                                                                                         (1-payment['charge']/100)),
@@ -3605,8 +3598,7 @@ def LateFee():
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
                                                         purchase_type='OWNER PAYMENT LATE FEE',
-                                                        description=today_date.strftime(
-                                                            '%B') + ' ' + unpaid['description'] +
+                                                        description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month*((lease['late_fee']-payment['expense_amount'])*(
                                                             1-payment['charge']/100)),
@@ -3629,8 +3621,7 @@ def LateFee():
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
                                                         purchase_type='OWNER PAYMENT LATE FEE',
-                                                        description=today_date.strftime(
-                                                            '%B') + ' ' + unpaid['description'] +
+                                                        description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month/2*((lease['late_fee'] *
                                                                                            (1-payment['charge']/100))),
@@ -3651,8 +3642,7 @@ def LateFee():
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
                                                         purchase_type='OWNER PAYMENT LATE FEE',
-                                                        description=today_date.strftime(
-                                                            '%B') + ' ' + unpaid['description'] +
+                                                        description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=weeks_current_month/2*((lease['late_fee']-payment['expense_amount'])*(
                                                             1-payment['charge']/100)),
@@ -3674,8 +3664,7 @@ def LateFee():
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
                                                         purchase_type='OWNER PAYMENT LATE FEE',
-                                                        description=today_date.strftime(
-                                                            '%B') + ' ' + unpaid['description'] +
+                                                        description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=(
                                                             lease['late_fee']*(1-int(payment['charge'])/100)),
@@ -3696,8 +3685,7 @@ def LateFee():
                                                             [lease['business_uid']]),
                                                         receiver=lease['owner_id'],
                                                         purchase_type='OWNER PAYMENT LATE FEE',
-                                                        description=today_date.strftime(
-                                                            '%B') + ' ' + unpaid['description'] +
+                                                        description=unpaid['description'] +
                                                         ' Late fee',
                                                         amount_due=(
                                                             (lease['late_fee']-payment['expense_amount'])*(1-int(payment['charge'])/100)),
@@ -3773,7 +3761,7 @@ class PerDay_LateFee_CLASS(Resource):
                             for payment in tenantPayments:
                                 # print(payment['fee_name'],
                                 #       unpaid['description'])
-                                if payment['fee_name'] == unpaid['description']:
+                                if payment['fee_name'] in unpaid['description']:
                                     if payment['perDay_late_fee'] == 0:
                                         print('Do nothing if 0')
                                     else:
@@ -3783,9 +3771,9 @@ class PerDay_LateFee_CLASS(Resource):
                                         WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
                                         AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
                                         AND p.purchase_type= 'LATE FEE'
-                                        AND p.description = \'""" + date.today().strftime('%B') + ' ' + unpaid['description'] + """\'
+                                        AND p.description = \'""" + unpaid['description'] + """\'
                                         AND p.purchase_status='UNPAID'; """)
-
+                                        print(latePurResponse['result'])
                                         if len(latePurResponse['result']) > 0:
                                             for latePur in latePurResponse['result']:
                                                 pk = {
@@ -3799,13 +3787,14 @@ class PerDay_LateFee_CLASS(Resource):
                                                     'purchases', pk, updateLateFee)
                                         else:
                                             print('do nothing')
+                                        print(unpaid['description'])
                                         lateOwnerPurResponse = db.execute("""
                                         SELECT *
                                         FROM pm.purchases p
                                         WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
                                         AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
                                         AND p.purchase_type= 'OWNER PAYMENT LATE FEE'
-                                        AND p.description = \'""" + date.today().strftime('%B') + ' ' + unpaid['description'] + ' Late fee' + """\' 
+                                        AND p.description = \'""" + unpaid['description'] + ' Late fee' + """\' 
                                         AND p.purchase_status='UNPAID'; """)
 
                                         if len(lateOwnerPurResponse['result']) > 0:
@@ -3980,7 +3969,7 @@ def PerDay_LateFee():
                         for payment in tenantPayments:
                             # print(payment['fee_name'],
                             #       unpaid['description'])
-                            if payment['fee_name'] == unpaid['description']:
+                            if payment['fee_name'] in unpaid['description']:
                                 if payment['perDay_late_fee'] == 0:
                                     print('Do nothing if 0')
                                 else:
@@ -3990,7 +3979,7 @@ def PerDay_LateFee():
                                     WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
                                     AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
                                     AND p.purchase_type= 'LATE FEE'
-                                    AND p.description = \'""" + date.today().strftime('%B') + ' ' + unpaid['description'] + """\'
+                                    AND p.description = \'""" + unpaid['description'] + """\'
                                     AND p.purchase_status='UNPAID'; """)
 
                                     if len(latePurResponse['result']) > 0:
@@ -4016,7 +4005,7 @@ def PerDay_LateFee():
                                     WHERE p.pur_property_id LIKE '%""" + lease['rental_property_id'] + """%'
                                     AND p.purchase_notes = \'""" + date.today().strftime('%B') + """\'
                                     AND p.purchase_type= 'OWNER PAYMENT LATE FEE'
-                                    AND p.description =  \'""" + date.today().strftime('%B') + ' ' + unpaid['description'] + ' Late fee' + """\' 
+                                    AND p.description =  \'""" + unpaid['description'] + ' Late fee' + """\' 
                                     AND p.purchase_status='UNPAID'; """)
 
                                     if len(lateOwnerPurResponse['result']) > 0:
