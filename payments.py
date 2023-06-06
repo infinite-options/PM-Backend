@@ -144,6 +144,7 @@ class ManagerPayments(Resource):
                     ON pu.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
                     WHERE pu.payer LIKE '%""" + filterValue + """%'
                     OR pu.receiver =  \'""" + filterValue + """\'
+                    ORDER BY pa.payment_date ASC;
                 """)
                 # response = db.execute(sql, args)
         return response

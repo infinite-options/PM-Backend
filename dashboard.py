@@ -744,7 +744,7 @@ class ManagerDashboard(Resource):
                 AND p.purchase_type= "RENT"
                 AND (r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
                 AND p.receiver = \'""" + buid + """\'""")
-                # print('rent_status_result', rent_status_result['result'])
+                print('rent_status_result', rent_status_result['result'])
                 if len(rent_status_result['result']) > 0:
                     response['result'][i]['rent_status'] = rent_status_result['result'][0]['purchase_status']
                     rent_payments = json.loads(
@@ -769,7 +769,11 @@ class ManagerDashboard(Resource):
                                 if date_paid <= due_date:
                                     # if not late, late_date = 0
                                     print('late_date = ', 0)
-                                    response['result'][i]['late_date'] = 0
+                                    next_date = due_date + relativedelta(
+                                        months=1)
+                                    print('next date', next_date)
+                                    response['result'][i]['late_date'] = 'Next due date: ' + \
+                                        str(next_date)
                                 else:
                                     # calculate late_date
                                     time_between_insertion = abs(
