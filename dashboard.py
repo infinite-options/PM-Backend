@@ -779,7 +779,8 @@ class ManagerDashboard(Resource):
                                     time_between_insertion = abs(
                                         (date_paid - due_date)).days
                                     print('late_date =', time_between_insertion)
-                                    response['result'][i]['late_date'] = time_between_insertion
+                                    response['result'][i]['late_date'] = str(
+                                        time_between_insertion) + ' days'
 
                             elif rent_status_result['result'][0]['purchase_status'] == 'UNPAID':
                                 print('rent unpaid')
@@ -788,7 +789,8 @@ class ManagerDashboard(Resource):
                                 time_between_insertion = abs(
                                     (late_date - due_date)).days
                                 print('late_date =', time_between_insertion)
-                                response['result'][i]['late_date'] = time_between_insertion
+                                response['result'][i]['late_date'] = str(
+                                    time_between_insertion) + ' days'
 
                     #         print('due_date', due_date, late_date)
                     #         time_between_insertion = (
