@@ -38,7 +38,8 @@ class Payments(Resource):
                 'amount',
                 'payment_notes',
                 'charge_id',
-                'payment_type'
+                'payment_type',
+                'paid_by'
             ]
             newPayment = {}
             for field in fields:
@@ -67,7 +68,8 @@ class Payments(Resource):
                 'payment_notes',
                 'charge_id',
                 'payment_type',
-                'payment_verify'
+                'payment_verify',
+                'paid_by'
             ]
             paymentInfo = {}
             print(data)
