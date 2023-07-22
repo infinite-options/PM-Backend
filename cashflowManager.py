@@ -41,8 +41,10 @@ class CashflowManager(Resource):
                 WHERE receiver = \'""" + filterValue + """\'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')               
-                AND (YEAR(pur.next_payment) = \'""" + year + """\');""")
+                AND (YEAR(pur.next_payment) = \'""" + year + """\')
+                ORDER BY address,unit ASC;""")
 
             # revenue summary
             response_revenue_summary = db.execute("""
@@ -62,8 +64,10 @@ class CashflowManager(Resource):
                     WHERE pur.receiver = \'""" + filterValue + """\'
                     AND pr.linked_business_id = \'""" + filterValue + """\'
                     AND c.contract_status = 'ACTIVE'
+                    AND pur.purchase_status <> 'DELETED'
                     AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
 
             # revenue by unit
             response_revenue_unit = db.execute("""
@@ -84,8 +88,10 @@ class CashflowManager(Resource):
                 WHERE pur.receiver = \'""" + filterValue + """\'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
 
             response['result']['revenue'] = list(
                 response_revenue['result'])
@@ -110,8 +116,10 @@ class CashflowManager(Resource):
                 WHERE payer LIKE '%""" + filterValue + """%'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED') 
-                AND (YEAR(pur.next_payment) = \'""" + year + """\');""")
+                AND (YEAR(pur.next_payment) = \'""" + year + """\')
+                ORDER BY address,unit ASC;""")
             print(response_expense)
             # expense summary
             response_expense_summary = db.execute("""
@@ -131,9 +139,11 @@ class CashflowManager(Resource):
                     WHERE payer LIKE '%""" + filterValue + """%'
                     AND pr.linked_business_id = \'""" + filterValue + """\'
                     AND c.contract_status = 'ACTIVE'
+                    AND pur.purchase_status <> 'DELETED'
                     AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED')    
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
             print(response_expense_summary)
             # expense by unit
             response_expense_unit = db.execute("""
@@ -151,9 +161,11 @@ class CashflowManager(Resource):
                 WHERE payer LIKE '%""" + filterValue + """%'
                 AND pr.linked_business_id = \'""" + filterValue + """\'
                 AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
                 AND (pr.management_status <> 'REJECTED'  OR pr.management_status <> 'TERMINATED' OR pr.management_status <> 'EXPIRED') 
                 AND (YEAR(pur.next_payment) = \'""" + year + """\')) AS pp
-                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year;""")
+                GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
+                ORDER BY address,unit ASC;""")
             print(response_expense_unit)
             response['result']['expense_summary'] = list(
                 response_expense_summary['result'])
@@ -161,3 +173,66 @@ class CashflowManager(Resource):
             response['result']['expense_unit'] = list(
                 response_expense_unit['result'])
         return response
+
+
+class AllCashflowManager(Resource):
+    def get(self):
+        response = {}
+        response['message'] = 'Successfully executed SQL query'
+        response['code'] = 200
+        response['result'] = {}
+        filters = ['property_id']
+
+        with connect() as db:
+            filterValue = request.args.get(filters[0])
+            print(filterValue)
+            today = date.today()
+            response = db.execute("""
+                SELECT prop.owner_id, prop.property_uid, address, unit, city,
+                state, zip, 
+                pur.*, pr.*
+                FROM pm.properties prop
+                LEFT JOIN pm.purchases pur
+                ON pur_property_id LIKE CONCAT ('%',prop.property_uid, '%')
+                LEFT JOIN pm.propertyManager pr
+                ON pr.linked_property_id = prop.property_uid
+                LEFT JOIN pm.contracts c
+                ON c.property_uid LIKE CONCAT('%', prop.property_uid, '%')
+                WHERE prop.property_uid= \'""" + filterValue + """\'
+                AND c.contract_status = 'ACTIVE'
+                AND pur.purchase_status <> 'DELETED'
+                AND (pr.management_status= 'ACCEPTED' OR pr.management_status='PM END EARLY' OR pr.management_status='OWNER END EARLY')
+                ORDER BY pur.next_payment ASC;""")
+
+            if len(response['result']) > 0:
+                for i in range(len(response['result'])):
+                    print(i)
+                    if i == 0:
+                        if response['result'][i]['receiver'] == response['result'][i]['linked_business_id']:
+
+                            response['result'][i]['sum_due'] = response['result'][i]['amount_due']
+                            response['result'][i]['sum_paid'] = response['result'][i]['amount_paid']
+                        else:
+                            response['result'][i]['sum_due'] = - \
+                                response['result'][i]['amount_due']
+                            response['result'][i]['sum_paid'] = - \
+                                response['result'][i]['amount_paid']
+
+                    prev = response['result'][i - 1]
+                    print(prev)
+                    if 'sum_due' in prev:
+                        print('has sum_due or sum_paid')
+                        if response['result'][i]['receiver'] == response['result'][i]['linked_business_id']:
+                            response['result'][i]['sum_due'] = prev['sum_due'] + \
+                                response['result'][i]['amount_due']
+                            response['result'][i]['sum_paid'] = prev['sum_paid'] + \
+                                response['result'][i]['amount_paid']
+                        else:
+                            response['result'][i]['sum_due'] = prev['sum_due'] - \
+                                response['result'][i]['amount_due']
+                            response['result'][i]['sum_paid'] = prev['sum_paid'] - \
+                                response['result'][i]['amount_paid']
+                    else:
+                        print('doesnt have sum_due or sum_paid')
+
+            return response

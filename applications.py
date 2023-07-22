@@ -5,11 +5,10 @@ import boto3
 from data import connect, uploadImage, s3
 import json
 
-from text_to_num import alpha2digit
+from helper import days_in_month, date_for_weekday
 from purchases import newPurchase
 from datetime import date, timedelta, datetime
 import calendar
-from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 
 
@@ -45,43 +44,6 @@ def updateDocuments(documents, application_uid):
         del doc['file']
         docs.append(doc)
     return docs
-
-
-def days_in_month(dt): return monthrange(
-    dt.year, dt.month)[1]
-
-
-def next_weekday(d, weekday):
-    # d being the start date
-    days_ahead = weekday - d.weekday()
-    print(weekday, d, d.weekday())
-    print(days_ahead)
-    # if days_ahead <= d:
-
-    if days_ahead < 0:  # Target day already happened this week
-        days_ahead += 7
-
-    print(days_ahead, d + timedelta(days_ahead))
-
-    return d + timedelta(days_ahead)
-
-
-def date_for_weekday(day: int, start_date):
-    #  today = date.today()
-    # weekday returns the offsets 0-6
-    # If you need 1-7, use isoweekday
-    weekday = start_date.weekday()
-    return start_date + timedelta(days=day - weekday)
-
-
-def next_weekday_biweekly(d, weekday):
-    days_ahead = weekday - d.weekday()
-    print(weekday, d, d.weekday())
-    print(days_ahead)
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 14
-    print(days_ahead, d + timedelta(days_ahead))
-    return d + timedelta(days_ahead)
 
 
 class Applications(Resource):
@@ -384,7 +346,7 @@ class Applications(Resource):
                             # payment fee type $
                             if payment['fee_type'] == '$':
                                 # payment fee purchase type Rent $
-                                if(payment['fee_name'] == 'Rent'):
+                                if (payment['fee_name'] == 'Rent'):
                                     print('payment fee purchase_type RENT')
                                     if payment['frequency'] == 'Weekly':
                                         print('payment frequency weekly $')
@@ -420,7 +382,7 @@ class Applications(Resource):
                                             else:
                                                 charge = int(
                                                     payment['charge'])
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -434,7 +396,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )
                                             # manager payments weekly $ rent
                                             for mpayment in managementPayments:
@@ -459,7 +422,9 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
+
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -479,7 +444,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -502,7 +468,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -523,7 +490,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -545,7 +513,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -567,7 +536,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -603,7 +573,7 @@ class Applications(Resource):
                                                 '%B')
                                             charge = int(
                                                 payment['charge'])
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -617,7 +587,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )
                                             # manager payments biweekly $ rent
                                             for mpayment in managementPayments:
@@ -642,7 +613,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -662,7 +634,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -685,7 +658,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -706,7 +680,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -728,7 +703,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -750,7 +726,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -799,7 +776,7 @@ class Applications(Resource):
                                                 charge_date = (charge_date.replace(
                                                     day=int(payment['due_by'])))
 
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -813,7 +790,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )
                                             # manager payments weekly $ rent
                                             for mpayment in managementPayments:
@@ -838,7 +816,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -858,7 +837,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -881,7 +861,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -902,7 +883,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -924,7 +906,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -946,7 +929,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -973,7 +957,7 @@ class Applications(Resource):
                                                 timedelta(
                                                     days=int(payment['available_topay']))
                                         charge = int(payment['charge'])
-                                        purchaseResponse = newPurchase(
+                                        purchaseResponseTenant = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [res['result'][0]['rental_property_id']]),
@@ -986,7 +970,8 @@ class Applications(Resource):
                                             purchase_notes=charge_month,
                                             purchase_date=available_date,
                                             purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
+                                            next_payment=charge_date,
+                                            linked_tenantpur_id=None
                                         )
                                         # manager payments weekly $ rent
                                         for mpayment in managementPayments:
@@ -1011,7 +996,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -1031,7 +1017,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                             elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -1054,7 +1041,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -1075,7 +1063,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
 
                                             elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -1097,7 +1086,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -1119,7 +1109,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -1141,7 +1132,7 @@ class Applications(Resource):
                                                 timedelta(
                                                     days=int(payment['available_topay']))
                                         charge = int(payment['charge'])
-                                        purchaseResponse = newPurchase(
+                                        purchaseResponseTenant = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [res['result'][0]['rental_property_id']]),
@@ -1153,7 +1144,8 @@ class Applications(Resource):
                                             purchase_notes=charge_month,
                                             purchase_date=available_date,
                                             purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
+                                            next_payment=charge_date,
+                                            linked_tenantpur_id=None
                                         )
                                         # manager payments weekly $ rent
                                         for mpayment in managementPayments:
@@ -1177,7 +1169,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -1196,7 +1189,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                             elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -1218,7 +1212,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -1238,7 +1233,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
 
                                             elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -1259,7 +1255,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -1280,7 +1277,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -1311,7 +1309,7 @@ class Applications(Resource):
                                             timedelta(
                                                 days=int(payment['available_topay']))
                                     charge = int(payment['charge'])
-                                    purchaseResponse = newPurchase(
+                                    purchaseResponseTenant = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=json.dumps(
                                             [res['result'][0]['rental_property_id']]),
@@ -1323,7 +1321,8 @@ class Applications(Resource):
                                         purchase_notes=charge_month,
                                         purchase_date=available_date,
                                         purchase_frequency=payment['frequency'],
-                                        next_payment=charge_date
+                                        next_payment=charge_date,
+                                        linked_tenantpur_id=None
                                     )
                                     # manager payments weekly $ rent
                                     for mpayment in managementPayments:
@@ -1347,7 +1346,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                             # if net rent (listed rent-expenses)
                                             else:
@@ -1366,7 +1366,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                         elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -1388,7 +1389,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                             # if net rent (listed rent-expenses)
                                             else:
@@ -1408,7 +1410,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
 
                                         elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -1429,7 +1432,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -1450,7 +1454,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -1472,7 +1477,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -1493,7 +1499,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -1514,7 +1521,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -1563,7 +1571,7 @@ class Applications(Resource):
                                             else:
                                                 charge = int(
                                                     payment['charge'])
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -1576,7 +1584,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=purchaseResponseTenant
                                             )
                                             # manager payments weekly $ rent
                                             for mpayment in managementPayments:
@@ -1601,7 +1610,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -1621,7 +1631,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -1644,7 +1655,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -1665,7 +1677,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -1687,7 +1700,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -1709,7 +1723,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -1743,7 +1758,7 @@ class Applications(Resource):
                                                 '%B')
                                             charge = int(
                                                 payment['charge'])
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -1757,7 +1772,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )
                                             # manager payments weekly $ rent
                                             for mpayment in managementPayments:
@@ -1782,7 +1798,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -1802,7 +1819,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -1825,7 +1843,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -1846,7 +1865,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -1868,7 +1888,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -1890,7 +1911,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -1941,7 +1963,7 @@ class Applications(Resource):
                                                 charge = int(payment['charge'])
                                                 charge_date = (charge_date.replace(
                                                     day=int(payment['due_by'])))
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -1954,7 +1976,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )
                                             # manager payments weekly $ rent
                                             for mpayment in managementPayments:
@@ -1979,7 +2002,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -1999,7 +2023,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -2022,7 +2047,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -2043,7 +2069,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -2065,7 +2092,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -2087,7 +2115,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -2115,7 +2144,7 @@ class Applications(Resource):
                                                 timedelta(
                                                     days=int(payment['available_topay']))
                                         charge = int(payment['charge'])
-                                        purchaseResponse = newPurchase(
+                                        purchaseResponseTenant = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [res['result'][0]['rental_property_id']]),
@@ -2128,7 +2157,8 @@ class Applications(Resource):
                                             purchase_notes=charge_month,
                                             purchase_date=available_date,
                                             purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
+                                            next_payment=charge_date,
+                                            linked_tenantpur_id=None
                                         )
                                         # manager payments weekly $ rent
                                         for mpayment in managementPayments:
@@ -2153,7 +2183,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -2173,7 +2204,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                             elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -2196,7 +2228,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -2217,7 +2250,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
 
                                             elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -2239,7 +2273,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -2261,7 +2296,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -2286,7 +2322,7 @@ class Applications(Resource):
 
                                         # manager payments weekly $ rent
                                         if payment['fee_name'] != 'Deposit':
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -2298,7 +2334,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
@@ -2321,7 +2358,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -2340,7 +2378,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -2362,7 +2401,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -2382,7 +2422,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -2403,7 +2444,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -2424,7 +2466,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -2440,7 +2483,7 @@ class Applications(Resource):
                                                     timedelta(
                                                         days=int(payment['available_topay']))
 
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -2452,7 +2495,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=start_date
+                                                next_payment=start_date,
+                                                linked_tenantpur_id=None
                                             )
                             # payment fee type %
                             else:
@@ -2475,7 +2519,7 @@ class Applications(Resource):
                                             timedelta(
                                                 days=int(payment['available_topay']))
                                     charge = int(payment['charge'])
-                                    purchaseResponse = newPurchase(
+                                    purchaseResponseTenant = newPurchase(
                                         linked_bill_id=None,
                                         pur_property_id=json.dumps(
                                             [res['result'][0]['rental_property_id']]),
@@ -2487,7 +2531,8 @@ class Applications(Resource):
                                         purchase_notes=charge_month,
                                         purchase_date=available_date,
                                         purchase_frequency=payment['frequency'],
-                                        next_payment=charge_date
+                                        next_payment=charge_date,
+                                        linked_tenantpur_id=None
                                     )  # manager payments weekly $ rent
                                     for mpayment in managementPayments:
                                         weeks_current_month = len(
@@ -2510,7 +2555,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                             # if net rent (listed rent-expenses)
                                             else:
@@ -2529,7 +2575,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                         elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -2551,7 +2598,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                             # if net rent (listed rent-expenses)
                                             else:
@@ -2571,7 +2619,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
 
                                         elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -2592,7 +2641,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -2613,7 +2663,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -2635,7 +2686,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -2656,7 +2708,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -2677,7 +2730,8 @@ class Applications(Resource):
                                                     purchase_notes=charge_month,
                                                     purchase_date=available_date,
                                                     purchase_frequency=mpayment['frequency'],
-                                                    next_payment=charge_date
+                                                    next_payment=charge_date,
+                                                    linked_tenantpur_id=purchaseResponseTenant
                                                 )
                                                 print(
                                                     purchaseResponse)
@@ -2724,7 +2778,7 @@ class Applications(Resource):
                                             else:
                                                 charge = int(
                                                     payment['charge'] * int(rent))/100
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -2738,7 +2792,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )  # manager payments weekly $ rent
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
@@ -2762,7 +2817,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -2782,7 +2838,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -2805,7 +2862,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -2826,7 +2884,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -2848,7 +2907,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -2870,7 +2930,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -2905,7 +2966,7 @@ class Applications(Resource):
                                                 '%B')
                                             charge = int(
                                                 payment['charge'] * int(rent))/100,
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -2919,7 +2980,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )  # manager payments biweekly $ rent
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
@@ -2943,7 +3005,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -2963,7 +3026,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -2986,7 +3050,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -3007,7 +3072,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -3029,7 +3095,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -3051,7 +3118,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -3101,7 +3169,7 @@ class Applications(Resource):
                                                     int(payment['charge']) * int(rent))/100
                                                 charge_date = (charge_date.replace(
                                                     day=int(payment['due_by'])))
-                                            purchaseResponse = newPurchase(
+                                            purchaseResponseTenant = newPurchase(
                                                 linked_bill_id=None,
                                                 pur_property_id=json.dumps(
                                                     [res['result'][0]['rental_property_id']]),
@@ -3114,7 +3182,8 @@ class Applications(Resource):
                                                 purchase_notes=charge_month,
                                                 purchase_date=available_date,
                                                 purchase_frequency=payment['frequency'],
-                                                next_payment=charge_date
+                                                next_payment=charge_date,
+                                                linked_tenantpur_id=None
                                             )  # manager payments weekly $ rent
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
@@ -3138,7 +3207,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -3158,7 +3228,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -3181,7 +3252,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                     # if net rent (listed rent-expenses)
                                                     else:
@@ -3202,7 +3274,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
 
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -3224,7 +3297,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -3246,7 +3320,8 @@ class Applications(Resource):
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
-                                                            next_payment=charge_date
+                                                            next_payment=charge_date,
+                                                            linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                         print(
                                                             purchaseResponse)
@@ -3274,7 +3349,7 @@ class Applications(Resource):
                                                     days=int(payment['available_topay']))
                                         charge = (
                                             int(payment['charge']) * int(rent))/100
-                                        purchaseResponse = newPurchase(
+                                        purchaseResponseTenant = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [res['result'][0]['rental_property_id']]),
@@ -3287,7 +3362,8 @@ class Applications(Resource):
                                             purchase_notes=charge_month,
                                             purchase_date=available_date,
                                             purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
+                                            next_payment=charge_date,
+                                            linked_tenantpur_id=None
                                         )  # manager payments weekly $ rent
                                         for mpayment in managementPayments:
                                             weeks_current_month = len(
@@ -3311,7 +3387,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -3331,7 +3408,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                             elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -3354,7 +3432,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -3375,7 +3454,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
 
                                             elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -3397,7 +3477,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -3419,7 +3500,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -3442,7 +3524,7 @@ class Applications(Resource):
                                                     days=int(payment['available_topay']))
                                         charge = (
                                             int(payment['charge']) * int(rent))/100
-                                        purchaseResponse = newPurchase(
+                                        purchaseResponseTenant = newPurchase(
                                             linked_bill_id=None,
                                             pur_property_id=json.dumps(
                                                 [res['result'][0]['rental_property_id']]),
@@ -3455,7 +3537,8 @@ class Applications(Resource):
                                             purchase_notes=charge_month,
                                             purchase_date=available_date,
                                             purchase_frequency=payment['frequency'],
-                                            next_payment=charge_date
+                                            next_payment=charge_date,
+                                            linked_tenantpur_id=None
                                         )  # manager payments weekly $ rent
                                         for mpayment in managementPayments:
                                             weeks_current_month = len(
@@ -3478,7 +3561,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -3497,7 +3581,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                             elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
 
@@ -3519,7 +3604,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                 # if net rent (listed rent-expenses)
                                                 else:
@@ -3539,7 +3625,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
 
                                             elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
@@ -3560,7 +3647,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)
@@ -3581,7 +3669,8 @@ class Applications(Resource):
                                                         purchase_notes=charge_month,
                                                         purchase_date=available_date,
                                                         purchase_frequency=mpayment['frequency'],
-                                                        next_payment=charge_date
+                                                        next_payment=charge_date,
+                                                        linked_tenantpur_id=purchaseResponseTenant
                                                     )
                                                     print(
                                                         purchaseResponse)

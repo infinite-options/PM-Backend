@@ -4,6 +4,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from data import connect
+from helper import diff_month, days_in_month, next_weekday, next_weekday_biweekly
 from datetime import date, timedelta, datetime
 from calendar import monthrange
 import json
@@ -28,28 +29,6 @@ class ManagerProperties(Resource):
                 'manager_id': business_uid
             })
         return response
-
-
-def diff_month(d1, d2):
-    return (d1.year - d2.year) * 12 + d1.month - d2.month
-
-
-def days_in_month(dt): return monthrange(
-    dt.year, dt.month)[1]
-
-
-def next_weekday(d, weekday):
-    days_ahead = weekday - d.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 7
-    return d + timedelta(days_ahead)
-
-
-def next_weekday_biweekly(d, weekday):
-    days_ahead = weekday - d.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 14
-    return d + timedelta(days_ahead)
 
 
 class ManagerContractFees_CLASS(Resource):

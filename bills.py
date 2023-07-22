@@ -45,7 +45,8 @@ class Bills(Resource):
 
     def get(self):
         response = {}
-        filters = ['bill_property_id', 'bill_created_by', 'bill_utility_type']
+        filters = ['bill_property_id', 'bill_created_by',
+                   'bill_utility_type', 'bill_requested_from']
         where = {}
         for filter in filters:
             filterValue = request.args.get(filter)
@@ -63,7 +64,7 @@ class Bills(Resource):
         with connect() as db:
             data = request.form
             fields = ['bill_created_by', 'bill_description',
-                      'bill_utility_type', 'bill_algorithm']
+                      'bill_utility_type', 'bill_algorithm', 'bill_requested_from']
             newBill = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -92,3 +93,18 @@ class Bills(Resource):
             response = db.insert('bills', newBill)
             response['bill_uid'] = newBillID
         return response
+
+
+class DeleteUtilities(Resource):
+    def put(self):
+        ann_response = {}
+        with connect() as db:
+            data = request.json
+            a_id = {
+                'bill_uid': data['bill_uid']
+            }
+            ann_response = db.delete(
+                """DELETE FROM pm.bills WHERE bill_uid = \'""" + data['bill_uid'] + """\' """)
+            pur_response = db.delete(
+                """DELETE FROM pm.purchases WHERE linked_bill_id = \'""" + data['bill_uid'] + """\' """)
+        return ann_response

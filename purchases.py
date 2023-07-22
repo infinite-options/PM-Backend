@@ -10,11 +10,11 @@ import json
 
 
 def newPurchase(linked_bill_id, pur_property_id, payer, receiver, purchase_type,
-                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment):
+                description, amount_due, purchase_notes, purchase_date, purchase_frequency, next_payment, linked_tenantpur_id):
     response = {}
-    print('in new purchase')
+    print('')
     with connect() as db:
-        print('in new purchase')
+        print('')
         newPurchase = {
             "linked_bill_id": linked_bill_id,
             "pur_property_id": pur_property_id,
@@ -26,16 +26,17 @@ def newPurchase(linked_bill_id, pur_property_id, payer, receiver, purchase_type,
             "purchase_notes": purchase_notes,
             "purchase_date": purchase_date,
             "purchase_frequency": purchase_frequency,
-            "next_payment": next_payment
+            "next_payment": next_payment,
+            "linked_tenantpur_id": linked_tenantpur_id
         }
-        print(newPurchase)
+        print('newPurchase', newPurchase)
         newPurchaseID = db.call('new_purchase_id')['result'][0]['new_id']
         newPurchase['amount_paid'] = 0
         newPurchase['purchase_uid'] = newPurchaseID
         newPurchase['purchase_status'] = 'UNPAID'
-        print(newPurchase)
         response = db.insert('purchases', newPurchase)
-    return response
+        print('response', response)
+    return newPurchaseID
 
 
 def updatePurchase(newPurchase):
@@ -82,7 +83,6 @@ class Purchases(Resource):
         # return newPurchase(
 
         response = {}
-        print('in new purchase')
         data = request.get_json()
         print(data)
         linked_bill_id = data.get('linked_bill_id')
@@ -98,7 +98,7 @@ class Purchases(Resource):
         next_payment = data.get('next_payment')
 
         with connect() as db:
-            print('in new purchase')
+            print('')
             if next_payment != "0000-00-00 00:00:00":
                 print('do nothing date provided')
             else:
@@ -251,7 +251,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -276,6 +276,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -299,7 +300,8 @@ class CreateExpenses(Resource):
                             "purchase_date": charge_date,
                             "purchase_frequency": data["purchase_frequency"],
                             "payment_frequency": data["payment_frequency"],
-                            "next_payment": data["next_payment"]
+                            "next_payment": data["next_payment"],
+                            "linked_tenantpur_id": linked_tenantpur_id
                         }
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
@@ -317,7 +319,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
                         else:
@@ -339,8 +341,9 @@ class CreateExpenses(Resource):
                         }
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
-
                         newPurchase['purchase_uid'] = newPurchaseID
+
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -365,7 +368,8 @@ class CreateExpenses(Resource):
                             "purchase_date": charge_date,
                             "purchase_frequency": data["purchase_frequency"],
                             "payment_frequency": data["payment_frequency"],
-                            "next_payment": data["next_payment"]
+                            "next_payment": data["next_payment"],
+                            "linked_tenantpur_id": linked_tenantpur_id
                         }
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
@@ -381,7 +385,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -405,9 +409,11 @@ class CreateExpenses(Resource):
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
                         newPurchase['purchase_uid'] = newPurchaseID
+
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
-
+                        print('response', response)
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentOwner'])/100)
                         if data['purchase_status'] == 'PAID':
@@ -427,7 +433,8 @@ class CreateExpenses(Resource):
                             "purchase_date": charge_date,
                             "purchase_frequency": data["purchase_frequency"],
                             "payment_frequency": data["payment_frequency"],
-                            "next_payment": data["next_payment"]
+                            "next_payment": data["next_payment"],
+                            "linked_tenantpur_id": linked_tenantpur_id
                         }
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
@@ -443,7 +450,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -468,6 +475,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -478,7 +486,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -503,6 +511,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -513,7 +522,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -537,6 +546,7 @@ class CreateExpenses(Resource):
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -549,7 +559,7 @@ class CreateExpenses(Resource):
                         while charge_date <= next_payment:
                             charge_month = charge_date.strftime('%B')
 
-                            print('in new purchase')
+                            print('')
                             if data['purchase_status'] == 'PAID':
                                 amount_paid = data['amount_due']
                             else:
@@ -573,6 +583,7 @@ class CreateExpenses(Resource):
                                 'result'][0]['new_id']
 
                             newPurchase['purchase_uid'] = newPurchaseID
+                            linked_tenantpur_id = newPurchaseID
                             newPurchase['purchase_status'] = data['purchase_status']
                             response = db.insert('purchases', newPurchase)
 
@@ -591,7 +602,8 @@ class CreateExpenses(Resource):
                                 "purchase_date": charge_date,
                                 "purchase_frequency": data["purchase_frequency"],
                                 "payment_frequency": data["payment_frequency"],
-                                "next_payment": data["next_payment"]
+                                "next_payment": data["next_payment"],
+                                "linked_tenantpur_id": linked_tenantpur_id
                             }
                             newPurchaseID = db.call('new_purchase_id')[
                                 'result'][0]['new_id']
@@ -609,7 +621,7 @@ class CreateExpenses(Resource):
                         while charge_date <= next_payment:
                             charge_month = charge_date.strftime('%B')
 
-                            print('in new purchase')
+                            print('')
                             if data['purchase_status'] == 'PAID':
                                 amount_paid = data['amount_due']
                             else:
@@ -633,6 +645,7 @@ class CreateExpenses(Resource):
                                 'result'][0]['new_id']
 
                             newPurchase['purchase_uid'] = newPurchaseID
+                            linked_tenantpur_id = newPurchaseID
                             newPurchase['purchase_status'] = data['purchase_status']
                             response = db.insert('purchases', newPurchase)
 
@@ -651,7 +664,8 @@ class CreateExpenses(Resource):
                                 "purchase_date": charge_date,
                                 "purchase_frequency": data["purchase_frequency"],
                                 "payment_frequency": data["payment_frequency"],
-                                "next_payment": data["next_payment"]
+                                "next_payment": data["next_payment"],
+                                "linked_tenantpur_id": linked_tenantpur_id
                             }
                             newPurchaseID = db.call('new_purchase_id')[
                                 'result'][0]['new_id']
@@ -667,7 +681,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
                         else:
@@ -690,6 +704,7 @@ class CreateExpenses(Resource):
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -706,7 +721,8 @@ class CreateExpenses(Resource):
                             "purchase_date": charge_date,
                             "purchase_frequency": data["purchase_frequency"],
                             "payment_frequency": data["payment_frequency"],
-                            "next_payment": data["next_payment"]
+                            "next_payment": data["next_payment"],
+                            "linked_tenantpur_id": linked_tenantpur_id
                         }
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
@@ -724,7 +740,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentTenant'])/100)
                         if data['purchase_status'] == 'PAID':
@@ -750,6 +766,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -791,7 +808,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentTenant'])/100)
                         if data['purchase_status'] == 'PAID':
@@ -817,6 +834,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -857,7 +875,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
                         amount_due = int(data["amount_due"]) * \
                             (int(data['splitPercentTenant'])/100)
                         if data['purchase_status'] == 'PAID':
@@ -882,6 +900,7 @@ class CreateExpenses(Resource):
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -909,6 +928,7 @@ class CreateExpenses(Resource):
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         responseOwner = db.insert('purchases', newPurchase)
                 elif (data['splitPercentTenant']) != '0':
@@ -919,7 +939,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -944,6 +964,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -954,7 +975,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -979,6 +1000,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -989,7 +1011,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1013,6 +1035,7 @@ class CreateExpenses(Resource):
                         newPurchaseID = db.call('new_purchase_id')[
                             'result'][0]['new_id']
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
                 elif (data['splitPercentOwner']) != '0':
@@ -1023,7 +1046,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1048,6 +1071,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -1058,7 +1082,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1083,6 +1107,7 @@ class CreateExpenses(Resource):
                             'result'][0]['new_id']
 
                         newPurchase['purchase_uid'] = newPurchaseID
+                        linked_tenantpur_id = newPurchaseID
                         newPurchase['purchase_status'] = data['purchase_status']
                         response = db.insert('purchases', newPurchase)
 
@@ -1093,7 +1118,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1128,7 +1153,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1194,7 +1219,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1259,7 +1284,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
                         else:
@@ -1319,7 +1344,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1376,7 +1401,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1434,7 +1459,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1488,7 +1513,7 @@ class CreateExpenses(Resource):
                         print('here monthly', next_payment)
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1523,7 +1548,7 @@ class CreateExpenses(Resource):
 
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']
@@ -1558,7 +1583,7 @@ class CreateExpenses(Resource):
                         charge_date = date.fromisoformat(data['next_payment'])
                         charge_month = charge_date.strftime('%B')
 
-                        print('in new purchase')
+                        print('')
 
                         if data['purchase_status'] == 'PAID':
                             amount_paid = data['amount_due']

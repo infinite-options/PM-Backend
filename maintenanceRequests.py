@@ -8,10 +8,16 @@ from datetime import datetime
 import boto3
 
 
+# If it is an s3 link, we save the file data into the attribute
+# If it is a file, no need to worry about it, the data is already there.
+
 def updateImages(imageFiles, maintenance_request_uid):
     content = []
+
     for filename in imageFiles:
+
         if type(imageFiles[filename]) == str:
+
             bucket = 'io-pm'
             key = imageFiles[filename].split('/io-pm/')[1]
             data = s3.get_object(
@@ -75,9 +81,85 @@ class MaintenanceRequests(Resource):
                                     res["code"] = 200
                                     res["result"].append(r)
                                 # res["result"] = r
+                    if filter == 'maintenance_request_uid':
+                        res = db.execute(""" SELECT * FROM 
+                        maintenanceRequests mr
+                        LEFT JOIN properties p
+                        ON p.property_uid = mr.property_uid
+                        WHERE maintenance_request_uid =  \'""" + where['maintenance_request_uid'] + """\' """)
+                        # print(res)
+                        for i in range(len(res['result'])):
+                            req_id = res['result'][i]['maintenance_request_uid']
+                            rid = {'linked_request_uid': req_id}  # rid
+                            quotes_res = db.select(
+                                ''' maintenanceQuotes quote ''', rid)
+                            time_between_insertion = datetime.now() - \
+                                datetime.strptime(
+                                res['result'][i]['request_created_date'], '%Y-%m-%d %H:%M:%S')
+                            if ',' in str(time_between_insertion):
+                                res['result'][i]['days_open'] = int((str(time_between_insertion).split(',')[
+                                    0]).split(' ')[0])
+                            else:
+                                res['result'][i]['days_open'] = 1
+
+                            # print(quotes_res)
+                            res['result'][i]['quotes'] = list(
+                                quotes_res['result'])
+                            res['result'][i]['total_quotes'] = len(
+                                quotes_res['result'])
+                            # owner info for the property
+                            owner_res = db.execute("""
+                            SELECT
+                            o.owner_id AS owner_id,
+                            o.owner_first_name AS owner_first_name,
+                            o.owner_last_name AS owner_last_name,
+                            o.owner_email AS owner_email ,
+                            o.owner_phone_number AS owner_phone_number
+                            FROM pm.ownerProfileInfo o
+                            WHERE o.owner_id = \'""" + res['result'][i]['owner_id'] + """\'""")
+                            res['result'][i]['owner'] = list(
+                                owner_res['result'])
+                            rental_res = db.execute("""
+                            SELECT r.*,
+                            GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                            GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                            GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                            GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                            GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                            FROM pm.rentals r 
+                            LEFT JOIN pm.leaseTenants lt
+                            ON lt.linked_rental_uid = r.rental_uid
+                            LEFT JOIN pm.tenantProfileInfo tpi
+                            ON tpi.tenant_id = lt.linked_tenant_id
+                            WHERE r.rental_property_id = \'""" + res['result'][i]['property_uid'] + """\'
+                            AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                            GROUP BY lt.linked_rental_uid""")
+
+                            if len(rental_res['result']) > 0:
+
+                                res['result'][i]['rentalInfo'] = list(
+                                    rental_res['result'])
+                            else:
+                                res['result'][i]['rentalInfo'] = 'Not Rented'
+
+                            property_res = db.execute("""
+                            SELECT 
+                            pm.*, 
+                            b.business_uid AS manager_id, 
+                            b.business_name AS manager_business_name, 
+                            b.business_email AS manager_email, 
+                            b.business_phone_number AS manager_phone_number 
+                            FROM pm.propertyManager pm 
+                            LEFT JOIN businesses b 
+                            ON b.business_uid = pm.linked_business_id 
+                            WHERE pm.linked_property_id = \'""" + res['result'][i]['property_uid'] + """\' AND pm.management_status='ACCEPTED'""")
+                            # print('property_res', property_res)
+                            res['result'][i]['property_manager'] = list(
+                                property_res['result'])
+
                     else:
                         res = db.select('maintenanceRequests', where)
-            print(len(fv))
+            # print(len(fv))
             if len(fv) == 0:
                 res = db.select('maintenanceRequests', where)
 
@@ -98,25 +180,16 @@ class MaintenanceRequests(Resource):
             i = -1
             while True:
                 filename = f'img_{i}'
-                # print(filename)
                 if i == -1:
                     filename = 'img_cover'
                 file = request.files.get(filename)
-                # print(file)
-                s3Link = data.get(filename)
-                # print(s3Link)
                 if file:
-                    # print('in if')
                     key = f'maintenanceRequests/{newRequestID}/{filename}'
                     image = uploadImage(file, key, '')
                     images.append(image)
-                elif s3Link:
-                    # print('in elif')
-                    images.append(s3Link)
                 else:
                     break
                 i += 1
-            # print(images)
             newRequest['images'] = json.dumps(images)
             newRequest['request_status'] = 'NEW'
             newRequest['frequency'] = 'One time'
@@ -128,10 +201,10 @@ class MaintenanceRequests(Resource):
         response = {}
         with connect() as db:
             data = request.form
-            print(data)
+            # print(data)
             maintenance_request_uid = data.get('maintenance_request_uid')
             fields = ['title', 'description', 'priority', 'can_reschedule',
-                      'assigned_business', 'assigned_worker', 'scheduled_date', 'scheduled_time', 'request_status', 'request_created_by', 'request_type', "notes", "request_adjustment_date"]
+                      'assigned_business', 'assigned_worker', 'scheduled_date', 'scheduled_time', 'request_status', 'request_created_by', 'request_type', "notes"]
             newRequest = {}
             for field in fields:
                 fieldValue = data.get(field)
@@ -140,7 +213,9 @@ class MaintenanceRequests(Resource):
             images = []
             i = -1
             imageFiles = {}
+
             while True:
+                # print('if true')
                 filename = f'img_{i}'
                 if i == -1:
                     filename = 'img_cover'
@@ -154,6 +229,9 @@ class MaintenanceRequests(Resource):
                     break
                 i += 1
             images = updateImages(imageFiles, maintenance_request_uid)
+            # print(images)
+
+            # Perform write to database
             newRequest['images'] = json.dumps(images)
             primaryKey = {
                 'maintenance_request_uid': maintenance_request_uid
@@ -171,12 +249,12 @@ class MaintenanceRequestsandQuotes(Resource):
             filterValue = request.args.get(filter)
             if filterValue is not None:
                 where[filter] = filterValue
-                print((where))
+                # print((where))
 
-        print('here',  'manager_id' in where)
+        # print('here',  'manager_id' in where)
         with connect() as db:
             if 'manager_id' in where:
-                print('in if')
+                # print('in if')
 
                 response = db.execute(""" SELECT * FROM 
                 maintenanceRequests mr
@@ -184,9 +262,8 @@ class MaintenanceRequestsandQuotes(Resource):
                 ON p.property_uid = mr.property_uid
                 LEFT JOIN propertyManager pm
                 ON pm.linked_property_id = p.property_uid
-               
                 WHERE linked_business_id =  \'""" + where['manager_id'] + """\' AND (pm.management_status = 'ACCEPTED' OR pm.management_status='END EARLY' OR pm.management_status='PM END EARLY' OR pm.management_status='OWNER END EARLY'  )""")
-                print(response)
+                # print(response)
                 for i in range(len(response['result'])):
                     req_id = response['result'][i]['maintenance_request_uid']
                     rid = {'linked_request_uid': req_id}  # rid
@@ -216,15 +293,6 @@ class MaintenanceRequestsandQuotes(Resource):
                                                 FROM pm.ownerProfileInfo o
                                                 WHERE o.owner_id = \'""" + response['result'][i]['owner_id'] + """\'""")
                     response['result'][i]['owner'] = list(owner_res['result'])
-                    purchase_res = db.execute("""
-                    SELECT * FROM
-                    pm.purchases pur
-                    LEFT JOIN pm.properties pr
-                    ON pur.pur_property_id LIKE CONCAT('%', pr.property_uid, '%')
-                    WHERE pur.linked_bill_id = \'""" + response['result'][i]['maintenance_request_uid'] + """\'""")
-                    response['result'][i]['purchase'] = list(
-                        purchase_res['result'])
-
                     rental_res = db.execute("""
                    SELECT r.*,
                     GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
@@ -248,17 +316,17 @@ class MaintenanceRequestsandQuotes(Resource):
                     else:
                         response['result'][i]['rentalInfo'] = 'Not Rented'
             elif 'owner_id' in where:
-                print('in elif', where['owner_id'])
+                # print('in elif', where['owner_id'])
 
                 # list of all properties for the owner
                 response = db.execute(
                     """SELECT * FROM pm.properties p WHERE p.owner_id = \'"""
                     + where['owner_id']
                     + """\'""")
-                print('here')
+                # print('here')
                 # info for each property
                 for i in range(len(response['result'])):
-                    print('in for loop')
+                    # print('in for loop')
                     property_id = response['result'][i]['property_uid']
                     # print(property_id)
                     pid = {'linked_property_id': property_id}
@@ -320,7 +388,7 @@ class MaintenanceRequestsandQuotes(Resource):
                             response['result'][i]['zip']
                 sorted_props = []
                 for prop in response['result']:
-                    print("all", prop['property_uid'])
+                    # print("all", prop['property_uid'])
                     if len(prop['maintenanceRequests']) > 0:
                         # print("removed", prop['property_uid'])
                         # response['result'].remove(prop)
@@ -328,7 +396,7 @@ class MaintenanceRequestsandQuotes(Resource):
                 response['result'] = sorted_props
 
             elif 'tenant_id' in where:
-                print('in elif')
+                # print('in elif')
 
                 # list of all properties for the owner
                 response = db.execute("""
@@ -344,7 +412,7 @@ class MaintenanceRequestsandQuotes(Resource):
                     ON pM.linked_property_id=p.property_uid
                     WHERE linked_tenant_id= \'""" + filterValue + """\' AND (rental_status = 'ACTIVE' OR rental_status = 'PM END EARLY' OR rental_status = 'TENANT END EARLY') AND (pM.management_status = 'ACCEPTED' OR pM.management_status='END EARLY' OR pM.management_status='PM END EARLY' OR pM.management_status='OWNER END EARLY'); """)
                 # info for each property
-                print(response)
+                # print(response)
                 for i in range(len(response['result'])):
                     req_id = response['result'][i]['maintenance_request_uid']
                     rid = {'linked_request_uid': req_id}  # rid
@@ -364,6 +432,47 @@ class MaintenanceRequestsandQuotes(Resource):
                         quotes_res['result'])
                     response['result'][i]['total_quotes'] = len(
                         quotes_res['result'])
+                    # owner info for the property
+                    owner_res = db.execute("""
+                    SELECT
+                    o.owner_id AS owner_id,
+                    o.owner_first_name AS owner_first_name,
+                    o.owner_last_name AS owner_last_name,
+                    o.owner_email AS owner_email ,
+                    o.owner_phone_number AS owner_phone_number
+                    FROM pm.ownerProfileInfo o
+                    WHERE o.owner_id = \'""" + response['result'][i]['owner_id'] + """\'""")
+                    response['result'][i]['owner'] = list(owner_res['result'])
+                    rental_res = db.execute("""
+                   SELECT r.*,
+                    GROUP_CONCAT(lt.linked_tenant_id) as `tenant_id`,
+                    GROUP_CONCAT(tpi.tenant_first_name) as `tenant_first_name`,
+                    GROUP_CONCAT(tpi.tenant_last_name) as `tenant_last_name`,
+                    GROUP_CONCAT(tpi.tenant_email) as `tenant_email`,
+                    GROUP_CONCAT(tpi.tenant_phone_number) as `tenant_phone_number`
+                    FROM pm.rentals r 
+                    LEFT JOIN pm.leaseTenants lt
+                    ON lt.linked_rental_uid = r.rental_uid
+                    LEFT JOIN pm.tenantProfileInfo tpi
+                    ON tpi.tenant_id = lt.linked_tenant_id
+                    WHERE r.rental_property_id = \'""" + response['result'][i]['property_uid'] + """\'
+                    AND (r.rental_status = 'PROCESSING' OR r.rental_status = 'ACTIVE' OR r.rental_status = 'TENANT APPROVED')
+                    GROUP BY lt.linked_rental_uid""")
+
+                    if len(rental_res['result']) > 0:
+
+                        response['result'][i]['rentalInfo'] = list(
+                            rental_res['result'])
+                    else:
+                        response['result'][i]['rentalInfo'] = 'Not Rented'
+
+                    manager_res = db.execute("""SELECT * FROM businesses b WHERE b.business_uid = \'""" + response['result'][i]['linked_business_id'] + """\' """)
+                    if len(manager_res['result']) > 0:
+
+                        response['result'][i]['managerInfo'] = list(
+                            manager_res['result'])
+                    else:
+                        response['result'][i]['managerInfo'] = 'Not Rented'
             else:
                 response = db.select(
                     ''' maintenanceRequests request ''', where)
@@ -416,10 +525,10 @@ class OwnerMaintenanceRequestsandQuotes(Resource):
                 for y in range(len(maintenance_res['result'])):
                     req_id = maintenance_res['result'][y]['maintenance_request_uid']
                     rid = {'linked_request_uid': req_id}  # rid
-                    print(rid)
+                    # print(rid)
                     quotes_res = db.select(
                         ''' maintenanceQuotes quote ''', rid)
-                    print(quotes_res)
+                    # print(quotes_res)
                     # change the response variable here, don't know why
                     response['result'][i]['quotes'] = list(
                         quotes_res['result'])
