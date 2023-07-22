@@ -86,9 +86,10 @@ class Appliances(Resource):
                 filterValue = request.args.get(filter)
                 if filterValue is not None:
                     where[filter] = filterValue
-            # print(where)
+            print(where['property_uid'])
             response = db.execute(
                 """SELECT appliances FROM pm.properties WHERE property_uid= \'""" + where['property_uid'] + """\'""")
+            print(response)
 
         return response
 
@@ -153,7 +154,7 @@ class Appliances(Resource):
                     images = updateImagesAppliances(
                         imageFiles, property_uid, key)
                     appliances[key]['images'] = list((images))
-                    ##Image uploading stuff ends here###
+                    ## Image uploading stuff ends here###
 
                     primaryKey = {
                         'property_uid': property_uid
@@ -265,7 +266,7 @@ class Appliances(Resource):
                         # print(appliances[key])
                         existingApp[key] = appliances[key]
                         # print(existingApp[key])
-                        ##Image uploading stuff ends here###
+                        ## Image uploading stuff ends here###
 
                 primaryKey = {
                     'property_uid': property_uid
@@ -296,7 +297,7 @@ class RemoveAppliance(Resource):
             # print(existingApp)
             if appliance in existingApp:
 
-                del(existingApp[appliance])
+                del (existingApp[appliance])
                 # print(existingApp)
                 primaryKey = {
                     'property_uid': property_uid

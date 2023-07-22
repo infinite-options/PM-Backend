@@ -73,7 +73,7 @@ class Rentals(Resource):
             newRental['rental_uid'] = newRentalID
 
             # newRental['rental_status'] = 'ACTIVE'
-            # print('newRental', newRental)
+            print('newRental', newRental)
             documents = json.loads(data.get('documents'))
             for i in range(len(documents)):
                 filename = f'doc_{i}'
@@ -86,17 +86,17 @@ class Rentals(Resource):
                     break
             newRental['documents'] = json.dumps(documents)
 
-            docuSign = json.loads(data.get('docuSign'))
-            for i in range(len(docuSign)):
-                filename = f'doc_{i}'
-                file = request.files.get(filename)
-                if file:
-                    key = f'rentals/{newRentalID}/{filename}'
-                    doc = uploadImage(file, key, '')
-                    docuSign[i]['link'] = doc
-                else:
-                    break
-            newRental['docuSign'] = json.dumps(docuSign)
+            # docuSign = json.loads(data.get('docuSign'))
+            # for i in range(len(docuSign)):
+            #     filename = f'doc_{i}'
+            #     file = request.files.get(filename)
+            #     if file:
+            #         key = f'rentals/{newRentalID}/{filename}'
+            #         doc = uploadImage(file, key, '')
+            #         docuSign[i]['link'] = doc
+            #     else:
+            #         break
+            # newRental['docuSign'] = json.dumps(docuSign)
             # print('newRental', newRental)
             response = db.insert('rentals', newRental)
             # print(response)

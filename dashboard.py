@@ -439,7 +439,7 @@ class OwnerDashboard(Resource):
 
                 # get utilities or maintenance/repair expenses
                 expense_res = db.execute("""
-                SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
+                SELECT prop.*, p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS full_address
                 FROM pm.purchases p
                 LEFT JOIN payments pa
                 ON pa.pay_purchase_id = p.purchase_uid
@@ -815,7 +815,7 @@ class ManagerDashboard(Resource):
                     response['result'][i]['late_date'] = 'Not Applicable'
 
                 # get utilities or maintenance/repair expenses
-                expense_res = db.execute("""SELECT p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS address
+                expense_res = db.execute("""SELECT prop.*, p.*, pa.*, CONCAT(prop.address," ", prop.unit,", ", prop.city, ", ", prop.state," ", prop.zip) AS full_address
                     FROM pm.purchases p
                     LEFT JOIN payments pa
                     ON pa.pay_purchase_id = p.purchase_uid
