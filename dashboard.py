@@ -519,6 +519,7 @@ class ManagerDashboard(Resource):
         response = {}
 
         user = get_jwt_identity()
+        print("User: ", user)
         buid = ''
         for business in user['businesses']:
             print(business)

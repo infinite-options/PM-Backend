@@ -259,7 +259,7 @@ class CashflowOwner(Resource):
                 GROUP BY pp.property_uid,pp.purchase_type,pp.month, pp.year
                 ORDER BY address,unit ASC;""")
             response['result']['revenue'] = list(
-                response_revenue['result']) + list(response_rental_revenue['result']) + list(response_extra_revenue['result']) + list(response_late_fee_revenue['result']) + list(response_deposit_revenue)
+                response_revenue['result']) + list(response_rental_revenue['result']) + list(response_extra_revenue['result']) + list(response_late_fee_revenue['result']) + list(response_deposit_revenue['result'])
             response['result']['revenue_summary'] = list(
                 response_revenue_summary['result']) + list(response_rental_revenue_summary['result']) + list(response_extra_revenue_summary['result']) + list(response_deposit_revenue_summary['result']) + list(response_late_fee_revenue_summary['result'])
             response['result']['revenue_unit'] = list(
