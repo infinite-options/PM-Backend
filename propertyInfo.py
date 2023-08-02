@@ -76,12 +76,11 @@ class AvailableProperties(Resource):
                 for rentals in response['result']:
                     # skip rental status ACTIVE
                     if rentals['rental_status'] == 'ACTIVE':
-                        print('skip if rental_status active',
-                              rentals['rental_status'])
-                        print('lease end', rentals['lease_end'])
+                        # print('skip if rental_status active',rentals['rental_status'])
+                        # print('lease end', rentals['lease_end'])
                         time_between_insertion = datetime.strptime(
                             rentals['lease_end'], '%Y-%m-%d') - datetime.now()
-                        print(time_between_insertion)
+                        # print(time_between_insertion)
                         # if older than 30 days
                         if time_between_insertion.days > 91:
                             print('skip if over 90')
@@ -90,17 +89,14 @@ class AvailableProperties(Resource):
                             endingSoon.append(rentals)
                     # skip rental status PROCESSING
                     elif rentals['rental_status'] == 'PROCESSING':
-                        print('skip if rental_status processing',
-                              rentals['rental_status'])
+                        # print('skip if rental_status processing', rentals['rental_status'])
                         processing.append(rentals)
                     # skip rental status TENANT APPROVED
                     elif rentals['rental_status'] == 'TENANT APPROVED':
-                        print('skip if rental_status tenant approved',
-                              rentals['rental_status'])
+                        print('skip if rental_status tenant approved',rentals['rental_status'])
                     # do sometginf rental status TERMINATED
                     elif rentals['rental_status'] == 'TERMINATED':
-                        print('do something if rental_status terminated',
-                              rentals['rental_status'])
+                        # print('do something if rental_status terminated',rentals['rental_status'])
                         # check if another lease active for the same property
                         terminatedResponse = db.execute("""
                         SELECT * FROM pm.rentals r
@@ -150,7 +146,7 @@ class AvailableProperties(Resource):
             seen_titles = set()
             new_list = []
             for obj in availableProperties:
-                print(obj)
+                # print(obj)
                 if obj['property_uid'] not in seen_titles:
                     new_list.append(obj)
                     seen_titles.add(obj['property_uid'])
