@@ -64,6 +64,7 @@ class Login(Resource):
             response['message'] = 'Email not found'
             response['code'] = 404
             print('IN ELSE LOGIN', response)
+        print("Made it here")
         return response
 
 
