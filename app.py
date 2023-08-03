@@ -17,7 +17,7 @@ from cashflowManager import CashflowManager, AllCashflowManager
 from cashflowOwner import CashflowOwner
 from contact import Contact
 from contracts import Contracts
-from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard
+from dashboard import OwnerDashboard, TenantDashboard, ManagerDashboard, newOwnerDashboard
 from data import connect
 from documents import OwnerDocuments, ManagerDocuments, TenantDocuments, MaintenanceDocuments
 from employees import Employees
@@ -1270,6 +1270,7 @@ api.add_resource(Contracts, '/contracts')
 api.add_resource(TenantDashboard, '/tenantDashboard')
 api.add_resource(ManagerDashboard, '/managerDashboard')
 api.add_resource(OwnerDashboard, '/ownerDashboard')
+api.add_resource(newOwnerDashboard, '/newOwnerDashboard/<string:user_id>')
 # documents
 api.add_resource(OwnerDocuments, '/ownerDocuments')
 api.add_resource(ManagerDocuments, '/managerDocuments')

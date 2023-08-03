@@ -883,3 +883,41 @@ class ManagerDashboard(Resource):
                     response['result'][i]['expenses'] = []
 
         return response
+
+
+class newOwnerDashboard(Resource):
+
+    def get(self, user_id):
+        print("In newOwnerDashboard")
+        # response = {}
+        # items = {}
+
+        with connect() as db:
+            response = db.execute("""
+                -- RETURNS RENT PAYMENT STATUS, PAYMENT DATE, LEASE END 
+                    SELECT pa.*
+                        , payments.amount, payments.payment_date
+                        , IF(payment_date > DATE_ADD(next_payment, INTERVAL late_by DAY), "PAID LATE", purchase_status) AS dashboard_status
+                        , properties.owner_id
+                        , lease_start, lease_end, rental_status, due_by, late_by, late_fee, perDay_late_fee
+                    FROM (  
+                        SELECT purchase_uid, pp_id, purchase_type, description, amount_due, next_payment, purchase_status
+                        FROM pm.purchases, 
+                            JSON_TABLE(purchases.pur_property_id, '$[*]' 
+                            COLUMNS (
+                            a FOR ORDINALITY,
+                            pp_id VARCHAR(40)  PATH '$')
+                        ) p 
+                    ) pa
+                    LEFT JOIN pm.payments
+                        ON purchase_uid = pay_purchase_id
+                    LEFT JOIN pm.properties
+                        ON pp_id = property_uid
+                    LEFT JOIN pm.rentals
+                        ON pp_id = rental_property_id
+                        WHERE purchase_type = "RENT"
+                            AND purchase_status != "DELETED"
+                            AND next_payment = '2023-08-01'
+                            AND owner_id = \'""" + user_id + """\';
+                """)
+        return response, 200

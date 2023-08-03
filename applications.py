@@ -342,7 +342,7 @@ class Applications(Resource):
                     if len(res['result']) > 0:
                         # creating purchases
                         for payment in rentPayments:
-                            print(payment)
+                            # print("Payment is: ", payment)
                             # payment fee type $
                             if payment['fee_type'] == '$':
                                 # payment fee purchase type Rent $
@@ -405,6 +405,7 @@ class Applications(Resource):
                                                     calendar.monthcalendar(charge_date.year, int(charge_date.strftime("%m"))))
                                                 print('mpayment fee type %')
                                                 if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
+                                                    # print("mpayment is Weekly")
                                                     if mpayment['of'] == 'Gross Rent':
 
                                                         purchaseResponse = newPurchase(
@@ -448,7 +449,7 @@ class Applications(Resource):
                                                             linked_tenantpur_id=purchaseResponseTenant
                                                         )
                                                 elif mpayment['frequency'] == 'Biweekly' and mpayment['fee_type'] == '%':
-
+                                                    # print("mpayment is BiWeekly")
                                                     # if gross rent (listed rent)
                                                     if mpayment['of'] == 'Gross Rent':
 
@@ -497,6 +498,7 @@ class Applications(Resource):
                                                 elif mpayment['frequency'] == 'Monthly' and mpayment['fee_type'] == '%':
 
                                                     # if gross rent (listed rent)
+                                                    # print("mpayment is Monthly")
                                                     if mpayment['of'] == 'Gross Rent':
                                                         purchaseResponse = newPurchase(
                                                             linked_bill_id=None,
@@ -797,7 +799,7 @@ class Applications(Resource):
                                             for mpayment in managementPayments:
                                                 weeks_current_month = len(
                                                     calendar.monthcalendar(charge_date.year, int(charge_date.strftime("%m"))))
-                                                print('mpayment fee type %')
+                                                # print('mpayment fee type %', mpayment)
                                                 if mpayment['frequency'] == 'Weekly' and mpayment['fee_type'] == '%':
                                                     if mpayment['of'] == 'Gross Rent':
 
@@ -811,8 +813,7 @@ class Applications(Resource):
                                                             purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
-                                                            amount_due=weeks_current_month*(charge *
-                                                                                            (1-mpayment['charge']/100)),
+                                                            amount_due=weeks_current_month*(charge *(1-int(mpayment['charge'])/100)),
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
