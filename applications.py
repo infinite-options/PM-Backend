@@ -811,8 +811,7 @@ class Applications(Resource):
                                                             purchase_type='OWNER PAYMENT RENT',
                                                             description=charge_month + ' ' +
                                                             payment['fee_name'],
-                                                            amount_due=weeks_current_month*(charge *
-                                                                                            (1-mpayment['charge']/100)),
+                                                            amount_due=weeks_current_month*(charge *(1-((int)(mpayment['charge']))/100)),
                                                             purchase_notes=charge_month,
                                                             purchase_date=available_date,
                                                             purchase_frequency=mpayment['frequency'],
